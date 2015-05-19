@@ -103,7 +103,7 @@
                      (number-sequence 0 (etable-get-row-count (etable-get-table-model table)))))))
 
 (defun docker-images-rmi-selection ()
-  "Run `docker-rmi' on the etable selection."
+  "Run `docker-rmi' on the images selection."
   (interactive)
   (let ((args (docker-images-rmi-arguments)))
     (--each (docker-images-selection)
@@ -112,7 +112,7 @@
   (docker-images))
 
 (defun docker-images-pull-selection ()
-  "Run `docker-pull' on the etable selection."
+  "Run `docker-pull' on the images selection."
   (interactive)
   (let ((args (docker-images-pull-arguments)))
     (--each (docker-images-selection)
@@ -121,7 +121,7 @@
   (docker-images))
 
 (defun docker-images-push-selection ()
-  "Run `docker-push' on the etable selection."
+  "Run `docker-push' on the images selection."
   (interactive)
   (let ((args (s-join " " (docker-images-rmi-arguments))))
     (--each (docker-images-selection)
@@ -130,7 +130,7 @@
   (docker-images))
 
 (defun docker-images-run-selection ()
-  "Run `docker-run' on the etable selection."
+  "Run `docker-run' on the images selection."
   (interactive)
   (--each (docker-images-selection)
     (docker-run it))
