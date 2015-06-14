@@ -35,19 +35,14 @@
    (size         :initarg :size         :initform nil)
    (created      :initarg :created      :initform nil)))
 
-(defmethod docker-image-name ((this docker-image))
-  "Return the repository:name image name."
-  (format "%s:%s" (oref this :repository) (oref this :tag)))
-
-(defmethod docker-image-to-etable ((this docker-image))
-  "Convert `docker-image' to ETable."
-  `[
-   ,(oref this :id)
-   ,(oref this :repository)
-   ,(oref this :tag)
-   ,(oref this :created)
-   ,(oref this :size)
-   ])
+(defmethod docker-image-to-tabulated-list ((this docker-image))
+  "Convert `docker-image' to tabulated list."
+  (list (oref this :id)
+        `[,(oref this :id)
+          ,(oref this :repository)
+          ,(oref this :tag)
+          ,(oref this :created)
+          ,(oref this :size)]))
 
 (defun make-docker-image (repository tag id created size)
   "Helper to create a `eieio` docker image object."
@@ -92,50 +87,49 @@
   (docker "images" (when all "-a ") (when quiet "-q ") (when filters (s-join " --filter=" filters))))
 
 (defun docker-images-selection ()
-  "Get the images selection as a list of names or SHA1."
-  (let* ((table (etable-at-point 'etable))
-         (selection (etable-get-selection-model table))
-         (model (etable-get-table-model table)))
-    (--map (if (equal (etable-get-value-at model it 1) "<none>")
-               (etable-get-value-at model it 0)
-             (format "%s:%s" (etable-get-value-at model it 1) (etable-get-value-at model it 2)))
-           (--filter (etable-selected-index-p selection it)
-                     (number-sequence 0 (etable-get-row-count (etable-get-table-model table)))))))
+  "Get the images selection as a list of names."
+  (save-excursion
+    (goto-char (point-min))
+    (let ((selection ()))
+      (while (not (eobp))
+        (when (eq (char-after) ?*)
+          (let* ((entry (tabulated-list-get-entry))
+                 (name (format "%s:%s" (aref entry 1) (aref entry 2))))
+            (add-to-list 'selection (if (string-equal name "<none>:<none>") (aref entry 0) name))))
+        (forward-line))
+      selection)))
 
 (defun docker-images-rmi-selection ()
   "Run `docker-rmi' on the images selection."
   (interactive)
   (let ((args (docker-images-rmi-arguments)))
     (--each (docker-images-selection)
-      (docker-rmi it (-contains? args "-f") (-contains? args "--no-prune"))))
-  (kill-this-buffer)
-  (docker-images))
+      (docker-rmi it (-contains? args "-f") (-contains? args "--no-prune")))
+    (tabulated-list-revert)))
 
 (defun docker-images-pull-selection ()
   "Run `docker-pull' on the images selection."
   (interactive)
   (let ((args (docker-images-pull-arguments)))
     (--each (docker-images-selection)
-      (docker-pull it (-contains? args "-a"))))
-  (kill-this-buffer)
-  (docker-images))
+      (docker-pull it (-contains? args "-a")))
+    (tabulated-list-revert)))
 
 (defun docker-images-push-selection ()
   "Run `docker-push' on the images selection."
   (interactive)
   (let ((args (s-join " " (docker-images-rmi-arguments))))
     (--each (docker-images-selection)
-      (docker "push" args it)))
-  (kill-this-buffer)
-  (docker-images))
+      (docker "push" args it))
+    (tabulated-list-revert)))
 
-(defun docker-images-run-selection ()
+(defun docker-images-run-selection (command)
   "Run `docker-run' on the images selection."
-  (interactive)
-  (--each (docker-images-selection)
-    (docker-run it))
-  (kill-this-buffer)
-  (docker-images))
+  (interactive "sCommand: ")
+  (let ((args (s-join " " (docker-images-run-arguments))))
+    (--each (docker-images-selection)
+      (async-shell-command (format "docker run %s %s %s" args it command) (format "*run %s*" it)))
+    (tabulated-list-revert)))
 
 (magit-define-popup docker-images-rmi-popup
   "Popup for removing images."
@@ -162,42 +156,98 @@
 (magit-define-popup docker-images-run-popup
   "Popup for running images."
   'docker-images-popups
-  :man-page "docker"
+  :man-page "docker-run"
   :switches '((?i "Interactive" "-i")
               (?t "TTY" "-t")
               (?r "Remove" "--rm"))
-  :options  '((?c "Command to run" "--command=" read-shell-command))
   :actions  '((?R "Run images" docker-images-run-selection))
-  :default-arguments '("-i" "-t" "--command=bash"))
+  :default-arguments '("-i" "-t" "--rm"))
+
+(defun docker-images-menu-mark (&optional how-many)
+  "Mark move to the next line."
+  (interactive "p")
+  (--dotimes how-many (tabulated-list-put-tag "*" t)))
+
+(defun docker-images-menu-unmark (&optional how-many)
+  "Unmark and move to the next line."
+  (interactive "p")
+  (--dotimes how-many (tabulated-list-put-tag "" t)))
+
+(defun docker-images-menu-toggle-marks ()
+  "Toggle marks."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (while (not (eobp))
+      (setq cmd (char-after))
+      (tabulated-list-put-tag (if (eq cmd ?*) "" "*") t))))
+
+(defun docker-images-menu-unmark-all ()
+  "Unmark all."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (while (not (eobp))
+      (tabulated-list-put-tag "" t))))
+
+(defun docker-images-refresh ()
+  (setq tabulated-list-entries (-map 'docker-image-to-tabulated-list (docker-get-images))))
+
+(defun docker-list-print-entry (id cols)
+  "Insert a Tabulated List entry at point.
+This is the default `tabulated-list-printer' function.  ID is a
+Lisp object identifying the entry to print, and COLS is a vector
+of column descriptors."
+  (let ((beg   (point))
+        (x     (max tabulated-list-padding 0))
+        (ncols (length tabulated-list-format))
+        (inhibit-read-only t))
+    (if (> tabulated-list-padding 0)
+        (insert (make-string x ?\s)))
+    (dotimes (n ncols)
+      (setq x (tabulated-list-print-col n (aref cols n) x)))
+    (insert ?\n)
+    (put-text-property beg (point) 'tabulated-list-id id)
+    (put-text-property beg (point) 'tabulated-list-entry cols)))
 
 (defvar docker-images-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "D" 'docker-images-rmi-popup)
+    (define-key map "m" 'docker-images-menu-mark)
+    (define-key map "u" 'docker-images-menu-unmark)
+    (define-key map "t" 'docker-images-menu-toggle-marks)
+    (define-key map "U" 'docker-images-menu-unmark-all)
     (define-key map "F" 'docker-images-pull-popup)
     (define-key map "P" 'docker-images-push-popup)
     (define-key map "R" 'docker-images-run-popup)
-    (define-key map "q" 'kill-this-buffer)
     map)
   "Keymap for `docker-images-mode'.")
-
-(define-minor-mode docker-images-mode
-  "Minor mode for `docker-images'."
-  nil
-  " docker-images"
-  docker-images-mode-map)
 
 ;;;###autoload
 (defun docker-images ()
   "List docker images."
   (interactive)
-  (let* ((images (docker-get-images))
-         (images-etable (etable-create-table (-map #'docker-image-to-etable images))))
-    (with-current-buffer-window "*docker-images*"
-                                nil
-                                nil
-                                (insert "---------- DOCKER IMAGES ----------\n\n")
-                                (etable-draw images-etable (point))
-                                (docker-images-mode))))
+  (pop-to-buffer "*docker-images*")
+  (docker-images-mode)
+  (docker-images-refresh)
+  (tabulated-list-revert))
+
+(define-derived-mode docker-images-mode tabulated-list-mode "Images Menu"
+  "Major mode for handling a list of docker images.
+
+\\<docker-images-mode-map>
+\\{docker-images-mode-map}"
+  (setq tabulated-list-format [
+                               ("Id" 16 t)
+                               ("Repository" 30 t)
+                               ("Tag" 10 t)
+                               ("Created" 15 t)
+                               ("Size" 10 t)])
+  (setq tabulated-list-padding 2)
+  (setq tabulated-list-printer 'docker-list-print-entry)
+  (setq tabulated-list-sort-key (cons "Repository" nil))
+  (add-hook 'tabulated-list-revert-hook 'docker-images-refresh nil t)
+  (tabulated-list-init-header))
 
 (provide 'docker-images)
 
