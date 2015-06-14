@@ -55,7 +55,7 @@
 
 (defun docker-image-parse (line)
   "Convert LINE from 'docker images' to `docker-image'."
-  (apply #'make-docker-image (cdr (s-match "^\\([^ ]+\\) +\\([^ ]+\\) +\\([_[:alnum:]]+\\) +\\([_ [:alnum:]]+ ago\\) +\\(.*\\)$" line))))
+  (apply #'make-docker-image (cdr (s-match "^\\([^ ]+\\) +\\([^ ]+\\) +\\([_[:alnum:]]+\\) +\\([_ [:alnum:]\.]+ ago\\) +\\(.*\\)$" line))))
 
 (defun docker-image-names ()
   "Return the list of image names."
