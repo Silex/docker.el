@@ -27,7 +27,6 @@
 
 (require 's)
 (require 'dash)
-(require 'etable)
 
 (defun docker (action &rest args)
   "Execute docker ACTION passing arguments ARGS."
