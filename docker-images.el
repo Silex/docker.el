@@ -33,8 +33,8 @@
   ((id           :initarg :id           :initform nil)
    (repository   :initarg :repository   :initform nil)
    (tag          :initarg :tag          :initform nil)
-   (size         :initarg :size         :initform nil)
-   (created      :initarg :created      :initform nil)))
+   (created      :initarg :created      :initform nil)
+   (size         :initarg :size         :initform nil)))
 
 (defmethod docker-image-to-tabulated-list ((this docker-image))
   "Convert `docker-image' to tabulated list."
@@ -50,8 +50,8 @@
   (docker-image id :id id :repository repository :tag tag :size size :created created))
 
 (defun docker-image-parse (line)
-  "Convert LINE from 'docker images' to `docker-image'."
-  (apply #'make-docker-image (cdr (s-match "^\\([^ ]+\\) +\\([^ ]+\\) +\\([_[:alnum:]]+\\) +\\([_ [:alnum:]\.]+ ago\\) +\\(.*\\)$" line))))
+  "Convert LINE from 'docker containers' to `docker-container'."
+  (apply #'make-docker-image (s-split " \\{3,\\}" line)))
 
 (defun docker-image-names ()
   "Return the list of image names."
@@ -151,7 +151,7 @@
   "Popup for pushing images."
   'docker-images-popups
   :man-page "docker-push"
-  :actions  '((?F "Push" docker-images-push-selection)))
+  :actions  '((?P "Push" docker-images-push-selection)))
 
 ;;-v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=unix$DISPLAY
 (magit-define-popup docker-images-run-popup
@@ -166,23 +166,6 @@
 
 (defun docker-images-refresh ()
   (setq tabulated-list-entries (-map 'docker-image-to-tabulated-list (docker-get-images))))
-
-(defun docker-list-print-entry (id cols)
-  "Insert a Tabulated List entry at point.
-This is the default `tabulated-list-printer' function.  ID is a
-Lisp object identifying the entry to print, and COLS is a vector
-of column descriptors."
-  (let ((beg   (point))
-        (x     (max tabulated-list-padding 0))
-        (ncols (length tabulated-list-format))
-        (inhibit-read-only t))
-    (if (> tabulated-list-padding 0)
-        (insert (make-string x ?\s)))
-    (dotimes (n ncols)
-      (setq x (tabulated-list-print-col n (aref cols n) x)))
-    (insert ?\n)
-    (put-text-property beg (point) 'tabulated-list-id id)
-    (put-text-property beg (point) 'tabulated-list-entry cols)))
 
 (defvar docker-images-mode-map
   (let ((map (make-sparse-keymap)))
@@ -211,7 +194,6 @@ of column descriptors."
                                ("Created" 15 t)
                                ("Size" 10 t)])
   (setq tabulated-list-padding 2)
-  (setq tabulated-list-printer 'docker-list-print-entry)
   (setq tabulated-list-sort-key (cons "Repository" nil))
   (add-hook 'tabulated-list-revert-hook 'docker-images-refresh nil t)
   (tabulated-list-init-header))
