@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 'docker)
+(require 'tabulated-list-ext)
 
 (require 'eieio)
 (require 'magit-popup)
@@ -163,33 +164,6 @@
   :actions  '((?R "Run images" docker-images-run-selection))
   :default-arguments '("-i" "-t" "--rm"))
 
-(defun docker-images-menu-mark (&optional how-many)
-  "Mark move to the next line."
-  (interactive "p")
-  (--dotimes how-many (tabulated-list-put-tag "*" t)))
-
-(defun docker-images-menu-unmark (&optional how-many)
-  "Unmark and move to the next line."
-  (interactive "p")
-  (--dotimes how-many (tabulated-list-put-tag "" t)))
-
-(defun docker-images-menu-toggle-marks ()
-  "Toggle marks."
-  (interactive)
-  (save-excursion
-    (goto-char (point-min))
-    (while (not (eobp))
-      (setq cmd (char-after))
-      (tabulated-list-put-tag (if (eq cmd ?*) "" "*") t))))
-
-(defun docker-images-menu-unmark-all ()
-  "Unmark all."
-  (interactive)
-  (save-excursion
-    (goto-char (point-min))
-    (while (not (eobp))
-      (tabulated-list-put-tag "" t))))
-
 (defun docker-images-refresh ()
   (setq tabulated-list-entries (-map 'docker-image-to-tabulated-list (docker-get-images))))
 
@@ -213,10 +187,6 @@ of column descriptors."
 (defvar docker-images-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "D" 'docker-images-rmi-popup)
-    (define-key map "m" 'docker-images-menu-mark)
-    (define-key map "u" 'docker-images-menu-unmark)
-    (define-key map "t" 'docker-images-menu-toggle-marks)
-    (define-key map "U" 'docker-images-menu-unmark-all)
     (define-key map "F" 'docker-images-pull-popup)
     (define-key map "P" 'docker-images-push-popup)
     (define-key map "R" 'docker-images-run-popup)
@@ -232,11 +202,8 @@ of column descriptors."
   (docker-images-refresh)
   (tabulated-list-revert))
 
-(define-derived-mode docker-images-mode tabulated-list-mode "Images Menu"
-  "Major mode for handling a list of docker images.
-
-\\<docker-images-mode-map>
-\\{docker-images-mode-map}"
+(define-derived-mode docker-images-mode tabulated-list-ext-mode "Images Menu"
+  "Major mode for handling a list of docker images."
   (setq tabulated-list-format [
                                ("Id" 16 t)
                                ("Repository" 30 t)
