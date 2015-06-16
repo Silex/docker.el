@@ -31,6 +31,7 @@
 (defvar docker-command-map
   (let ((map (make-sparse-keymap)))
     (define-key map "i" 'docker-images)
+    (define-key map "c" 'docker-containers)
     (define-key map "b" 'dockerfile-build-buffer)
     map)
   "Keymap for `docker-mode' after `C-c d' was pressed.")
