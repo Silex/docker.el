@@ -1,4 +1,4 @@
-;;; docker.el --- Emacs interface to Docker
+;;; docker-process.el --- Emacs interface to Docker
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 ;; URL: https://github.com/Silex/docker
@@ -25,34 +25,15 @@
 
 ;;; Code:
 
-(require 'docker-images)
-(require 'docker-containers)
+(require 's)
+(require 'dash)
 
-(defvar docker-command-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "i" 'docker-images)
-    (define-key map "b" 'dockerfile-build-buffer)
-    map)
-  "Keymap for `docker-mode' after `C-c d' was pressed.")
+(defun docker (action &rest args)
+  "Execute docker ACTION passing arguments ARGS."
+  (let ((command (format "docker %s %s" action (s-join " " (-non-nil args)))))
+    (message command)
+    (shell-command-to-string command)))
 
-(defvar docker-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c d") docker-command-map)
-    map)
-  "Keymap for `docker-mode'.")
+(provide 'docker-process)
 
-;;;###autoload
-(define-minor-mode docker-mode
-  "Minor mode for `docker'."
-  nil
-  " docker"
-  docker-mode-map)
-
-;;;###autoload
-(define-globalized-minor-mode docker-global-mode
-  docker-mode
-  docker-mode)
-
-(provide 'docker)
-
-;;; docker.el ends here
+;;; docker-process.el ends here

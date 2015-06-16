@@ -23,7 +23,7 @@
 
 ;;; Code:
 
-(require 'docker)
+(require 'docker-process)
 (require 'tabulated-list-ext)
 
 (require 'eieio)
