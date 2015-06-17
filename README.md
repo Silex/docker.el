@@ -1,24 +1,54 @@
 # docker.el
 
-**THIS PACKAGE IS STILL UNDER DEVELOPMENT BUT SHOULD BE MORE OR LESS USABLE**
-
-## Quickstart
-
-* <kbd>docker-images</kbd>
- * `m`/`u`/`U`/`t`: mark/unmark/unmark all/toggle
- * `F`: pull
- * `P`: push
- * `D`: rmi
- * `R`: run
-* <kbd>docker-containers</kbd> soon!
-* <kbd>docker-global-mode</kbd> Mode that helps to always be ready to manipulate docker
- * `C-c d i`: images
- * `C-c d c`: containers
- * `C-c d b`: builds dockerfile (depends on `dockerfile-mode`).
+**THIS PACKAGE IS USABLE BUT UNDER HEAVY DEVELOPMENT**
 
 ## Installation
 
-The recommended way to install docker.el is through MELPA, pending https://github.com/milkypostman/melpa/pull/2782.
+The recommended way to install docker.el is through [MELPA](https://github.com/milkypostman/melpa).
+
+## Quickstart
+
+Docker.el follows the philosophy of `dired` (or `ibuffer`), where you
+select things to operate on followed by actions like in
+[magit](https://github.com/magit/magit).
+
+### Common selection bindings
+
+On all the listings, you can use the following keybindings:
+
+* `m`: mark
+* `u`: unmark
+* `t`: toggle marks
+* `U`: unmark all
+
+### Images
+
+Running <kbd>M-x docker-images</kbd> lists the docker images.
+After having selected some images, you can do the following actions:
+
+* `F`: pull
+* `P`: push
+* `D`: rmi
+* `R`: run
+
+### Containers
+
+Running <kbd>M-x docker-containers</kbd> lists the docker containers.
+After having selected some containers, you can do the following actions:
+
+* `S`: start
+* `O`: stop
+* `P`: pause
+* `R`: restart
+* `D`: rm
+
+### Global minor mode
+
+ Running <kbd>M-x docker-global-mode</kbd> creates keybindings to the various docker utilities:
+
+ * `C-c d b`: builds dockerfile (depends on [dockerfile-mode](https://github.com/spotify/dockerfile-mode)).
+ * `C-c d c`: list containers
+ * `C-c d i`: list images
 
 ## Contributions welcome!
 
