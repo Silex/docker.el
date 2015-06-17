@@ -36,6 +36,10 @@
    (created      :initarg :created      :initform nil)
    (size         :initarg :size         :initform nil)))
 
+(defmethod docker-image-name ((this docker-image))
+  "Return the repository:name image name."
+  (format "%s:%s" (oref this :repository) (oref this :tag)))
+
 (defmethod docker-image-to-tabulated-list ((this docker-image))
   "Convert `docker-image' to tabulated list."
   (list (oref this :id)
@@ -59,7 +63,7 @@
 
 (defun docker-read-image-name ()
   "Read an image name."
-  (completing-read "Image: " (docker-image-names) nil t))
+  (completing-read "Image: " (docker-image-names)))
 
 (defun docker-pull (name &optional all)
   "Pull an image."

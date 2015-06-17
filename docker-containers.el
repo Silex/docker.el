@@ -38,6 +38,10 @@
    (ports        :initarg :ports        :initform nil)
    (names        :initarg :names        :initform nil)))
 
+(defmethod docker-container-name ((this docker-container))
+  "Return the container name."
+  (oref this :names))
+
 (defmethod docker-container-to-tabulated-list ((this docker-container))
   "Convert `docker-container' to tabulated list."
   (list (oref this :id)
@@ -63,7 +67,7 @@
 
 (defun docker-read-container-name ()
   "Read an container name."
-  (completing-read "Container: " (docker-container-names) nil t))
+  (completing-read "Container: " (docker-container-names)))
 
 (defun docker-start (name)
   "Start a container."
