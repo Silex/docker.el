@@ -39,6 +39,7 @@ After having selected some containers, you can do the following actions:
 * `S`: start
 * `O`: stop
 * `P`: pause
+* `P`: unpause
 * `R`: restart
 * `D`: rm
 

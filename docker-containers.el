@@ -89,6 +89,11 @@
   (interactive (list (docker-read-container-name)))
   (docker "start" name))
 
+(defun docker-unpause (name)
+  "Unpause a container."
+  (interactive (list (docker-read-container-name)))
+  (docker "unpause" name))
+
 (defun docker-rm (name &optional force)
   "Destroy or uncommand an container."
   (interactive (list (docker-read-container-name) current-prefix-arg))
@@ -182,6 +187,12 @@
   :man-page "docker-pause"
   :actions  '((?P "Pause" docker-containers-pause-selection)))
 
+(magit-define-popup docker-containers-unpause-popup
+  "Popup for unpauseing containers."
+  'docker-containers-popups
+  :man-page "docker-unpause"
+  :actions  '((?P "Unpause" docker-containers-unpause-selection)))
+
 (magit-define-popup docker-containers-rm-popup
   "Popup for removing containers."
   'docker-containers-popups
@@ -198,6 +209,7 @@
     (define-key map "O" 'docker-containers-stop-popup)
     (define-key map "R" 'docker-containers-restart-popup)
     (define-key map "P" 'docker-containers-pause-popup)
+    (define-key map "U" 'docker-containers-unpause-popup)
     (define-key map "D" 'docker-containers-rm-popup)
     map)
   "Keymap for `docker-containers-mode'.")
