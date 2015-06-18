@@ -8,30 +8,52 @@ The recommended way to install docker.el is through [MELPA](https://github.com/m
 
 ## Quickstart
 
-Docker.el follows the philosophy of `dired` (or `ibuffer`), where you
-select things to operate on followed by actions like in
-[magit](https://github.com/magit/magit).
+Use <kbd>M-x docker-images</kbd> or <kbd>M-x docker-containers</kbd>,
+then mark/unmark items using the following keybindings:
 
-### Common selection bindings
+- `m`: mark
+- `u`: unmark
+- `t`: toggle marks
+- `U`: unmark all
 
-On all the listings, you can use the following keybindings:
+Press `?` to known about available keybindings in order to run actions on these items.
 
-* `m`: mark
-* `u`: unmark
-* `t`: toggle marks
-* `U`: unmark all
 
-### Images
+## Keymaps
 
-Running <kbd>M-x docker-images</kbd> lists the docker images.
+### docker-global-mode
+
+Running <kbd>M-x docker-global-mode</kbd> creates keybindings to the
+various docker api. The keymap prefix is `C-c d` by default and can be
+changed with <kbd>M-x customize-variable docker-keymap-prefix</kbd>.
+
+| command                                             | keymap                                     | description       |
+|-----------------------------------------------------|--------------------------------------------|-------------------|
+| [docker-containers](#docker-containers)             | <kbd>C-c d c c</kbd> or <kbd>C-c d C</kbd> | list containers   |
+| [docker-rm](#docker-rm)                             | <kbd>C-c d c d</kbd>                       | delete container  |
+| [docker-stop](#docker-stop)                         | <kbd>C-c d c o</kbd>                       | stop container    |
+| [docker-pause](#docker-pause)                       | <kbd>C-c d c p</kbd>                       | pause container   |
+| [docker-restart](#docker-restart)                   | <kbd>C-c d c r</kbd>                       | restart container |
+| [docker-start](#docker-start)                       | <kbd>C-c d c s</kbd>                       | start container   |
+| [docker-unpause](#docker-unpause)                   | <kbd>C-c d c u</kbd>                       | unpause container |
+| [docker-images](#docker-images)                     | <kbd>C-c d i i</kbd> or <kbd>C-c d I</kbd> | list images       |
+| [docker-rmi](#docker-rmi)                           | <kbd>C-c d i d</kbd>                       | delete image      |
+| [docker-pull](#docker-pull)                         | <kbd>C-c d i f</kbd>                       | pull image        |
+| [docker-push](#docker-push)                         | <kbd>C-c d i p</kbd>                       | push image        |
+| [docker-run](#docker-run)                           | <kbd>C-c d i r</kbd>                       | run image         |
+| [dockerfile-build-buffer](#dockerfile-build-buffer) | <kbd>C-c d B</kbd>                         | Build Dockerfile  |
+
+### docker-images
+
+<kbd>M-x docker-images</kbd> lists the docker images.
 After having selected some images, you can do the following actions:
 
-* `F`: pull
-* `P`: push
-* `D`: rmi
-* `R`: run
+- `F`: pull
+- `P`: push
+- `D`: rmi
+- `R`: run
 
-### Containers
+### docker-containers
 
 Running <kbd>M-x docker-containers</kbd> lists the docker containers.
 After having selected some containers, you can do the following actions:
@@ -39,17 +61,66 @@ After having selected some containers, you can do the following actions:
 * `S`: start
 * `O`: stop
 * `P`: pause
-* `P`: unpause
+* `U`: unpause
 * `R`: restart
 * `D`: rm
 
-### Global minor mode
 
- Running <kbd>M-x docker-global-mode</kbd> creates keybindings to the various docker utilities:
+## API
 
- * `C-c d b`: builds dockerfile (depends on [dockerfile-mode](https://github.com/spotify/dockerfile-mode)).
- * `C-c d c`: list containers
- * `C-c d i`: list images
+### docker-rm
+
+Deletes a container.
+
+### docker-stop
+
+Stops a container.
+
+### docker-pause
+
+Pauses a container.
+
+### docker-restart
+
+Restarts a container.
+
+### docker-start
+
+Starts a container.
+
+### docker-unpause
+
+Unpause a container.
+
+### docker-rmi
+
+Deletes an image.
+
+### docker-pull
+
+Pull an image.
+
+### docker-push
+
+Push an image.
+
+### docker-run
+
+Run an image.
+
+### dockerfile-build-buffer
+
+See [docker-file-mode](https://github.com/spotify/dockerfile-mode) for more information,
+
+
+## Philosophy
+
+This package is inspired by packages like:
+
+- `dired` / `ibuffer` for selecting images / containers to operate on.
+- [magit](https://github.com/magit/magit) for the various actions popups.
+- [projectile](https://github.com/bbatsov/projectile) for the keymap.
+
 
 ## Contributions welcome!
 
