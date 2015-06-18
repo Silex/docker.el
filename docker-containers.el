@@ -87,7 +87,7 @@
 (defun docker-pause (name)
   "Pause a container."
   (interactive (list (docker-read-container-name)))
-  (docker "start" name))
+  (docker "pause" name))
 
 (defun docker-unpause (name)
   "Unpause a container."
