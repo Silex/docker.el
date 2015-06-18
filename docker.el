@@ -28,26 +28,59 @@
 (require 'docker-images)
 (require 'docker-containers)
 
+(defgroup docker nil
+  "Emacs customization group for docker."
+  :group 'convenience)
+
+(defcustom docker-keymap-prefix "C-c d"
+  "Prefix for `docker-mode'."
+  :group 'docker)
+
+(defvar docker-images-command-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "d" 'docker-rmi)
+    (define-key map "f" 'docker-pull)
+    (define-key map "i" 'docker-images)
+    (define-key map "p" 'docker-push)
+    (define-key map "r" 'docker-run)
+    map)
+  "Keymap for docker images.")
+
+(defvar docker-containers-command-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "c" 'docker-containers)
+    (define-key map "d" 'docker-rm)
+    (define-key map "o" 'docker-stop)
+    (define-key map "p" 'docker-pause)
+    (define-key map "r" 'docker-restart)
+    (define-key map "s" 'docker-start)
+    (define-key map "u" 'docker-unpause)
+    map)
+  "Keymap for docker containers.")
+
 (defvar docker-command-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "i" 'docker-images)
-    (define-key map "c" 'docker-containers)
-    (define-key map "b" 'dockerfile-build-buffer)
+    (define-key map "i" docker-images-command-map)
+    (define-key map "c" docker-containers-command-map)
+    (define-key map "I" 'docker-images)
+    (define-key map "C" 'docker-containers)
+    (define-key map "B" 'dockerfile-build-buffer)
     map)
-  "Keymap for `docker-mode' after `C-c d' was pressed.")
+  "Keymap for `docker-mode' after `docker-keymap-prefix' was pressed.")
 
 (defvar docker-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c d") docker-command-map)
+    (define-key map (kbd docker-keymap-prefix) docker-command-map)
     map)
   "Keymap for `docker-mode'.")
 
 ;;;###autoload
 (define-minor-mode docker-mode
-  "Minor mode for `docker'."
+  "Minor mode to manage docker."
   nil
   " docker"
-  docker-mode-map)
+  docker-mode-map
+  :group 'docker)
 
 ;;;###autoload
 (define-globalized-minor-mode docker-global-mode
