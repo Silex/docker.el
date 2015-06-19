@@ -18,6 +18,8 @@ then mark/unmark items using the following keybindings:
 
 Press `?` to known about available keybindings in order to run actions on these items.
 
+You can also call the [API](#api) directly.
+
 
 ## Keymaps
 
