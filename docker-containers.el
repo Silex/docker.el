@@ -223,6 +223,8 @@
   (docker-containers-refresh)
   (tabulated-list-revert))
 
+(defalias 'docker-ps 'docker-containers)
+
 (define-derived-mode docker-containers-mode tabulated-list-ext-mode "Containers Menu"
   "Major mode for handling a list of docker containers."
   (setq tabulated-list-format [
