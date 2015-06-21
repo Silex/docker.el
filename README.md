@@ -21,6 +21,13 @@ Press `?` to known about available keybindings in order to run actions on these 
 You can also call the [API](#api) directly.
 
 
+## Screenshots
+
+### images
+
+![docker.el screenshot](screenshots/images.png)
+
+
 ## Keymaps
 
 ### docker-global-mode
