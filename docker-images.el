@@ -194,7 +194,7 @@
   (setq tabulated-list-format [
                                ("Id" 16 t)
                                ("Repository" 30 t)
-                               ("Tag" 10 t)
+                               ("Tag" 20 t)
                                ("Created" 15 t)
                                ("Size" 10 t)])
   (setq tabulated-list-padding 2)
