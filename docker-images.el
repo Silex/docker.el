@@ -102,6 +102,8 @@
                  (name (format "%s:%s" (aref entry 1) (aref entry 2))))
             (add-to-list 'selection (if (string-equal name "<none>:<none>") (aref entry 0) name))))
         (forward-line))
+      (when (null selection)
+        (error "No images selected."))
       selection)))
 
 (defun docker-images-rmi-selection ()

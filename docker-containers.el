@@ -119,6 +119,8 @@
         (when (eq (char-after) ?*)
           (add-to-list 'selection (tabulated-list-get-id)))
         (forward-line))
+      (when (null selection)
+        (error "No containers selected."))
       selection)))
 
 (defun docker-containers-start-selection ()
