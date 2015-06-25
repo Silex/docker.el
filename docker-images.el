@@ -61,23 +61,23 @@
   "Return the list of image names."
   (--map (docker-image-name it) (docker-get-images)))
 
-(defun docker-read-image-name ()
+(defun docker-read-image-name (prompt)
   "Read an image name."
-  (completing-read "Image: " (docker-image-names)))
+  (completing-read prompt (docker-image-names)))
 
 (defun docker-pull (name &optional all)
   "Pull an image."
-  (interactive (list (docker-read-image-name) current-prefix-arg))
+  (interactive (list (docker-read-image-name "Pull image: ") current-prefix-arg))
   (docker "pull" (when all "-a ") name))
 
 (defun docker-push (name)
   "Push an image."
-  (interactive (list (docker-read-image-name)))
+  (interactive (list (docker-read-image-name "Push image: ")))
   (docker "push" name))
 
 (defun docker-rmi (name &optional force no-prune)
   "Destroy or untag an image."
-  (interactive (list (docker-read-image-name) current-prefix-arg))
+  (interactive (list (docker-read-image-name "Delete image: ") current-prefix-arg))
   (docker "rmi" name (when force "-f") (when no-prune "--no-prune")))
 
 (defun docker-get-images (&optional all quiet filters)

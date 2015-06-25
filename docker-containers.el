@@ -65,38 +65,38 @@
   "Return the list of container names."
   (--map (docker-container-name it) (docker-get-containers)))
 
-(defun docker-read-container-name ()
+(defun docker-read-container-name (prompt)
   "Read an container name."
-  (completing-read "Container: " (docker-container-names)))
+  (completing-read prompt (docker-container-names)))
 
 (defun docker-start (name)
   "Start a container."
-  (interactive (list (docker-read-container-name)))
+  (interactive (list (docker-read-container-name "Start container: ")))
   (docker "start" name))
 
 (defun docker-stop (name &optional timeout)
   "Stop a container."
-  (interactive (list (docker-read-container-name)))
+  (interactive (list (docker-read-container-name "Stop container: ")))
   (docker "stop" name (when timeout timeout)))
 
 (defun docker-restart (name &optional timeout)
   "Restart a container."
-  (interactive (list (docker-read-container-name)))
+  (interactive (list (docker-read-container-name "Restart container: ")))
   (docker "restart" name (when timeout timeout)))
 
 (defun docker-pause (name)
   "Pause a container."
-  (interactive (list (docker-read-container-name)))
+  (interactive (list (docker-read-container-name "Pause container: ")))
   (docker "pause" name))
 
 (defun docker-unpause (name)
   "Unpause a container."
-  (interactive (list (docker-read-container-name)))
+  (interactive (list (docker-read-container-name "Unpause container: ")))
   (docker "unpause" name))
 
 (defun docker-rm (name &optional force)
   "Destroy or uncommand an container."
-  (interactive (list (docker-read-container-name) current-prefix-arg))
+  (interactive (list (docker-read-container-name "Delete container: ") current-prefix-arg))
   (docker "rm" name (when force "-f")))
 
 (defun docker-get-containers (&optional all quiet filters)
