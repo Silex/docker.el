@@ -164,7 +164,8 @@
   "Popup for running images."
   'docker-images-popups
   :man-page "docker-run"
-  :switches '((?i "Interactive" "-i")
+  :switches '((?d "Daemonize" "-d")
+              (?i "Interactive" "-i")
               (?t "TTY" "-t")
               (?r "Remove" "--rm"))
   :actions  '((?R "Run images" docker-images-run-selection))
