@@ -59,7 +59,7 @@
 
 (defun docker-container-parse (line)
   "Convert LINE from 'docker containers' to `docker-container'."
-  (apply #'make-docker-container (s-split " \\{3,\\}" line)))
+  (apply #'make-docker-container (s-split " \\{3,15\\}" line)))
 
 (defun docker-container-names ()
   "Return the list of container names."
