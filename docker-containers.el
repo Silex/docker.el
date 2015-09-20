@@ -117,7 +117,7 @@
     (let ((selection ()))
       (while (not (eobp))
         (when (eq (char-after) ?*)
-          (add-to-list 'selection (tabulated-list-get-id)))
+          (add-to-list 'selection (tabulated-list-get-id) t))
         (forward-line))
       (when (null selection)
         (error "No containers selected."))
