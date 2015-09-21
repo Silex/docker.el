@@ -211,7 +211,7 @@
     (define-key map "O" 'docker-containers-stop-popup)
     (define-key map "R" 'docker-containers-restart-popup)
     (define-key map "P" 'docker-containers-pause-popup)
-    (define-key map "U" 'docker-containers-unpause-popup)
+    (define-key map "E" 'docker-containers-unpause-popup)
     (define-key map "D" 'docker-containers-rm-popup)
     map)
   "Keymap for `docker-containers-mode'.")
