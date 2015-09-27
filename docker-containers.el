@@ -97,7 +97,7 @@
 (defun docker-rm (name &optional force)
   "Destroy or uncommand an container."
   (interactive (list (docker-read-container-name "Delete container: ") current-prefix-arg))
-  (docker "rm" name (when force "-f")))
+  (docker "rm" (when force "-f") name))
 
 (defun docker-get-containers (&optional all quiet filters)
   "Get containers as eieio objects."
