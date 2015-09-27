@@ -173,14 +173,14 @@
   "Popup for stoping containers."
   'docker-containers-popups
   :man-page "docker-stop"
-  :options '((?t "Timeout" "--time="))
+  :options '((?t "Timeout" "-t "))
   :actions '((?O "Stop" docker-containers-stop-selection)))
 
 (magit-define-popup docker-containers-restart-popup
   "Popup for restarting containers."
   'docker-containers-popups
   :man-page "docker-restart"
-  :options '((?t "Timeout" "--time="))
+  :options '((?t "Timeout" "-t "))
   :actions '((?R "Restart" docker-containers-restart-selection)))
 
 (magit-define-popup docker-containers-pause-popup
@@ -199,7 +199,7 @@
   "Popup for removing containers."
   'docker-containers-popups
   :man-page "docker-rm"
-  :switches '((?f "Force" "--force=true"))
+  :switches '((?f "Force" "-f"))
   :actions  '((?D "Remove" docker-containers-rm-selection)))
 
 (defun docker-containers-refresh ()
