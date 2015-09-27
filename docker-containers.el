@@ -63,7 +63,7 @@
 
 (defun docker-container-names ()
   "Return the list of container names."
-  (--map (docker-container-name it) (docker-get-containers)))
+  (--map (docker-container-name it) (docker-get-containers t)))
 
 (defun docker-read-container-name (prompt)
   "Read an container name."
