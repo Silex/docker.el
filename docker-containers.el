@@ -76,13 +76,13 @@
 
 (defun docker-stop (name &optional timeout)
   "Stop a container."
-  (interactive (list (docker-read-container-name "Stop container: ")))
-  (docker "stop" name (when timeout timeout)))
+  (interactive (list (docker-read-container-name "Stop container: ") current-prefix-arg))
+  (docker "stop" (when timeout (format "-t %d" timeout)) name))
 
 (defun docker-restart (name &optional timeout)
   "Restart a container."
-  (interactive (list (docker-read-container-name "Restart container: ")))
-  (docker "restart" name (when timeout timeout)))
+  (interactive (list (docker-read-container-name "Restart container: ") current-prefix-arg))
+  (docker "restart" (when timeout (format "-t %d" timeout)) name))
 
 (defun docker-pause (name)
   "Pause a container."
@@ -123,45 +123,23 @@
         (error "No containers selected."))
       selection)))
 
-(defun docker-containers-start-selection ()
-  "Run `docker-start' on the containers selection."
-  (interactive)
-  (let ((args (s-join " " (docker-containers-rm-arguments))))
-    (--each (docker-containers-selection)
-      (docker "start" it))
-    (tabulated-list-revert)))
+(defun docker-containers-run-command-on-selection (command arguments)
+  "Run a docker COMMAND on the containers selection with ARGUMENTS."
+  (interactive "sCommand: \nsArguments: ")
+  (--each (docker-containers-selection)
+    (docker command arguments it))
+  (tabulated-list-revert))
 
-(defun docker-containers-stop-selection ()
-  "Run `docker-stop' on the containers selection."
-  (interactive)
-  (let ((args (docker-containers-stop-arguments)))
-    (--each (docker-containers-selection)
-      (docker-stop it args))
-    (tabulated-list-revert)))
+(defmacro docker-containers-create-selection-functions (&rest functions)
+  `(progn ,@(--map
+             `(defun ,(intern (format "docker-containers-%s-selection" it)) ()
+                ,(format "Run `docker-%s' on the containers selection." it)
+                (interactive)
+                (docker-containers-run-command-on-selection ,(symbol-name it)
+                                                            (s-join " " ,(list (intern (format "docker-containers-%s-arguments" it))))))
+             functions)))
 
-(defun docker-containers-restart-selection ()
-  "Run `docker-restart' on the containers selection."
-  (interactive)
-  (let ((args (docker-containers-restart-arguments)))
-    (--each (docker-containers-selection)
-      (docker-restart it args))
-    (tabulated-list-revert)))
-
-(defun docker-containers-pause-selection ()
-  "Run `docker-pause' on the containers selection."
-  (interactive)
-  (let ((args (docker-containers-restart-arguments)))
-    (--each (docker-containers-selection)
-      (docker-pause it))
-    (tabulated-list-revert)))
-
-(defun docker-containers-rm-selection ()
-  "Run `docker-rm' on the containers selection."
-  (interactive)
-  (let ((args (docker-containers-rm-arguments)))
-    (--each (docker-containers-selection)
-      (docker-rm it (-contains? args "-f")))
-    (tabulated-list-revert)))
+(docker-containers-create-selection-functions start stop restart pause unpause rm)
 
 (magit-define-popup docker-containers-start-popup
   "Popup for starting containers."
