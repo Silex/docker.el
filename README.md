@@ -44,7 +44,7 @@ changed with <kbd>M-x customize-variable docker-keymap-prefix</kbd>.
 | [docker-pause](#docker-pause)                       | <kbd>C-c d c p</kbd>                       | pause container   |
 | [docker-restart](#docker-restart)                   | <kbd>C-c d c r</kbd>                       | restart container |
 | [docker-start](#docker-start)                       | <kbd>C-c d c s</kbd>                       | start container   |
-| [docker-unpause](#docker-unpause)                   | <kbd>C-c d c u</kbd>                       | unpause container |
+| [docker-unpause](#docker-unpause)                   | <kbd>C-c d c e</kbd>                       | unpause container |
 | [docker-images](#docker-images)                     | <kbd>C-c d i i</kbd> or <kbd>C-c d I</kbd> | list images       |
 | [docker-rmi](#docker-rmi)                           | <kbd>C-c d i d</kbd>                       | delete image      |
 | [docker-pull](#docker-pull)                         | <kbd>C-c d i f</kbd>                       | pull image        |
@@ -70,7 +70,7 @@ After having selected some containers, you can do the following actions:
 * `S`: start
 * `O`: stop
 * `P`: pause
-* `U`: unpause
+* `E`: unpause
 * `R`: restart
 * `D`: rm
 

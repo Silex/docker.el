@@ -54,7 +54,7 @@
     (define-key map "p" 'docker-pause)
     (define-key map "r" 'docker-restart)
     (define-key map "s" 'docker-start)
-    (define-key map "u" 'docker-unpause)
+    (define-key map "e" 'docker-unpause)
     map)
   "Keymap for docker containers.")
 
