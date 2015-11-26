@@ -1,7 +1,5 @@
 # docker.el
 
-**THIS PACKAGE IS USABLE BUT UNDER HEAVY DEVELOPMENT**
-
 ## Installation
 
 The recommended way to install docker.el is through [MELPA](https://github.com/milkypostman/melpa).
@@ -20,15 +18,13 @@ Press `?` to known about available keybindings in order to run actions on these 
 
 You can also call the [API](#api) directly.
 
-
 ## Screenshots
 
 ### images
 
 ![docker.el screenshot](screenshots/images.png)
 
-
-## Keymaps
+## Commands
 
 ### docker-global-mode
 
@@ -36,23 +32,25 @@ Running <kbd>M-x docker-global-mode</kbd> creates keybindings to the
 various docker api. The keymap prefix is `C-c d` by default and can be
 changed with <kbd>M-x customize-variable docker-keymap-prefix</kbd>.
 
-| command                                             | keymap                                     | description       |
-|-----------------------------------------------------|--------------------------------------------|-------------------|
-| [docker-images](#docker-images)                     | <kbd>C-c d i i</kbd> or <kbd>C-c d I</kbd> | list images       |
-| [docker-rmi](#docker-rmi)                           | <kbd>C-c d i d</kbd>                       | delete image      |
-| [docker-pull](#docker-pull)                         | <kbd>C-c d i f</kbd>                       | pull image        |
-| [docker-push](#docker-push)                         | <kbd>C-c d i p</kbd>                       | push image        |
-| [docker-run](#docker-run)                           | <kbd>C-c d i r</kbd>                       | run image         |
-| [docker-containers](#docker-containers)             | <kbd>C-c d c c</kbd> or <kbd>C-c d C</kbd> | list containers   |
-| [docker-rm](#docker-rm)                             | <kbd>C-c d c d</kbd>                       | delete container  |
-| [docker-stop](#docker-stop)                         | <kbd>C-c d c o</kbd>                       | stop container    |
-| [docker-pause](#docker-pause)                       | <kbd>C-c d c p</kbd>                       | pause container   |
-| [docker-restart](#docker-restart)                   | <kbd>C-c d c r</kbd>                       | restart container |
-| [docker-start](#docker-start)                       | <kbd>C-c d c s</kbd>                       | start container   |
-| [docker-unpause](#docker-unpause)                   | <kbd>C-c d c e</kbd>                       | unpause container |
-| [docker-volumes](#docker-volumes)                   | <kbd>C-c d v v</kbd> or <kbd>C-c d V</kbd> | list volumes      |
-| [docker-volume-rm](#docker-volume-rm)               | <kbd>C-c d v d</kbd>                       | delete volume     |
-| [dockerfile-build-buffer](#dockerfile-build-buffer) | <kbd>C-c d B</kbd>                         | Build Dockerfile  |
+### API
+
+| command                      | keymap               | description                                                     |
+|------------------------------|----------------------|-----------------------------------------------------------------|
+| docker-images                | <kbd>C-c d i i</kbd> | list images                                                     |
+| docker-rmi                   | <kbd>C-c d i d</kbd> | delete image                                                    |
+| docker-pull                  | <kbd>C-c d i f</kbd> | pull image                                                      |
+| docker-push                  | <kbd>C-c d i p</kbd> | push image                                                      |
+| docker-run                   | <kbd>C-c d i r</kbd> | run image                                                       |
+| docker-containers            | <kbd>C-c d c c</kbd> | list containers                                                 |
+| docker-rm                    | <kbd>C-c d c d</kbd> | delete container                                                |
+| docker-stop                  | <kbd>C-c d c o</kbd> | stop container                                                  |
+| docker-pause                 | <kbd>C-c d c p</kbd> | pause container                                                 |
+| docker-restart               | <kbd>C-c d c r</kbd> | restart container                                               |
+| docker-start                 | <kbd>C-c d c s</kbd> | start container                                                 |
+| docker-unpause               | <kbd>C-c d c e</kbd> | unpause container                                               |
+| docker-volumes               | <kbd>C-c d v v</kbd> | list volumes                                                    |
+| docker-volume-rm             | <kbd>C-c d v d</kbd> | delete volume                                                   |
+| dockerfile-build-buffer      | <kbd>C-c d B</kbd>   | Build [Dockerfile](https://github.com/spotify/dockerfile-mode)  |
 
 ### docker-images
 
@@ -83,57 +81,6 @@ After having selected some volumes, you can do the following actions:
 
 * `D`: rm
 
-## API
-
-### docker-rmi
-
-Deletes an image.
-
-### docker-pull
-
-Pull an image.
-
-### docker-push
-
-Push an image.
-
-### docker-run
-
-Run an image.
-
-### docker-rm
-
-Deletes a container.
-
-### docker-stop
-
-Stops a container.
-
-### docker-pause
-
-Pauses a container.
-
-### docker-restart
-
-Restarts a container.
-
-### docker-start
-
-Starts a container.
-
-### docker-unpause
-
-Unpause a container.
-
-### docker-volume-rm
-
-Deletes a volume.
-
-### dockerfile-build-buffer
-
-See [docker-file-mode](https://github.com/spotify/dockerfile-mode) for more information,
-
-
 ## Philosophy
 
 This package is inspired by packages like:
@@ -141,7 +88,6 @@ This package is inspired by packages like:
 - `dired` / `ibuffer` for selecting images / containers to operate on.
 - [magit](https://github.com/magit/magit) for the various actions popups.
 - [projectile](https://github.com/bbatsov/projectile) for the keymap.
-
 
 ## Contributions welcome!
 
