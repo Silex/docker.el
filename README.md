@@ -8,7 +8,7 @@ The recommended way to install docker.el is through [MELPA](https://github.com/m
 
 ## Quickstart
 
-Use <kbd>M-x docker-images</kbd> or <kbd>M-x docker-containers</kbd>,
+Use <kbd>M-x docker-images</kbd>, <kbd>M-x docker-containers</kbd> or <kbd>M-x docker-volumes</kbd>
 then mark/unmark items using the following keybindings:
 
 - `m`: mark
@@ -50,6 +50,8 @@ changed with <kbd>M-x customize-variable docker-keymap-prefix</kbd>.
 | [docker-restart](#docker-restart)                   | <kbd>C-c d c r</kbd>                       | restart container |
 | [docker-start](#docker-start)                       | <kbd>C-c d c s</kbd>                       | start container   |
 | [docker-unpause](#docker-unpause)                   | <kbd>C-c d c e</kbd>                       | unpause container |
+| [docker-volumes](#docker-volumes)                   | <kbd>C-c d v v</kbd> or <kbd>C-c d V</kbd> | list volumes      |
+| [docker-volume-rm](#docker-volume-rm)               | <kbd>C-c d v d</kbd>                       | delete volume     |
 | [dockerfile-build-buffer](#dockerfile-build-buffer) | <kbd>C-c d B</kbd>                         | Build Dockerfile  |
 
 ### docker-images
@@ -74,6 +76,12 @@ After having selected some containers, you can do the following actions:
 * `R`: restart
 * `D`: rm
 
+### docker-volumes
+
+Running <kbd>M-x docker-volumes</kbd> lists the docker volumes.
+After having selected some volumes, you can do the following actions:
+
+* `D`: rm
 
 ## API
 
@@ -116,6 +124,10 @@ Starts a container.
 ### docker-unpause
 
 Unpause a container.
+
+### docker-volume-rm
+
+Deletes a volume.
 
 ### dockerfile-build-buffer
 

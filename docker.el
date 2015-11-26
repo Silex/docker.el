@@ -58,12 +58,21 @@
     map)
   "Keymap for docker containers.")
 
+(defvar docker-volumes-command-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "d" 'docker-volume-rm)
+    (define-key map "v" 'docker-volumes)
+    map)
+  "Keymap for docker volumes.")
+
 (defvar docker-command-map
   (let ((map (make-sparse-keymap)))
     (define-key map "i" docker-images-command-map)
-    (define-key map "c" docker-containers-command-map)
     (define-key map "I" 'docker-images)
+    (define-key map "c" docker-containers-command-map)
     (define-key map "C" 'docker-containers)
+    (define-key map "v" docker-volumes-command-map)
+    (define-key map "V" 'docker-volumes)
     (define-key map "B" 'dockerfile-build-buffer)
     map)
   "Keymap for `docker-mode' after `docker-keymap-prefix' was pressed.")
