@@ -38,6 +38,11 @@ changed with <kbd>M-x customize-variable docker-keymap-prefix</kbd>.
 
 | command                                             | keymap                                     | description       |
 |-----------------------------------------------------|--------------------------------------------|-------------------|
+| [docker-images](#docker-images)                     | <kbd>C-c d i i</kbd> or <kbd>C-c d I</kbd> | list images       |
+| [docker-rmi](#docker-rmi)                           | <kbd>C-c d i d</kbd>                       | delete image      |
+| [docker-pull](#docker-pull)                         | <kbd>C-c d i f</kbd>                       | pull image        |
+| [docker-push](#docker-push)                         | <kbd>C-c d i p</kbd>                       | push image        |
+| [docker-run](#docker-run)                           | <kbd>C-c d i r</kbd>                       | run image         |
 | [docker-containers](#docker-containers)             | <kbd>C-c d c c</kbd> or <kbd>C-c d C</kbd> | list containers   |
 | [docker-rm](#docker-rm)                             | <kbd>C-c d c d</kbd>                       | delete container  |
 | [docker-stop](#docker-stop)                         | <kbd>C-c d c o</kbd>                       | stop container    |
@@ -45,11 +50,6 @@ changed with <kbd>M-x customize-variable docker-keymap-prefix</kbd>.
 | [docker-restart](#docker-restart)                   | <kbd>C-c d c r</kbd>                       | restart container |
 | [docker-start](#docker-start)                       | <kbd>C-c d c s</kbd>                       | start container   |
 | [docker-unpause](#docker-unpause)                   | <kbd>C-c d c e</kbd>                       | unpause container |
-| [docker-images](#docker-images)                     | <kbd>C-c d i i</kbd> or <kbd>C-c d I</kbd> | list images       |
-| [docker-rmi](#docker-rmi)                           | <kbd>C-c d i d</kbd>                       | delete image      |
-| [docker-pull](#docker-pull)                         | <kbd>C-c d i f</kbd>                       | pull image        |
-| [docker-push](#docker-push)                         | <kbd>C-c d i p</kbd>                       | push image        |
-| [docker-run](#docker-run)                           | <kbd>C-c d i r</kbd>                       | run image         |
 | [dockerfile-build-buffer](#dockerfile-build-buffer) | <kbd>C-c d B</kbd>                         | Build Dockerfile  |
 
 ### docker-images
@@ -77,6 +77,22 @@ After having selected some containers, you can do the following actions:
 
 ## API
 
+### docker-rmi
+
+Deletes an image.
+
+### docker-pull
+
+Pull an image.
+
+### docker-push
+
+Push an image.
+
+### docker-run
+
+Run an image.
+
 ### docker-rm
 
 Deletes a container.
@@ -100,22 +116,6 @@ Starts a container.
 ### docker-unpause
 
 Unpause a container.
-
-### docker-rmi
-
-Deletes an image.
-
-### docker-pull
-
-Pull an image.
-
-### docker-push
-
-Push an image.
-
-### docker-run
-
-Run an image.
 
 ### dockerfile-build-buffer
 
