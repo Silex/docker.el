@@ -18,6 +18,17 @@ Press `?` to known about available keybindings in order to run actions on these 
 
 You can also call the [API](#api) directly.
 
+## Configuration
+For Mac OS in .emacs configuration add following
+```
+(setenv "PATH" (concat (getenv "PATH") ":/usr/local/bin"))
+(setq exec-path (append exec-path '("/usr/local/bin")))
+;; Use "docker-machine env box" command to find out your environment variables
+(setenv "DOCKER_TLS_VERIFY" "1")
+(setenv "DOCKER_HOST" "tcp://10.211.55.3:2376")
+(setenv "DOCKER_CERT_PATH" "/Users/nexus/.docker/machine/machines/box")
+(setenv "DOCKER_MACHINE_NAME" "box")
+```
 ## Screenshots
 
 ### images
