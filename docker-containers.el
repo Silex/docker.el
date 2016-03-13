@@ -24,7 +24,7 @@
 ;;; Code:
 
 (require 'docker-process)
-(require 'tabulated-list-ext)
+(require 'tle)
 
 (require 'eieio)
 (require 'magit-popup)
@@ -112,16 +112,10 @@
 
 (defun docker-containers-selection ()
   "Get the containers selection as a list of names."
-  (save-excursion
-    (goto-char (point-min))
-    (let ((selection ()))
-      (while (not (eobp))
-        (when (eq (char-after) ?*)
-          (add-to-list 'selection (tabulated-list-get-id) t))
-        (forward-line))
-      (when (null selection)
-        (error "No containers selected."))
-      selection)))
+  (let ((selection (tle-selection-ids)))
+    (when (null selection)
+      (error "No containers selected."))
+    selection))
 
 (defun docker-containers-run-command-on-selection (command arguments)
   "Run a docker COMMAND on the containers selection with ARGUMENTS."
@@ -205,7 +199,7 @@
 
 (defalias 'docker-ps 'docker-containers)
 
-(define-derived-mode docker-containers-mode tabulated-list-ext-mode "Containers Menu"
+(define-derived-mode docker-containers-mode tabulated-list-mode "Containers Menu"
   "Major mode for handling a list of docker containers."
   (setq tabulated-list-format [
                                ("Id" 16 t)
@@ -218,7 +212,8 @@
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key (cons "Image" nil))
   (add-hook 'tabulated-list-revert-hook 'docker-containers-refresh nil t)
-  (tabulated-list-init-header))
+  (tabulated-list-init-header)
+  (tle-mode))
 
 (provide 'docker-containers)
 

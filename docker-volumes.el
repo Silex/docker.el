@@ -24,7 +24,7 @@
 ;;; Code:
 
 (require 'docker-process)
-(require 'tabulated-list-ext)
+(require 'tle)
 
 (require 'eieio)
 (require 'magit-popup)
@@ -73,16 +73,10 @@
 
 (defun docker-volumes-selection ()
   "Get the volumes selection as a list of names."
-  (save-excursion
-    (goto-char (point-min))
-    (let ((selection ()))
-      (while (not (eobp))
-        (when (eq (char-after) ?*)
-          (add-to-list 'selection (tabulated-list-get-id) t))
-        (forward-line))
-      (when (null selection)
-        (error "No volumes selected."))
-      selection)))
+  (let ((selection (tle-selection-ids)))
+    (when (null selection)
+      (error "No volumes selected."))
+    selection))
 
 (defun docker-volumes-rm-selection ()
   "Run `docker-volume-rm' on the volumes selection."
@@ -115,7 +109,7 @@
   (docker-volumes-refresh)
   (tabulated-list-revert))
 
-(define-derived-mode docker-volumes-mode tabulated-list-ext-mode "Volumes Menu"
+(define-derived-mode docker-volumes-mode tabulated-list-mode "Volumes Menu"
   "Major mode for handling a list of docker volumes."
   (setq tabulated-list-format [
                                ("Driver" 10 t)
@@ -123,7 +117,8 @@
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key (cons "Driver" nil))
   (add-hook 'tabulated-list-revert-hook 'docker-volumes-refresh nil t)
-  (tabulated-list-init-header))
+  (tabulated-list-init-header)
+  (tle-mode))
 
 (provide 'docker-volumes)
 

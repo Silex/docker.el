@@ -24,7 +24,7 @@
 ;;; Code:
 
 (require 'docker-process)
-(require 'tabulated-list-ext)
+(require 'tle)
 
 (require 'eieio)
 (require 'magit-popup)
@@ -93,18 +93,14 @@
 
 (defun docker-images-selection ()
   "Get the images selection as a list of names."
-  (save-excursion
-    (goto-char (point-min))
-    (let ((selection ()))
-      (while (not (eobp))
-        (when (eq (char-after) ?*)
-          (let* ((entry (tabulated-list-get-entry))
-                 (name (format "%s:%s" (aref entry 1) (aref entry 2))))
-            (add-to-list 'selection (if (string-equal name "<none>:<none>") (aref entry 0) name) t)))
-        (forward-line))
-      (when (null selection)
-        (error "No images selected."))
-      selection)))
+  (let* ((selection (--map (let ((name (format "%s:%s" (aref it 1) (aref it 2))))
+                             (if (string-equal name "<none>:<none>")
+                                 (aref it 0)
+                               name))
+                           (tle-selection-entries))))
+    (when (null selection)
+      (error "No images selected."))
+    selection))
 
 (defun docker-images-rmi-selection ()
   "Run `docker-rmi' on the images selection."
@@ -192,7 +188,7 @@
   (docker-images-refresh)
   (tabulated-list-revert))
 
-(define-derived-mode docker-images-mode tabulated-list-ext-mode "Images Menu"
+(define-derived-mode docker-images-mode tabulated-list-mode "Images Menu"
   "Major mode for handling a list of docker images."
   (setq tabulated-list-format [
                                ("Id" 16 t)
@@ -203,7 +199,8 @@
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key (cons "Repository" nil))
   (add-hook 'tabulated-list-revert-hook 'docker-images-refresh nil t)
-  (tabulated-list-init-header))
+  (tabulated-list-init-header)
+  (tle-mode))
 
 (provide 'docker-images)
 
