@@ -171,7 +171,8 @@
   "Popup for removing containers."
   'docker-containers-popups
   :man-page "docker-rm"
-  :switches '((?f "Force" "-f"))
+  :switches '((?f "Force" "-f")
+              (?v "Volumes" "-v"))
   :actions  '((?D "Remove" docker-containers-rm-selection)))
 
 (defun docker-containers-refresh ()
