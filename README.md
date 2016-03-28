@@ -8,7 +8,7 @@ Otherwise, simply add the files to your load-path and then `(require 'docker)`.
 
 ## Quickstart
 
-Use <kbd>M-x docker-images</kbd>, <kbd>M-x docker-containers</kbd> or <kbd>M-x docker-volumes</kbd>
+Use <kbd>M-x docker-images</kbd>, <kbd>M-x docker-containers</kbd>, <kbd>M-x docker-volumes</kbd> or <kbd>M-x docker-networks</kbd>
 then mark/unmark items using the following keybindings:
 
 - `m`: mark
@@ -69,6 +69,8 @@ changed with <kbd>M-x customize-variable docker-keymap-prefix</kbd>.
 | docker-unpause               | <kbd>C-c d c e</kbd> | unpause container                                               |
 | docker-volumes               | <kbd>C-c d v v</kbd> | list volumes                                                    |
 | docker-volume-rm             | <kbd>C-c d v d</kbd> | delete volume                                                   |
+| docker-networks              | <kbd>C-c d n n</kbd> | list networks                                                   |
+| docker-network-rm            | <kbd>C-c d n d</kbd> | delete network                                                  |
 | dockerfile-build-buffer      | <kbd>C-c d B</kbd>   | Build [Dockerfile](https://github.com/spotify/dockerfile-mode)  |
 
 ### docker-images
@@ -97,6 +99,13 @@ After having selected some containers, you can do the following actions:
 
 Running <kbd>M-x docker-volumes</kbd> lists the docker volumes.
 After having selected some volumes, you can do the following actions:
+
+* `D`: rm
+
+### docker-networks
+
+Running <kbd>M-x docker-networks</kbd> lists the docker networks.
+After having selected some networks, you can do the following actions:
 
 * `D`: rm
 
