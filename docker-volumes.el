@@ -41,7 +41,7 @@
 
 (defun make-docker-volume (driver name)
   "Helper to create a `eieio` docker volume object."
-  (docker-volume :driver driver :name name))
+  (docker-volume name :driver driver :name name))
 
 (defun docker-volume-parse (line)
   "Convert LINE from 'docker volume ls' to `docker-volume'."

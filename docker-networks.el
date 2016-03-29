@@ -43,7 +43,7 @@
 
 (defun make-docker-network (id name driver)
   "Helper to create a `eieio` docker network object."
-  (docker-network :id id :name name :driver driver))
+  (docker-network id :id id :name name :driver driver))
 
 (defun docker-network-parse (line)
   "Convert LINE from 'docker network ls' to `docker-network'."
