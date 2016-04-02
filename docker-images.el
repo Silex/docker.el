@@ -179,7 +179,7 @@
   :switches '((?d "Daemonize" "-d")
               (?i "Interactive" "-i")
               (?t "TTY" "-t")
-              (?r "Remove" "--rm "))
+              (?r "Remove" "--rm"))
   :actions  '((?R "Run images" docker-images-run-selection))
   :default-arguments '("-i" "-t" "--rm"))
 
