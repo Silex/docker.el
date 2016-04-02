@@ -126,12 +126,28 @@
       (docker "push" args it))
     (tabulated-list-revert)))
 
+(defun docker-images-get-port (portMap)
+  "Get port for image run"
+  (interactive "sProvide a port map pair: ")
+  (if (string= "" portMap)
+      ""
+    (concat "-p " portMap)
+    )
+  )
+
+(defun docker-images-run-port (container args command)
+  (interactive)
+  "Get docker ports"
+  (let ((port (call-interactively 'docker-images-get-port)))
+      (async-shell-command (format "docker run %s %s %s %s" args port container command) (format "*run %s*" container))    
+      ))
+
 (defun docker-images-run-selection (command)
   "Run `docker-run' on the images selection."
   (interactive "sCommand: ")
   (let ((args (s-join " " (docker-images-run-arguments))))
     (--each (docker-images-selection)
-      (async-shell-command (format "docker run %s %s %s" args it command) (format "*run %s*" it)))
+      (docker-images-run-port it args command))
     (tabulated-list-revert)))
 
 (magit-define-popup docker-images-rmi-popup
@@ -163,7 +179,7 @@
   :switches '((?d "Daemonize" "-d")
               (?i "Interactive" "-i")
               (?t "TTY" "-t")
-              (?r "Remove" "--rm"))
+              (?r "Remove" "--rm "))
   :actions  '((?R "Run images" docker-images-run-selection))
   :default-arguments '("-i" "-t" "--rm"))
 
