@@ -164,6 +164,9 @@
               (?i "Interactive" "-i")
               (?t "TTY" "-t")
               (?r "Remove" "--rm"))
+  :options  '((?v "volume" "-v ")
+              (?e "environment" "-e ")
+              (?p "port" "-p "))
   :actions  '((?R "Run images" docker-images-run-selection))
   :default-arguments '("-i" "-t" "--rm"))
 
