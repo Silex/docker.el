@@ -155,7 +155,6 @@
   :man-page "docker-push"
   :actions  '((?P "Push" docker-images-push-selection)))
 
-;;-v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=unix$DISPLAY
 (magit-define-popup docker-images-run-popup
   "Popup for running images."
   'docker-images-popups
@@ -163,10 +162,16 @@
   :switches '((?d "Daemonize" "-d")
               (?i "Interactive" "-i")
               (?t "TTY" "-t")
-              (?r "Remove" "--rm"))
+              (?r "Remove" "--rm")
+              (?p "Privileged" "--privileged")
+              (?o "Read only" "--read-only")
+              (?D "With display" "-v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=unix$DISPLAY"))
   :options  '((?v "volume" "-v ")
               (?e "environment" "-e ")
-              (?p "port" "-p "))
+              (?p "port" "-p ")
+              (?w "workdir" "-w ")
+              (?u "user" "-u ")
+              (?n "entrypoint" "--entrypoint "))
   :actions  '((?R "Run images" docker-images-run-selection))
   :default-arguments '("-i" "-t" "--rm"))
 
