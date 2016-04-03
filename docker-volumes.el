@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 'docker-process)
+(require 'docker-utils)
 (require 'tle)
 
 (require 'eieio)
@@ -72,11 +73,8 @@
   (docker "volume ls" (when quiet "-q ") (when filters (s-join " --filter=" filters))))
 
 (defun docker-volumes-selection ()
-  "Get the volumes selection as a list of names."
-  (let ((selection (tle-selection-ids)))
-    (when (null selection)
-      (error "No volumes selected."))
-    selection))
+  "Get the volumes selection as a list of ids."
+  (tle-selection-ids))
 
 (defun docker-volumes-rm-selection ()
   "Run `docker-volume-rm' on the volumes selection."
@@ -85,7 +83,7 @@
     (docker "volume rm" it))
   (tabulated-list-revert))
 
-(magit-define-popup docker-volumes-rm-popup
+(docker-utils-define-popup docker-volumes-rm-popup
   "Popup for removing volumes."
   'docker-volumes-popups
   :man-page "docker-volume-rm"

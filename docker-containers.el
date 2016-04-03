@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 'docker-process)
+(require 'docker-utils)
 (require 'tle)
 
 (require 'eieio)
@@ -111,11 +112,8 @@
   (docker "ps" (when all "-a ") (when quiet "-q ") (when filters (s-join " --filter=" filters))))
 
 (defun docker-containers-selection ()
-  "Get the containers selection as a list of names."
-  (let ((selection (tle-selection-ids)))
-    (when (null selection)
-      (error "No containers selected."))
-    selection))
+  "Get the containers selection as a list of ids."
+  (tle-selection-ids))
 
 (defun docker-containers-run-command-on-selection (command arguments)
   "Run a docker COMMAND on the containers selection with ARGUMENTS."
@@ -135,39 +133,39 @@
 
 (docker-containers-create-selection-functions start stop restart pause unpause rm)
 
-(magit-define-popup docker-containers-start-popup
+(docker-utils-define-popup docker-containers-start-popup
   "Popup for starting containers."
   'docker-containers-popups
   :man-page "docker-start"
   :actions  '((?S "Start" docker-containers-start-selection)))
 
-(magit-define-popup docker-containers-stop-popup
+(docker-utils-define-popup docker-containers-stop-popup
   "Popup for stoping containers."
   'docker-containers-popups
   :man-page "docker-stop"
   :options '((?t "Timeout" "-t "))
   :actions '((?O "Stop" docker-containers-stop-selection)))
 
-(magit-define-popup docker-containers-restart-popup
+(docker-utils-define-popup docker-containers-restart-popup
   "Popup for restarting containers."
   'docker-containers-popups
   :man-page "docker-restart"
   :options '((?t "Timeout" "-t "))
   :actions '((?R "Restart" docker-containers-restart-selection)))
 
-(magit-define-popup docker-containers-pause-popup
+(docker-utils-define-popup docker-containers-pause-popup
   "Popup for pauseing containers."
   'docker-containers-popups
   :man-page "docker-pause"
   :actions  '((?P "Pause" docker-containers-pause-selection)))
 
-(magit-define-popup docker-containers-unpause-popup
+(docker-utils-define-popup docker-containers-unpause-popup
   "Popup for unpauseing containers."
   'docker-containers-popups
   :man-page "docker-unpause"
   :actions  '((?P "Unpause" docker-containers-unpause-selection)))
 
-(magit-define-popup docker-containers-rm-popup
+(docker-utils-define-popup docker-containers-rm-popup
   "Popup for removing containers."
   'docker-containers-popups
   :man-page "docker-rm"

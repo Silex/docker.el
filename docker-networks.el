@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 'docker-process)
+(require 'docker-utils)
 (require 'tle)
 
 (require 'eieio)
@@ -74,11 +75,8 @@
   (docker "network ls" (when quiet "-q ") (when filters (s-join " --filter=" filters))))
 
 (defun docker-networks-selection ()
-  "Get the networks selection as a list of names."
-  (let ((selection (tle-selection-ids)))
-    (when (null selection)
-      (error "No networks selected."))
-    selection))
+  "Get the networks selection as a list of ids."
+  (tle-selection-ids))
 
 (defun docker-networks-rm-selection ()
   "Run `docker-network-rm' on the networks selection."
@@ -87,7 +85,7 @@
     (docker "network rm" it))
   (tabulated-list-revert))
 
-(magit-define-popup docker-networks-rm-popup
+(docker-utils-define-popup docker-networks-rm-popup
   "Popup for removing networks."
   'docker-networks-popups
   :man-page "docker-network-rm"

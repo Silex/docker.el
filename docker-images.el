@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 'docker-process)
+(require 'docker-utils)
 (require 'tle)
 
 (require 'eieio)
@@ -93,14 +94,11 @@
 
 (defun docker-images-selection ()
   "Get the images selection as a list of names."
-  (let* ((selection (--map (let ((name (format "%s:%s" (aref it 1) (aref it 2))))
-                             (if (string-equal name "<none>:<none>")
-                                 (aref it 0)
-                               name))
-                           (tle-selection-entries))))
-    (when (null selection)
-      (error "No images selected."))
-    selection))
+  (--map (let ((name (format "%s:%s" (aref it 1) (aref it 2))))
+           (if (string-equal name "<none>:<none>")
+               (aref it 0)
+             name))
+         (tle-selection-entries)))
 
 (defun docker-images-rmi-selection ()
   "Run `docker-rmi' on the images selection."
@@ -140,7 +138,7 @@
         (async-shell-command (s-join " " command-args) (format "*run %s*" it))))
     (tabulated-list-revert)))
 
-(magit-define-popup docker-images-rmi-popup
+(docker-utils-define-popup docker-images-rmi-popup
   "Popup for removing images."
   'docker-images-popups
   :man-page "docker-rmi"
@@ -148,20 +146,20 @@
               (?n "Don't prune" "--no-prune"))
   :actions  '((?D "Remove" docker-images-rmi-selection)))
 
-(magit-define-popup docker-images-pull-popup
+(docker-utils-define-popup docker-images-pull-popup
   "Popup for pulling images."
   'docker-images-popups
   :man-page "docker-pull"
   :switches '((?a "All" "-a"))
   :actions  '((?F "Pull" docker-images-pull-selection)))
 
-(magit-define-popup docker-images-push-popup
+(docker-utils-define-popup docker-images-push-popup
   "Popup for pushing images."
   'docker-images-popups
   :man-page "docker-push"
   :actions  '((?P "Push" docker-images-push-selection)))
 
-(magit-define-popup docker-images-run-popup
+(docker-utils-define-popup docker-images-run-popup
   "Popup for running images."
   'docker-images-popups
   :man-page "docker-run"
