@@ -126,12 +126,18 @@
       (docker "push" args it))
     (tabulated-list-revert)))
 
-(defun docker-images-run-selection (command)
+(defun docker-images-run-selection ()
   "Run `docker-run' on the images selection."
-  (interactive "sCommand: ")
-  (let ((args (s-join " " (docker-images-run-arguments))))
+  (interactive)
+  (let* ((popup-args (docker-images-run-arguments))
+         (last-item (-last-item popup-args))
+         (has-command (s-contains? "--command" last-item))
+         (docker-args (if has-command (-slice popup-args 0 -1) popup-args)))
     (--each (docker-images-selection)
-      (async-shell-command (format "docker run %s %s %s" args it command) (format "*run %s*" it)))
+      (let ((command-args `("docker" "run" ,@docker-args ,it)))
+        (when has-command
+          (add-to-list 'command-args (s-chop-prefix "--command " last-item) t))
+        (async-shell-command (s-join " " command-args) (format "*run %s*" it))))
     (tabulated-list-revert)))
 
 (magit-define-popup docker-images-rmi-popup
@@ -171,7 +177,8 @@
               (?p "port" "-p ")
               (?w "workdir" "-w ")
               (?u "user" "-u ")
-              (?n "entrypoint" "--entrypoint "))
+              (?n "entrypoint" "--entrypoint ")
+              (?c "command" "--command "))
   :actions  '((?R "Run images" docker-images-run-selection))
   :default-arguments '("-i" "-t" "--rm"))
 
