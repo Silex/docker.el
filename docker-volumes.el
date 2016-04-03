@@ -92,6 +92,7 @@
   :actions  '((?D "Remove" docker-volumes-rm-selection)))
 
 (defun docker-volumes-refresh ()
+  "Refresh the volumes list."
   (setq tabulated-list-entries (-map 'docker-volume-to-tabulated-list (docker-get-volumes))))
 
 (defvar docker-volumes-mode-map

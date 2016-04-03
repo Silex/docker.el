@@ -176,6 +176,7 @@
   :actions  '((?D "Remove" docker-containers-rm-selection)))
 
 (defun docker-containers-refresh ()
+  "Refresh the containers list."
   (setq tabulated-list-entries (-map 'docker-container-to-tabulated-list (docker-get-containers t))))
 
 (defvar docker-containers-mode-map

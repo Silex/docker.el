@@ -183,6 +183,7 @@
   :default-arguments '("-i" "-t" "--rm"))
 
 (defun docker-images-refresh ()
+  "Refresh the images list."
   (setq tabulated-list-entries (-map 'docker-image-to-tabulated-list (docker-get-images))))
 
 (defvar docker-images-mode-map

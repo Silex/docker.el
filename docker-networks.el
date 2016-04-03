@@ -94,6 +94,7 @@
   :actions  '((?D "Remove" docker-networks-rm-selection)))
 
 (defun docker-networks-refresh ()
+  "Refresh the networks list."
   (setq tabulated-list-entries (-map 'docker-network-to-tabulated-list (docker-get-networks))))
 
 (defvar docker-networks-mode-map
