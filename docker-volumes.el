@@ -111,9 +111,7 @@
 
 (define-derived-mode docker-volumes-mode tabulated-list-mode "Volumes Menu"
   "Major mode for handling a list of docker volumes."
-  (setq tabulated-list-format [
-                               ("Driver" 10 t)
-                               ("Name" 10 t)])
+  (setq tabulated-list-format [("Driver" 10 t)("Name" 10 t)])
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key (cons "Driver" nil))
   (add-hook 'tabulated-list-revert-hook 'docker-volumes-refresh nil t)

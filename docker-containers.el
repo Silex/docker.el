@@ -202,14 +202,7 @@
 
 (define-derived-mode docker-containers-mode tabulated-list-mode "Containers Menu"
   "Major mode for handling a list of docker containers."
-  (setq tabulated-list-format [
-                               ("Id" 16 t)
-                               ("Image" 15 t)
-                               ("Command" 30 t)
-                               ("Created" 15 t)
-                               ("Status" 20 t)
-                               ("Ports" 10 t)
-                               ("Names" 10 t)])
+  (setq tabulated-list-format [("Id" 16 t)("Image" 15 t)("Command" 30 t)("Created" 15 t)("Status" 20 t)("Ports" 10 t)("Names" 10 t)])
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key (cons "Image" nil))
   (add-hook 'tabulated-list-revert-hook 'docker-containers-refresh nil t)

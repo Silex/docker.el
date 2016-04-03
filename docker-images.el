@@ -193,12 +193,7 @@
 
 (define-derived-mode docker-images-mode tabulated-list-mode "Images Menu"
   "Major mode for handling a list of docker images."
-  (setq tabulated-list-format [
-                               ("Id" 16 t)
-                               ("Repository" 30 t)
-                               ("Tag" 20 t)
-                               ("Created" 15 t)
-                               ("Size" 10 t)])
+  (setq tabulated-list-format [("Id" 16 t)("Repository" 30 t)("Tag" 20 t)("Created" 15 t)("Size" 10 t)])
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key (cons "Repository" nil))
   (add-hook 'tabulated-list-revert-hook 'docker-images-refresh nil t)
