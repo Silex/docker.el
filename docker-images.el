@@ -79,7 +79,7 @@
 (defun docker-rmi (name &optional force no-prune)
   "Destroy or untag an image."
   (interactive (list (docker-read-image-name "Delete image: ") current-prefix-arg))
-  (docker "rmi" (when force "-f") (when no-prune "--no-prune")) name)
+  (docker "rmi" (when force "-f") (when no-prune "--no-prune") name))
 
 (defun docker-get-images (&optional all quiet filters)
   "Get images as eieio objects."
