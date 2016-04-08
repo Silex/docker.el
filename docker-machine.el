@@ -180,7 +180,7 @@ This is called `docker-machine-command' because the name
                 ,(format "Run `docker-machine-%s' on the machines selection." it)
                 (interactive)
                 (docker-machine-run-command-on-selection ,(symbol-name it)
-                                                            (s-join " " ,(list (intern (format "docker-machine-%s-arguments" it))))))
+                                                         (s-join " " ,(list (intern (format "docker-machine-%s-arguments" it))))))
              functions)))
 
 (docker-machine-create-selection-functions start stop restart rm)
