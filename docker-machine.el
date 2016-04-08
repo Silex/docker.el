@@ -223,7 +223,7 @@ This is called `docker-machine-command' because the name
 (defvar docker-machine-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "S" 'docker-machine-start-popup)
-    ;; (define-key map "E" 'docker-machine-env-popup)
+    (define-key map "E" 'docker-machine-env-popup)
     (define-key map "O" 'docker-machine-stop-popup)
     (define-key map "R" 'docker-machine-restart-popup)
     (define-key map "D" 'docker-machine-rm-popup)
