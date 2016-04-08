@@ -109,6 +109,17 @@ After having selected some networks, you can do the following actions:
 
 * `D`: rm
 
+### docker-machine-ls
+
+Running <kbd>M-x docker-machine-ls</kbd> lists the docker machines.
+After having selected some machines, you can do the following actions:
+
+* `S`: start
+* `E`: env
+* `O`: stop
+* `R`: restart
+* `D`: rm
+
 ## Philosophy
 
 This package is inspired by packages like:
