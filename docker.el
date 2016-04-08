@@ -50,7 +50,7 @@
   (let ((map (make-sparse-keymap)))
     (define-key map "c" 'docker-containers)
     (define-key map "d" 'docker-rm)
-    (define-key map "e" 'docker-unpause)
+    (define-key map "u" 'docker-unpause)
     (define-key map "o" 'docker-stop)
     (define-key map "p" 'docker-pause)
     (define-key map "r" 'docker-restart)

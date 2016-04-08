@@ -66,7 +66,7 @@ changed with <kbd>M-x customize-variable docker-keymap-prefix</kbd>.
 | docker-pause                 | <kbd>C-c d c p</kbd> | pause container                                                 |
 | docker-restart               | <kbd>C-c d c r</kbd> | restart container                                               |
 | docker-start                 | <kbd>C-c d c s</kbd> | start container                                                 |
-| docker-unpause               | <kbd>C-c d c e</kbd> | unpause container                                               |
+| docker-unpause               | <kbd>C-c d c u</kbd> | unpause container                                               |
 | docker-volumes               | <kbd>C-c d v v</kbd> | list volumes                                                    |
 | docker-volume-rm             | <kbd>C-c d v d</kbd> | delete volume                                                   |
 | docker-networks              | <kbd>C-c d n n</kbd> | list networks                                                   |
@@ -90,9 +90,8 @@ After having selected some containers, you can do the following actions:
 
 * `S`: start
 * `O`: stop
-* `P`: pause
-* `E`: unpause
 * `R`: restart
+* `P`: pause/unpause
 * `D`: rm
 
 ### docker-volumes
