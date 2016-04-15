@@ -92,6 +92,7 @@ After having selected some containers, you can do the following actions:
 * `O`: stop
 * `R`: restart
 * `P`: pause/unpause
+* `I`: inspect
 * `D`: rm
 
 ### docker-volumes
