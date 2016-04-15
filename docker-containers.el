@@ -100,6 +100,11 @@
   (interactive (list (docker-read-container-name "Delete container: ") current-prefix-arg))
   (docker "rm" (when force "-f") name))
 
+(defun docker-inspect (name)
+  "Inspect a container."
+  (interactive (list (docker-read-container-name "Inspect container: ")))
+  (docker "inspect" name))
+
 (defun docker-get-containers (&optional all quiet filters)
   "Get containers as eieio objects."
   (let* ((data (docker-get-containers-raw all quiet filters))
@@ -122,6 +127,19 @@
     (docker command arguments it))
   (tabulated-list-revert))
 
+(defun docker-containers-run-command-on-selection-print (command arguments)
+  "Run a docker COMMAND on the containers selection with ARGUMENTS and print"
+  (interactive "sCommand: \nsArguments: ")
+  (let ((buffer (get-buffer-create "*docker result*")))
+    (with-current-buffer buffer
+      (erase-buffer))
+    (--each (docker-containers-selection)
+      (let ((result (docker command arguments it)))
+        (with-current-buffer buffer
+          (goto-char (point-max))
+          (insert result))))
+    (display-buffer buffer)))
+
 (defmacro docker-containers-create-selection-functions (&rest functions)
   `(progn ,@(--map
              `(defun ,(intern (format "docker-containers-%s-selection" it)) ()
@@ -131,7 +149,24 @@
                                                             (s-join " " ,(list (intern (format "docker-containers-%s-arguments" it))))))
              functions)))
 
+(defmacro docker-containers-create-selection-print-functions (&rest functions)
+  `(progn ,@(--map
+             `(defun ,(intern (format "docker-containers-%s-selection" it)) ()
+                ,(format "Run `docker-%s' on the containers selection." it)
+                (interactive)
+                (docker-containers-run-command-on-selection-print ,(symbol-name it)
+                                                            (s-join " " ,(list (intern (format "docker-containers-%s-arguments" it))))))
+             functions)))
+
 (docker-containers-create-selection-functions start stop restart pause unpause rm)
+
+(docker-containers-create-selection-print-functions inspect)
+
+(docker-utils-define-popup docker-containers-inspect-popup
+  "Popup for inspecting containers."
+  'docker-containers-popups
+  :man-page "docker-inspect"
+  :actions  '((?I "Inspect" docker-containers-inspect-selection)))
 
 (docker-utils-define-popup docker-containers-start-popup
   "Popup for starting containers."
@@ -174,6 +209,7 @@
 
 (defvar docker-containers-mode-map
   (let ((map (make-sparse-keymap)))
+    (define-key map "I" 'docker-containers-inspect-popup)
     (define-key map "S" 'docker-containers-start-popup)
     (define-key map "O" 'docker-containers-stop-popup)
     (define-key map "R" 'docker-containers-restart-popup)
