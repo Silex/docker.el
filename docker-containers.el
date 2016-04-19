@@ -160,13 +160,19 @@
 
 (docker-containers-create-selection-functions start stop restart pause unpause rm)
 
-(docker-containers-create-selection-print-functions inspect)
+(docker-containers-create-selection-print-functions inspect logs)
 
 (docker-utils-define-popup docker-containers-inspect-popup
   "Popup for inspecting containers."
   'docker-containers-popups
   :man-page "docker-inspect"
   :actions  '((?I "Inspect" docker-containers-inspect-selection)))
+
+(docker-utils-define-popup docker-containers-logs-popup
+  "Popup for showing containers logs."
+  'docker-containers-popups
+  :man-page "docker-logs"
+  :actions  '((?L "Logs" docker-containers-logs-selection)))
 
 (docker-utils-define-popup docker-containers-start-popup
   "Popup for starting containers."
@@ -210,6 +216,7 @@
 (defvar docker-containers-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "I" 'docker-containers-inspect-popup)
+    (define-key map "L" 'docker-containers-logs-popup)
     (define-key map "S" 'docker-containers-start-popup)
     (define-key map "O" 'docker-containers-stop-popup)
     (define-key map "R" 'docker-containers-restart-popup)
