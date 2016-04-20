@@ -48,6 +48,8 @@
     (when (null (docker-utils-get-marked-items))
       (tablist-put-mark))))
 
+(put 'docker-utils-define-popup 'lisp-indent-function 'defun)
+
 (provide 'docker-utils)
 
 ;;; docker-utils.el ends here

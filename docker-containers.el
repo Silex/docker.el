@@ -155,7 +155,7 @@
                 ,(format "Run `docker-%s' on the containers selection." it)
                 (interactive)
                 (docker-containers-run-command-on-selection-print ,(symbol-name it)
-                                                            (s-join " " ,(list (intern (format "docker-containers-%s-arguments" it))))))
+                                                                  (s-join " " ,(list (intern (format "docker-containers-%s-arguments" it))))))
              functions)))
 
 (docker-containers-create-selection-functions start stop restart pause unpause rm)
