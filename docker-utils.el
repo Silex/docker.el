@@ -25,6 +25,17 @@
 
 (require 'magit-popup)
 
+(defun docker-utils-get-marked-items ()
+  "Get the marked items data."
+  (save-excursion
+    (goto-char (point-min))
+    (let ((selection ()))
+      (while (not (eobp))
+        (when (not (null (tablist-get-mark-state)))
+          (add-to-list 'selection (cons (tabulated-list-get-id) (tabulated-list-get-entry)) t))
+        (forward-line))
+      selection)))
+
 (defmacro docker-utils-define-popup (name doc &rest args)
   "Wrapper around `docker-utils-define-popup'."
   `(progn
@@ -34,8 +45,8 @@
 (defun docker-utils-select-if-empty (&optional arg)
   "Select current row is selection is empty."
   (save-excursion
-    (when (tle-selection-empty-p)
-      (tle-mark))))
+    (when (null (docker-utils-get-marked-items))
+      (tablist-put-mark))))
 
 (provide 'docker-utils)
 

@@ -25,7 +25,7 @@
 
 (require 'docker-process)
 (require 'docker-utils)
-(require 'tle)
+(require 'tablist)
 
 (require 'eieio)
 (require 'magit-popup)
@@ -165,7 +165,7 @@ This is called `docker-machine-command' because the name
 
 (defun docker-machine-selection ()
   "Get the machines selection as a list of ids."
-  (tle-selection-ids))
+  (-map 'car (docker-utils-get-marked-items)))
 
 (defun docker-machine-run-command-on-selection (command arguments)
   "Run a docker COMMAND on the machines selection with ARGUMENTS."
@@ -246,7 +246,7 @@ This is called `docker-machine-command' because the name
   (setq tabulated-list-sort-key (cons "Name" nil))
   (add-hook 'tabulated-list-revert-hook 'docker-machine-refresh nil t)
   (tabulated-list-init-header)
-  (tle-mode))
+  (tablist-minor-mode))
 
 (provide 'docker-machine)
 

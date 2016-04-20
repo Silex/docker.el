@@ -25,7 +25,7 @@
 
 (require 'docker-process)
 (require 'docker-utils)
-(require 'tle)
+(require 'tablist)
 
 (require 'eieio)
 (require 'magit-popup)
@@ -76,7 +76,7 @@
 
 (defun docker-networks-selection ()
   "Get the networks selection as a list of ids."
-  (tle-selection-ids))
+  (-map 'car (docker-utils-get-marked-items)))
 
 (defun docker-networks-rm-selection ()
   "Run `docker-network-rm' on the networks selection."
@@ -117,7 +117,7 @@
   (setq tabulated-list-sort-key (cons "Name" nil))
   (add-hook 'tabulated-list-revert-hook 'docker-networks-refresh nil t)
   (tabulated-list-init-header)
-  (tle-mode))
+  (tablist-minor-mode))
 
 (provide 'docker-networks)
 

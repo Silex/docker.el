@@ -25,7 +25,7 @@
 
 (require 'docker-process)
 (require 'docker-utils)
-(require 'tle)
+(require 'tablist)
 
 (require 'eieio)
 (require 'magit-popup)
@@ -74,7 +74,7 @@
 
 (defun docker-volumes-selection ()
   "Get the volumes selection as a list of ids."
-  (tle-selection-ids))
+  (-map 'car (docker-utils-get-marked-items)))
 
 (defun docker-volumes-rm-selection ()
   "Run `docker-volume-rm' on the volumes selection."
@@ -115,7 +115,7 @@
   (setq tabulated-list-sort-key (cons "Driver" nil))
   (add-hook 'tabulated-list-revert-hook 'docker-volumes-refresh nil t)
   (tabulated-list-init-header)
-  (tle-mode))
+  (tablist-minor-mode))
 
 (provide 'docker-volumes)
 

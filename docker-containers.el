@@ -25,7 +25,7 @@
 
 (require 'docker-process)
 (require 'docker-utils)
-(require 'tle)
+(require 'tablist)
 
 (require 'eieio)
 (require 'magit-popup)
@@ -118,7 +118,7 @@
 
 (defun docker-containers-selection ()
   "Get the containers selection as a list of ids."
-  (tle-selection-ids))
+  (-map 'car (docker-utils-get-marked-items)))
 
 (defun docker-containers-run-command-on-selection (command arguments)
   "Run a docker COMMAND on the containers selection with ARGUMENTS."
@@ -243,7 +243,7 @@
   (setq tabulated-list-sort-key (cons "Image" nil))
   (add-hook 'tabulated-list-revert-hook 'docker-containers-refresh nil t)
   (tabulated-list-init-header)
-  (tle-mode))
+  (tablist-minor-mode))
 
 (provide 'docker-containers)
 

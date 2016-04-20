@@ -25,7 +25,7 @@
 
 (require 'docker-process)
 (require 'docker-utils)
-(require 'tle)
+(require 'tablist)
 
 (require 'eieio)
 (require 'magit-popup)
@@ -94,11 +94,12 @@
 
 (defun docker-images-selection ()
   "Get the images selection as a list of names."
-  (--map (let ((name (format "%s:%s" (aref it 1) (aref it 2))))
+  (--map (let* ((entry (cdr it))
+                (name (format "%s:%s" (aref entry 1) (aref entry 2))))
            (if (string-equal name "<none>:<none>")
-               (aref it 0)
+               (aref entry 0)
              name))
-         (tle-selection-entries)))
+         (docker-utils-get-marked-items)))
 
 (defun docker-images-rmi-selection ()
   "Run `docker-rmi' on the images selection."
@@ -211,7 +212,7 @@
   (setq tabulated-list-sort-key (cons "Repository" nil))
   (add-hook 'tabulated-list-revert-hook 'docker-images-refresh nil t)
   (tabulated-list-init-header)
-  (tle-mode))
+  (tablist-minor-mode))
 
 (provide 'docker-images)
 
