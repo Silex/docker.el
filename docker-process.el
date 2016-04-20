@@ -1,8 +1,6 @@
 ;;; docker-process.el --- Emacs interface to Docker
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
-;; URL: https://github.com/Silex/docker
-;; Keywords: filename, convenience
 
 ;; This file is NOT part of GNU Emacs.
 
