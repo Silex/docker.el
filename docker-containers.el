@@ -229,7 +229,7 @@
 (defun docker-containers ()
   "List docker containers."
   (interactive)
-  (pop-to-buffer "*docker-containers*")
+  (docker--buffer-pop-to "*docker-containers*")
   (docker-containers-mode)
   (docker-containers-refresh)
   (tabulated-list-revert))
