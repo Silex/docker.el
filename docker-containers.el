@@ -58,10 +58,6 @@
   "Helper to create a `eieio` docker container object."
   (docker-container id :id id :image image :command command :created created :status status :ports ports :names names))
 
-(defun docker-container-parse (line)
-  "Convert LINE from 'docker containers' to `docker-container'."
-  (apply #'make-docker-container (s-split " \\{3,15\\}" line)))
-
 (defun docker-container-names ()
   "Return the list of container names."
   (--map (docker-container-name it) (docker-get-containers t)))
@@ -108,13 +104,13 @@
 (defun docker-get-containers (&optional all quiet filters)
   "Get containers as eieio objects."
   (let* ((data (docker-get-containers-raw all quiet filters))
-         (lines (s-split "\n" data t))
-         (lines (cdr lines)))
-    (-map 'docker-container-parse lines)))
+         (lines (s-split "\n" data t)))
+    (--map (apply #'make-docker-container (s-split "\t" it)) lines)))
 
 (defun docker-get-containers-raw (&optional all quiet filters)
   "Equivalent of \"docker containers\"."
-  (docker "ps" (when all "-a ") (when quiet "-q ") (when filters (s-join " --filter=" filters))))
+  (let ((fmt "{{.ID}}\\t{{.Image}}\\t{{.Command}}\\t{{.CreatedAt}}\\t{{.Status}}\\t{{.Ports}}\\t{{.Names}}"))
+    (docker "ps" (format "--format='%s'" fmt) (when all "-a ") (when quiet "-q ") (when filters (s-join " --filter=" filters)))))
 
 (defun docker-containers-selection ()
   "Get the containers selection as a list of ids."

@@ -54,10 +54,6 @@
   "Helper to create a `eieio` docker image object."
   (docker-image id :id id :repository repository :tag tag :size size :created created))
 
-(defun docker-image-parse (line)
-  "Convert LINE from 'docker containers' to `docker-container'."
-  (apply #'make-docker-image (s-split " \\{3,\\}" line)))
-
 (defun docker-image-names ()
   "Return the list of image names."
   (--map (docker-image-name it) (docker-get-images)))
@@ -84,13 +80,13 @@
 (defun docker-get-images (&optional all quiet filters)
   "Get images as eieio objects."
   (let* ((data (docker-get-images-raw all quiet filters))
-         (lines (s-split "\n" data t))
-         (lines (cdr lines)))
-    (-map 'docker-image-parse lines)))
+         (lines (s-split "\n" data t)))
+    (--map (apply #'make-docker-image (s-split "\t" it)) lines)))
 
 (defun docker-get-images-raw (&optional all quiet filters)
   "Equivalent of \"docker images\"."
-  (docker "images" (when all "-a ") (when quiet "-q ") (when filters (s-join " --filter=" filters))))
+  (let ((fmt "{{.Repository}}\\t{{.Tag}}\\t{{.ID}}\\t{{.CreatedAt}}\\t{{.Size}}"))
+    (docker "images" (format "--format='%s'" fmt) (when all "-a ") (when quiet "-q ") (when filters (s-join " --filter=" filters)))))
 
 (defun docker-images-selection ()
   "Get the images selection as a list of names."
