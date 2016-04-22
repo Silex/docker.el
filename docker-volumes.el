@@ -103,7 +103,7 @@
 (defun docker-volumes ()
   "List docker volumes."
   (interactive)
-  (pop-to-buffer "*docker-volumes*")
+  (docker--recreate-buffer-pop-to "*docker-volumes*")
   (docker-volumes-mode)
   (docker-volumes-refresh)
   (tabulated-list-revert))

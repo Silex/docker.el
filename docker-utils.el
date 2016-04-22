@@ -50,6 +50,12 @@
 
 (put 'docker-utils-define-popup 'lisp-indent-function 'defun)
 
+(defun docker--recreate-buffer-pop-to (buffer-name)
+  (let ((buffer (get-buffer buffer-name)))
+    (if buffer
+      (kill-buffer buffer)))
+  (pop-to-buffer buffer-name))
+
 (provide 'docker-utils)
 
 ;;; docker-utils.el ends here
