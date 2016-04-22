@@ -37,6 +37,12 @@
     (when (tle-selection-empty-p)
       (tle-mark))))
 
+(defun docker--recreate-buffer-pop-to (buffer-name)
+  (let ((buffer (get-buffer buffer-name)))
+    (if buffer
+      (kill-buffer buffer)))
+  (pop-to-buffer buffer-name))
+
 (provide 'docker-utils)
 
 ;;; docker-utils.el ends here
