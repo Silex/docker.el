@@ -103,7 +103,7 @@
   (let ((args (docker-images-rmi-arguments)))
     (--each (docker-images-selection)
       (docker-rmi it (-contains? args "-f") (-contains? args "--no-prune")))
-    (tabulated-list-revert)))
+    (tablist-revert)))
 
 (defun docker-images-pull-selection ()
   "Run `docker-pull' on the images selection."
@@ -111,7 +111,7 @@
   (let ((args (docker-images-pull-arguments)))
     (--each (docker-images-selection)
       (docker-pull it (-contains? args "-a")))
-    (tabulated-list-revert)))
+    (tablist-revert)))
 
 (defun docker-images-push-selection ()
   "Run `docker-push' on the images selection."
@@ -119,7 +119,7 @@
   (let ((args (s-join " " (docker-images-rmi-arguments))))
     (--each (docker-images-selection)
       (docker "push" args it))
-    (tabulated-list-revert)))
+    (tablist-revert)))
 
 (defun docker-images-run-selection ()
   "Run `docker-run' on the images selection."
@@ -133,7 +133,7 @@
         (when has-command
           (add-to-list 'command-args (s-chop-prefix "--command " last-item) t))
         (async-shell-command (s-join " " command-args) (format "*run %s*" it))))
-    (tabulated-list-revert)))
+    (tablist-revert)))
 
 (docker-utils-define-popup docker-images-rmi-popup
   "Popup for removing images."
@@ -198,8 +198,7 @@
   (interactive)
   (docker-utils-pop-to-buffer "*docker-images*")
   (docker-images-mode)
-  (docker-images-refresh)
-  (tabulated-list-revert))
+  (tablist-revert))
 
 (define-derived-mode docker-images-mode tabulated-list-mode "Images Menu"
   "Major mode for handling a list of docker images."

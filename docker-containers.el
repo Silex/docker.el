@@ -121,7 +121,7 @@
   (interactive "sCommand: \nsArguments: ")
   (--each (docker-containers-selection)
     (docker command arguments it))
-  (tabulated-list-revert))
+  (tablist-revert))
 
 (defun docker-containers-run-command-on-selection-print (command arguments)
   "Run a docker COMMAND on the containers selection with ARGUMENTS and print"
@@ -227,8 +227,7 @@
   (interactive)
   (docker-utils-pop-to-buffer "*docker-containers*")
   (docker-containers-mode)
-  (docker-containers-refresh)
-  (tabulated-list-revert))
+  (tablist-revert))
 
 (defalias 'docker-ps 'docker-containers)
 

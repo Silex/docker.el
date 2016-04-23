@@ -81,7 +81,7 @@
   (interactive)
   (--each (docker-volumes-selection)
     (docker "volume rm" it))
-  (tabulated-list-revert))
+  (tablist-revert))
 
 (docker-utils-define-popup docker-volumes-rm-popup
   "Popup for removing volumes."
@@ -105,8 +105,7 @@
   (interactive)
   (docker-utils-pop-to-buffer "*docker-volumes*")
   (docker-volumes-mode)
-  (docker-volumes-refresh)
-  (tabulated-list-revert))
+  (tablist-revert))
 
 (define-derived-mode docker-volumes-mode tabulated-list-mode "Volumes Menu"
   "Major mode for handling a list of docker volumes."

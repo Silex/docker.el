@@ -172,7 +172,7 @@ This is called `docker-machine-command' because the name
   (interactive "sCommand: \nsArguments: ")
   (--each (docker-machine-selection)
     (docker-machine-command command arguments it))
-  (tabulated-list-revert))
+  (tablist-revert))
 
 (defmacro docker-machine-create-selection-functions (&rest functions)
   `(progn ,@(--map
@@ -236,8 +236,7 @@ This is called `docker-machine-command' because the name
   (interactive)
   (pop-to-buffer "*docker-machine*")
   (docker-machine-mode)
-  (docker-machine-refresh)
-  (tabulated-list-revert))
+  (tablist-revert))
 
 (define-derived-mode docker-machine-mode tabulated-list-mode "Machines Menu"
   "Major mode for handling a list of docker machines."

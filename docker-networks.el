@@ -83,7 +83,7 @@
   (interactive)
   (--each (docker-networks-selection)
     (docker "network rm" it))
-  (tabulated-list-revert))
+  (tablist-revert))
 
 (docker-utils-define-popup docker-networks-rm-popup
   "Popup for removing networks."
@@ -107,8 +107,7 @@
   (interactive)
   (docker-utils-pop-to-buffer "*docker-networks*")
   (docker-networks-mode)
-  (docker-networks-refresh)
-  (tabulated-list-revert))
+  (tablist-revert))
 
 (define-derived-mode docker-networks-mode tabulated-list-mode "Networks Menu"
   "Major mode for handling a list of docker networks."
