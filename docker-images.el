@@ -59,21 +59,24 @@
   (--map (docker-image-name it) (docker-get-images)))
 
 (defun docker-read-image-name (prompt)
-  "Read an image name."
+  "Read an image name using PROMPT."
   (completing-read prompt (docker-image-names)))
 
 (defun docker-pull (name &optional all)
-  "Pull an image."
+  "Pull the image named NAME."
   (interactive (list (docker-read-image-name "Pull image: ") current-prefix-arg))
   (docker "pull" (when all "-a ") name))
 
 (defun docker-push (name)
-  "Push an image."
+  "Push the image named NAME."
   (interactive (list (docker-read-image-name "Push image: ")))
   (docker "push" name))
 
 (defun docker-rmi (name &optional force no-prune)
-  "Destroy or untag an image."
+  "Destroy or untag the image named NAME.
+
+Force removal of the image when FORCE is set.
+Do not delete untagged parents when NO-PRUNE is set."
   (interactive (list (docker-read-image-name "Delete image: ") current-prefix-arg))
   (docker "rmi" (when force "-f") (when no-prune "--no-prune") name))
 
@@ -84,7 +87,7 @@
     (--map (apply #'make-docker-image (s-split "\t" it)) lines)))
 
 (defun docker-get-images-raw (&optional all quiet filters)
-  "Equivalent of \"docker images\"."
+  "Equivalent of \"docker images\" as raw data."
   (let ((fmt "{{.Repository}}\\t{{.Tag}}\\t{{.ID}}\\t{{.CreatedAt}}\\t{{.Size}}"))
     (docker "images" (format "--format='%s'" fmt) (when all "-a ") (when quiet "-q ") (when filters (s-join " --filter=" filters)))))
 

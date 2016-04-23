@@ -55,11 +55,11 @@
   (--map (oref it :name) (docker-get-networks)))
 
 (defun docker-read-network-name (prompt)
-  "Read a network name."
+  "Read a network name using PROMPT."
   (completing-read prompt (docker-network-names)))
 
 (defun docker-network-rm (name)
-  "Destroy a network."
+  "Destroy the network named NAME."
   (interactive (list (docker-read-network-name "Delete network: ")))
   (docker "network rm" name))
 
@@ -71,7 +71,7 @@
     (-map 'docker-network-parse lines)))
 
 (defun docker-get-networks-raw (&optional quiet filters)
-  "Equivalent of \"docker network ls\"."
+  "Equivalent of \"docker network ls\" as raw data."
   (docker "network ls" (when quiet "-q ") (when filters (s-join " --filter=" filters))))
 
 (defun docker-networks-selection ()

@@ -53,11 +53,11 @@
   (--map (oref it :name) (docker-get-volumes)))
 
 (defun docker-read-volume-name (prompt)
-  "Read a volume name."
+  "Read a volume name using PROMPT."
   (completing-read prompt (docker-volume-names)))
 
 (defun docker-volume-rm (name)
-  "Destroy a volume."
+  "Destroy the volume named NAME."
   (interactive (list (docker-read-volume-name "Delete volume: ")))
   (docker "volume rm" name))
 
@@ -69,7 +69,7 @@
     (-map 'docker-volume-parse lines)))
 
 (defun docker-get-volumes-raw (&optional quiet filters)
-  "Equivalent of \"docker volume ls\"."
+  "Equivalent of \"docker volume ls\" as raw data."
   (docker "volume ls" (when quiet "-q ") (when filters (s-join " --filter=" filters))))
 
 (defun docker-volumes-selection ()

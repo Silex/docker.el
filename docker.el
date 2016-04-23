@@ -57,7 +57,7 @@
 (require 'docker-containers)
 
 (defgroup docker nil
-  "Emacs customization group for docker."
+  "Docker customization group."
   :group 'convenience)
 
 (defcustom docker-keymap-prefix "C-c d"

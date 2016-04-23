@@ -63,41 +63,51 @@
   (--map (docker-container-name it) (docker-get-containers t)))
 
 (defun docker-read-container-name (prompt)
-  "Read an container name."
+  "Read an container name using PROMPT."
   (completing-read prompt (docker-container-names)))
 
 (defun docker-start (name)
-  "Start a container."
+  "Start the container named NAME."
   (interactive (list (docker-read-container-name "Start container: ")))
   (docker "start" name))
 
 (defun docker-stop (name &optional timeout)
-  "Stop a container."
+  "Stop the container named NAME.
+
+TIMEOUT is the number of seconds to wait for the container to stop before killing it."
   (interactive (list (docker-read-container-name "Stop container: ") current-prefix-arg))
   (docker "stop" (when timeout (format "-t %d" timeout)) name))
 
 (defun docker-restart (name &optional timeout)
-  "Restart a container."
+  "Restart the container named NAME.
+
+TIMEOUT is the number of seconds to wait for the container to stop before killing it."
   (interactive (list (docker-read-container-name "Restart container: ") current-prefix-arg))
   (docker "restart" (when timeout (format "-t %d" timeout)) name))
 
 (defun docker-pause (name)
-  "Pause a container."
+  "Pause the container named NAME."
   (interactive (list (docker-read-container-name "Pause container: ")))
   (docker "pause" name))
 
 (defun docker-unpause (name)
-  "Unpause a container."
+  "Unpause the container named NAME."
   (interactive (list (docker-read-container-name "Unpause container: ")))
   (docker "unpause" name))
 
-(defun docker-rm (name &optional force)
-  "Destroy or uncommand an container."
+(defun docker-rm (name &optional force link volumes)
+  "Remove the container named NAME.
+
+With prefix argument, sets FORCE to true.
+
+Force the removal even if the container is running when FORCE is set.
+Remove the specified link and not the underlying container when LINK is set.
+Remove the volumes associated with the container when VOLUMES is set."
   (interactive (list (docker-read-container-name "Delete container: ") current-prefix-arg))
-  (docker "rm" (when force "-f") name))
+  (docker "rm" (when force "-f") (when link "-l") (when volumes "-v") name))
 
 (defun docker-inspect (name)
-  "Inspect a container."
+  "Inspect the container named NAME."
   (interactive (list (docker-read-container-name "Inspect container: ")))
   (docker "inspect" name))
 
@@ -108,7 +118,7 @@
     (--map (apply #'make-docker-container (s-split "\t" it)) lines)))
 
 (defun docker-get-containers-raw (&optional all quiet filters)
-  "Equivalent of \"docker containers\"."
+  "Equivalent of \"docker ps\" as raw data."
   (let ((fmt "{{.ID}}\\t{{.Image}}\\t{{.Command}}\\t{{.CreatedAt}}\\t{{.Status}}\\t{{.Ports}}\\t{{.Names}}"))
     (docker "ps" (format "--format='%s'" fmt) (when all "-a ") (when quiet "-q ") (when filters (s-join " --filter=" filters)))))
 
