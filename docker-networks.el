@@ -27,61 +27,32 @@
 (require 'docker-utils)
 (require 'tablist)
 
-(require 'eieio)
 (require 'magit-popup)
 
-(defclass docker-network ()
-  ((id           :initarg :id           :initform nil)
-   (name         :initarg :name         :initform nil)
-   (driver       :initarg :driver       :initform nil)))
-
-(defmethod docker-network-to-tabulated-list ((this docker-network))
-  "Convert `docker-network' to tabulated list."
-  (list (oref this :id)
-        `[,(oref this :id)
-          ,(oref this :name)
-          ,(oref this :driver)]))
-
-(defun make-docker-network (id name driver)
-  "Helper to create a `eieio` docker network object."
-  (docker-network id :id id :name name :driver driver))
+(defun docker-networks-entries ()
+  "Returns the docker networks data for `tabulated-list-entries'."
+  (let* ((data (docker "network" "ls"))
+         (lines (cdr (s-split "\n" data t))))
+    (-map #'docker-network-parse lines)))
 
 (defun docker-network-parse (line)
-  "Convert LINE from 'docker network ls' to `docker-network'."
-  (apply #'make-docker-network (s-split " \\{3,\\}" line t)))
-
-(defun docker-network-names ()
-  "Return the list of network names."
-  (--map (oref it :name) (docker-get-networks)))
+  "Convert a LINE from \"docker network ls\" to a `tabulated-list-entries' entry."
+  (let ((data (s-split " \\{3,\\}" line t)))
+    (list (car data) (apply #'vector data))))
 
 (defun docker-read-network-name (prompt)
   "Read a network name using PROMPT."
-  (completing-read prompt (docker-network-names)))
+  (completing-read prompt (--map (aref (cadr it) 1) (docker-networks-entries))))
 
 (defun docker-network-rm (name)
   "Destroy the network named NAME."
   (interactive (list (docker-read-network-name "Delete network: ")))
   (docker "network rm" name))
 
-(defun docker-get-networks (&optional quiet filters)
-  "Get networks as eieio objects."
-  (let* ((data (docker-get-networks-raw quiet filters))
-         (lines (s-split "\n" data t))
-         (lines (cdr lines)))
-    (-map 'docker-network-parse lines)))
-
-(defun docker-get-networks-raw (&optional quiet filters)
-  "Equivalent of \"docker network ls\" as raw data."
-  (docker "network ls" (when quiet "-q ") (when filters (s-join " --filter=" filters))))
-
-(defun docker-networks-selection ()
-  "Get the networks selection as a list of ids."
-  (-map 'car (docker-utils-get-marked-items)))
-
 (defun docker-networks-rm-selection ()
   "Run `docker-network-rm' on the networks selection."
   (interactive)
-  (--each (docker-networks-selection)
+  (--each (docker-utils-get-marked-items-ids)
     (docker "network rm" it))
   (tablist-revert))
 
@@ -93,7 +64,7 @@
 
 (defun docker-networks-refresh ()
   "Refresh the networks list."
-  (setq tabulated-list-entries (-map 'docker-network-to-tabulated-list (docker-get-networks))))
+  (setq tabulated-list-entries (docker-networks-entries)))
 
 (defvar docker-networks-mode-map
   (let ((map (make-sparse-keymap)))

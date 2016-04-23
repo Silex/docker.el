@@ -27,44 +27,23 @@
 (require 'docker-utils)
 (require 'tablist)
 
-(require 'eieio)
 (require 'magit-popup)
 
-(defclass docker-container ()
-  ((id           :initarg :id           :initform nil)
-   (image        :initarg :image        :initform nil)
-   (command      :initarg :command      :initform nil)
-   (created      :initarg :created      :initform nil)
-   (status       :initarg :status       :initform nil)
-   (ports        :initarg :ports        :initform nil)
-   (names        :initarg :names        :initform nil)))
+(defun docker-containers-entries ()
+  "Return the docker containers data for `tabulated-list-entries'."
+  (let* ((fmt "{{.ID}}\\t{{.Image}}\\t{{.Command}}\\t{{.CreatedAt}}\\t{{.Status}}\\t{{.Ports}}\\t{{.Names}}")
+         (data (docker "ps" (format "--format='%s'" fmt) "-a "))
+         (lines (s-split "\n" data t)))
+    (-map #'docker-container-parse lines)))
 
-(defmethod docker-container-name ((this docker-container))
-  "Return the container name."
-  (oref this :names))
-
-(defmethod docker-container-to-tabulated-list ((this docker-container))
-  "Convert `docker-container' to tabulated list."
-  (list (oref this :id)
-        `[,(oref this :id)
-          ,(oref this :image)
-          ,(oref this :command)
-          ,(oref this :created)
-          ,(oref this :status)
-          ,(oref this :ports)
-          ,(oref this :names)]))
-
-(defun make-docker-container (id image command created status ports names &rest unused)
-  "Helper to create a `eieio` docker container object."
-  (docker-container id :id id :image image :command command :created created :status status :ports ports :names names))
-
-(defun docker-container-names ()
-  "Return the list of container names."
-  (--map (docker-container-name it) (docker-get-containers t)))
+(defun docker-container-parse (line)
+  "Convert a LINE from \"docker ps\" to a `tabulated-list-entries' entry."
+  (let ((data (s-split "\t" line)))
+    (list (car data) (apply #'vector data))))
 
 (defun docker-read-container-name (prompt)
   "Read an container name using PROMPT."
-  (completing-read prompt (docker-container-names)))
+  (completing-read prompt (--map (aref (cadr it) 6) (docker-containers-entries))))
 
 (defun docker-start (name)
   "Start the container named NAME."
@@ -111,25 +90,10 @@ Remove the volumes associated with the container when VOLUMES is set."
   (interactive (list (docker-read-container-name "Inspect container: ")))
   (docker "inspect" name))
 
-(defun docker-get-containers (&optional all quiet filters)
-  "Get containers as eieio objects."
-  (let* ((data (docker-get-containers-raw all quiet filters))
-         (lines (s-split "\n" data t)))
-    (--map (apply #'make-docker-container (s-split "\t" it)) lines)))
-
-(defun docker-get-containers-raw (&optional all quiet filters)
-  "Equivalent of \"docker ps\" as raw data."
-  (let ((fmt "{{.ID}}\\t{{.Image}}\\t{{.Command}}\\t{{.CreatedAt}}\\t{{.Status}}\\t{{.Ports}}\\t{{.Names}}"))
-    (docker "ps" (format "--format='%s'" fmt) (when all "-a ") (when quiet "-q ") (when filters (s-join " --filter=" filters)))))
-
-(defun docker-containers-selection ()
-  "Get the containers selection as a list of ids."
-  (-map 'car (docker-utils-get-marked-items)))
-
 (defun docker-containers-run-command-on-selection (command arguments)
   "Run a docker COMMAND on the containers selection with ARGUMENTS."
   (interactive "sCommand: \nsArguments: ")
-  (--each (docker-containers-selection)
+  (--each (docker-utils-get-marked-items-ids)
     (docker command arguments it))
   (tablist-revert))
 
@@ -139,7 +103,7 @@ Remove the volumes associated with the container when VOLUMES is set."
   (let ((buffer (get-buffer-create "*docker result*")))
     (with-current-buffer buffer
       (erase-buffer))
-    (--each (docker-containers-selection)
+    (--each (docker-utils-get-marked-items-ids)
       (let ((result (docker command arguments it)))
         (with-current-buffer buffer
           (goto-char (point-max))
@@ -217,7 +181,7 @@ Remove the volumes associated with the container when VOLUMES is set."
 
 (defun docker-containers-refresh ()
   "Refresh the containers list."
-  (setq tabulated-list-entries (-map 'docker-container-to-tabulated-list (docker-get-containers t))))
+  (setq tabulated-list-entries (docker-containers-entries)))
 
 (defvar docker-containers-mode-map
   (let ((map (make-sparse-keymap)))

@@ -26,7 +26,7 @@
 (require 'magit-popup)
 
 (defun docker-utils-get-marked-items ()
-  "Get the marked items data."
+  "Get the marked items data from `tabulated-list-entries'."
   (save-excursion
     (goto-char (point-min))
     (let ((selection ()))
@@ -35,6 +35,10 @@
           (add-to-list 'selection (cons (tabulated-list-get-id) (tabulated-list-get-entry)) t))
         (forward-line))
       selection)))
+
+(defun docker-utils-get-marked-items-ids ()
+  "Get the id part of `docker-utils-get-marked-items'."
+  (-map #'car (docker-utils-get-marked-items)))
 
 (defmacro docker-utils-define-popup (name doc &rest args)
   "Wrapper around `docker-utils-define-popup'."

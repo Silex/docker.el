@@ -27,40 +27,26 @@
 (require 'docker-utils)
 (require 'tablist)
 
-(require 'eieio)
 (require 'magit-popup)
 
-(defclass docker-image ()
-  ((id           :initarg :id           :initform nil)
-   (repository   :initarg :repository   :initform nil)
-   (tag          :initarg :tag          :initform nil)
-   (created      :initarg :created      :initform nil)
-   (size         :initarg :size         :initform nil)))
+(defun docker-images-entries ()
+  "Returns the docker images data for `tabulated-list-entries'."
+  (let* ((fmt "{{.Repository}}\\t{{.Tag}}\\t{{.ID}}\\t{{.CreatedSince}}\\t{{.Size}}")
+         (data (docker "images" (format "--format='%s'" fmt)))
+         (lines (s-split "\n" data t)))
+    (-map #'docker-image-parse lines)))
 
-(defmethod docker-image-name ((this docker-image))
-  "Return the repository:name image name."
-  (format "%s:%s" (oref this :repository) (oref this :tag)))
-
-(defmethod docker-image-to-tabulated-list ((this docker-image))
-  "Convert `docker-image' to tabulated list."
-  (list (oref this :id)
-        `[,(oref this :id)
-          ,(oref this :repository)
-          ,(oref this :tag)
-          ,(oref this :created)
-          ,(oref this :size)]))
-
-(defun make-docker-image (repository tag id created size)
-  "Helper to create a `eieio` docker image object."
-  (docker-image id :id id :repository repository :tag tag :size size :created created))
-
-(defun docker-image-names ()
-  "Return the list of image names."
-  (--map (docker-image-name it) (docker-get-images)))
+(defun docker-image-parse (line)
+  "Convert a LINE from \"docker images\" to a `tabulated-list-entries' entry."
+  (let* ((data (s-split "\t" line))
+         (name (format "%s:%s" (nth 0 data) (nth 1 data))))
+    (list
+     (if (string-equal name "<none>:<none>") (nth 2 data) name)
+     (apply #'vector data))))
 
 (defun docker-read-image-name (prompt)
   "Read an image name using PROMPT."
-  (completing-read prompt (docker-image-names)))
+  (completing-read prompt (-map #'car (docker-images-entries))))
 
 (defun docker-pull (name &optional all)
   "Pull the image named NAME."
@@ -80,31 +66,11 @@ Do not delete untagged parents when NO-PRUNE is set."
   (interactive (list (docker-read-image-name "Delete image: ") current-prefix-arg))
   (docker "rmi" (when force "-f") (when no-prune "--no-prune") name))
 
-(defun docker-get-images (&optional all quiet filters)
-  "Get images as eieio objects."
-  (let* ((data (docker-get-images-raw all quiet filters))
-         (lines (s-split "\n" data t)))
-    (--map (apply #'make-docker-image (s-split "\t" it)) lines)))
-
-(defun docker-get-images-raw (&optional all quiet filters)
-  "Equivalent of \"docker images\" as raw data."
-  (let ((fmt "{{.Repository}}\\t{{.Tag}}\\t{{.ID}}\\t{{.CreatedAt}}\\t{{.Size}}"))
-    (docker "images" (format "--format='%s'" fmt) (when all "-a ") (when quiet "-q ") (when filters (s-join " --filter=" filters)))))
-
-(defun docker-images-selection ()
-  "Get the images selection as a list of names."
-  (--map (let* ((entry (cdr it))
-                (name (format "%s:%s" (aref entry 1) (aref entry 2))))
-           (if (string-equal name "<none>:<none>")
-               (aref entry 0)
-             name))
-         (docker-utils-get-marked-items)))
-
 (defun docker-images-rmi-selection ()
   "Run `docker-rmi' on the images selection."
   (interactive)
   (let ((args (docker-images-rmi-arguments)))
-    (--each (docker-images-selection)
+    (--each (docker-utils-get-marked-items-ids)
       (docker-rmi it (-contains? args "-f") (-contains? args "--no-prune")))
     (tablist-revert)))
 
@@ -112,7 +78,7 @@ Do not delete untagged parents when NO-PRUNE is set."
   "Run `docker-pull' on the images selection."
   (interactive)
   (let ((args (docker-images-pull-arguments)))
-    (--each (docker-images-selection)
+    (--each (docker-utils-get-marked-items-ids)
       (docker-pull it (-contains? args "-a")))
     (tablist-revert)))
 
@@ -120,7 +86,7 @@ Do not delete untagged parents when NO-PRUNE is set."
   "Run `docker-push' on the images selection."
   (interactive)
   (let ((args (s-join " " (docker-images-rmi-arguments))))
-    (--each (docker-images-selection)
+    (--each (docker-utils-get-marked-items-ids)
       (docker "push" args it))
     (tablist-revert)))
 
@@ -131,7 +97,7 @@ Do not delete untagged parents when NO-PRUNE is set."
          (last-item (-last-item popup-args))
          (has-command (s-contains? "--command" last-item))
          (docker-args (if has-command (-slice popup-args 0 -1) popup-args)))
-    (--each (docker-images-selection)
+    (--each (docker-utils-get-marked-items-ids)
       (let ((command-args `("docker" "run" ,@docker-args ,it)))
         (when has-command
           (add-to-list 'command-args (s-chop-prefix "--command " last-item) t))
@@ -184,7 +150,7 @@ Do not delete untagged parents when NO-PRUNE is set."
 
 (defun docker-images-refresh ()
   "Refresh the images list."
-  (setq tabulated-list-entries (-map 'docker-image-to-tabulated-list (docker-get-images))))
+  (setq tabulated-list-entries (docker-images-entries)))
 
 (defvar docker-images-mode-map
   (let ((map (make-sparse-keymap)))
@@ -205,7 +171,7 @@ Do not delete untagged parents when NO-PRUNE is set."
 
 (define-derived-mode docker-images-mode tabulated-list-mode "Images Menu"
   "Major mode for handling a list of docker images."
-  (setq tabulated-list-format [("Id" 16 t)("Repository" 30 t)("Tag" 20 t)("Created" 15 t)("Size" 10 t)])
+  (setq tabulated-list-format [("Repository" 30 t)("Tag" 20 t)("Id" 16 t)("Created" 25 t)("Size" 10 t)])
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key (cons "Repository" nil))
   (add-hook 'tabulated-list-revert-hook 'docker-images-refresh nil t)

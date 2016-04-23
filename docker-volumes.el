@@ -27,34 +27,22 @@
 (require 'docker-utils)
 (require 'tablist)
 
-(require 'eieio)
 (require 'magit-popup)
 
-(defclass docker-volume ()
-  ((driver       :initarg :driver       :initform nil)
-   (name         :initarg :name         :initform nil)))
-
-(defmethod docker-volume-to-tabulated-list ((this docker-volume))
-  "Convert `docker-volume' to tabulated list."
-  (list (oref this :name)
-        `[,(oref this :driver)
-          ,(oref this :name)]))
-
-(defun make-docker-volume (driver name)
-  "Helper to create a `eieio` docker volume object."
-  (docker-volume name :driver driver :name name))
+(defun docker-volumes-entries ()
+  "Returns the docker volumes data for `tabulated-list-entries'."
+  (let* ((data (docker "volume" "ls"))
+         (lines (cdr (s-split "\n" data t))))
+    (-map #'docker-volume-parse lines)))
 
 (defun docker-volume-parse (line)
-  "Convert LINE from 'docker volume ls' to `docker-volume'."
-  (apply #'make-docker-volume (s-split " \\{3,15\\}" line)))
-
-(defun docker-volume-names ()
-  "Return the list of volume names."
-  (--map (oref it :name) (docker-get-volumes)))
+  "Convert a LINE from \"docker volume ls\" to a `tabulated-list-entries' entry."
+  (let ((data (s-split " \\{3,15\\}" line t)))
+    (list (cadr data) (apply #'vector data))))
 
 (defun docker-read-volume-name (prompt)
   "Read a volume name using PROMPT."
-  (completing-read prompt (docker-volume-names)))
+  (completing-read prompt (-map #'car (docker-volumes-entries))))
 
 (defun docker-volume-rm (name)
   "Destroy the volume named NAME."
@@ -69,17 +57,13 @@
     (-map 'docker-volume-parse lines)))
 
 (defun docker-get-volumes-raw (&optional quiet filters)
-  "Equivalent of \"docker volume ls\" as raw data."
+  "Equivalent of \"docker volume ls\" as raw data for `tabulated-list-entries'."
   (docker "volume ls" (when quiet "-q ") (when filters (s-join " --filter=" filters))))
-
-(defun docker-volumes-selection ()
-  "Get the volumes selection as a list of ids."
-  (-map 'car (docker-utils-get-marked-items)))
 
 (defun docker-volumes-rm-selection ()
   "Run `docker-volume-rm' on the volumes selection."
   (interactive)
-  (--each (docker-volumes-selection)
+  (--each (docker-utils-get-marked-items-ids)
     (docker "volume rm" it))
   (tablist-revert))
 
@@ -91,7 +75,7 @@
 
 (defun docker-volumes-refresh ()
   "Refresh the volumes list."
-  (setq tabulated-list-entries (-map 'docker-volume-to-tabulated-list (docker-get-volumes))))
+  (setq tabulated-list-entries (docker-volumes-entries)))
 
 (defvar docker-volumes-mode-map
   (let ((map (make-sparse-keymap)))

@@ -27,59 +27,33 @@
 (require 'docker-utils)
 (require 'tablist)
 
-(require 'eieio)
 (require 'magit-popup)
 
-(defun docker-machine-command (action &rest args)
-  "Execute docker-machine ACTION passing arguments ARGS.
+(defun docker-machines-entries ()
+  "Returns the docker machines data for `tabulated-list-entries'."
+  (let* ((fmt "{{.Name}}\\t{{.Active}}\\t{{.DriverName}}\\t{{.State}}\\t{{.URL}}\\t{{.Swarm}}\\t{{.DockerVersion}}\\t{{.Error}}")
+         (data (docker "machine" (format "--format='%s'" fmt)))
+         (lines (s-split "\n" data t)))
+    (-map #'docker-machine-parse lines)))
 
-This is called `docker-machine-command' because the name
-`docker-machine' is used for the data object"
+(defun docker-machine-parse (line)
+  "Convert a LINE from \"docker machine ls\" to a `tabulated-list-entries' entry."
+  (let ((data (s-split "\t" line)))
+    (list (car data) (apply #'vector data))))
+
+(defun docker-read-machine-name (prompt)
+  "Read an machine name using PROMPT."
+  (completing-read prompt (-map #'car (docker-machines-entries))))
+
+(defun docker-machine (action &rest args)
+  "Execute docker-machine ACTION passing arguments ARGS."
   (let ((command (format "docker-machine %s %s" action (s-join " " (-non-nil args)))))
     (message command)
     (shell-command-to-string command)))
 
-(defclass docker-machine ()
-  ((name          :initarg :name         :initform nil)
-   (active        :initarg :active       :initform nil)
-   (driver        :initarg :driver       :initform nil)
-   (state         :initarg :state        :initform nil)
-   (url           :initarg :url          :initform nil)
-   (swarm         :initarg :swarm        :initform nil)
-   (docker        :initarg :docker       :initform nil)
-   (errors        :initarg :errors       :initform nil)))
-
-(defmethod docker-machine-name ((this docker-machine))
-  "Return the machine name."
-  (oref this :name))
-
-(defmethod docker-machine-to-tabulated-list ((this docker-machine))
-  "Convert `docker-machine' to tabulated list."
-  (list (oref this :name)
-        `[,(oref this :name)
-          ,(oref this :active)
-          ,(oref this :driver)
-          ,(oref this :state)
-          ,(oref this :url)
-          ,(oref this :swarm)
-          ,(oref this :docker)
-          ,(oref this :errors)]))
-
-(defun make-docker-machine (name active driver state url swarm docker errors &rest unused)
-  "Helper to create a `eieio` docker machine object."
-  (docker-machine name :name name :active active :driver driver :state state :url url :swarm swarm :docker docker :errors errors))
-
-(defun docker-machine-parse (line)
-  "Convert LINE from 'docker-machine ls' to `docker-machine'."
-  (apply #'make-docker-machine (s-split "\t" line)))
-
-(defun docker-machine-names ()
-  "Return the list of machine names."
-  (--map (docker-machine-name it) (docker-get-machines)))
-
 (defun docker-machine-active ()
   "Print which machine is active."
-  (docker-machine-command "active"))
+  (docker-machine "active"))
 
 (defun docker-read-machine-name (prompt)
   "Read an machine name."
@@ -88,37 +62,37 @@ This is called `docker-machine-command' because the name
 (defun docker-machine-config (name)
   "Print the connection config for machine."
   (interactive (list (docker-read-machine-name "Config for machine: ")))
-  (docker-machine-command "config" name))
+  (docker-machine "config" name))
 
 (defun docker-machine-inspect (name)
   "Inspect information about a machine."
   (interactive (list (docker-read-machine-name "Inspect machine: ")))
-  (docker-machine-command "inspect" name))
+  (docker-machine "inspect" name))
 
 (defun docker-machine-ip (name)
   "Get the IP address of a machine."
   (interactive (list (docker-read-machine-name "IP for machine: ")))
-  (docker-machine-command "ip" name))
+  (docker-machine "ip" name))
 
 (defun docker-machine-status (name)
   "Get the status of a machine."
   (interactive (list (docker-read-machine-name "Status of machine: ")))
-  (docker-machine-command "status" name))
+  (docker-machine "status" name))
 
 (defun docker-machine-upgrade (name)
   "Upgrade a machine to the latest version of Docker."
   (interactive (list (docker-read-machine-name "Upgrade machine: ")))
-  (docker-machine-command "upgrade" name))
+  (docker-machine "upgrade" name))
 
 (defun docker-machine-kill (name)
   "Kill a machine."
   (interactive (list (docker-read-machine-name "Kill machine: ")))
-  (docker-machine-command "kill" name))
+  (docker-machine "kill" name))
 
 (defun docker-machine-start (name)
   "Start a machine."
   (interactive (list (docker-read-machine-name "Start machine: ")))
-  (docker-machine-command "start" name))
+  (docker-machine "start" name))
 
 (defun docker-machine-env-export (line)
   (let ((split-string (s-split "=" (s-chop-prefix "export " line))))
@@ -129,49 +103,30 @@ This is called `docker-machine-command' because the name
   "Parse and set environment variables from 'docker-machine env' output"
   (interactive (list (docker-read-machine-name "Set up environment for machine: ")))
   (--each-while
-      (s-lines (docker-machine-command "env" name))
+      (s-lines (docker-machine "env" name))
       (s-prefix? "export" it)
     (docker-machine-env-export it)))
 
 (defun docker-machine-stop (name)
   "Stop a machine."
   (interactive (list (docker-read-machine-name "Stop machine: ") current-prefix-arg))
-  (docker-machine-command "stop" name))
+  (docker-machine "stop" name))
 
 (defun docker-machine-restart (name)
   "Restart a machine."
   (interactive (list (docker-read-machine-name "Restart machine: ") current-prefix-arg))
-  (docker-machine-command "restart" name))
+  (docker-machine "restart" name))
 
 (defun docker-machine-rm (name &optional force)
   "Destroy or uncommand an machine."
   (interactive (list (docker-read-machine-name "Delete machine: ") current-prefix-arg))
-  (docker-machine-command "rm" (when force "--force") name))
-
-(defun docker-get-machines (&optional quiet filters)
-  "Get machines as eieio objects."
-  (let* ((data (docker-get-machines-raw quiet filters))
-         (lines (s-split "\n" data t))
-         (lines (cdr lines)))
-    (-map 'docker-machine-parse lines)))
-
-(defun docker-get-machines-raw (&optional quiet filters)
-  "Equivalent of \"docker machines\"."
-  (docker-machine-command
-   "ls --format \"{{.Name}}\\t{{.Active}}\\t{{.DriverName}}\\t{{.State}}\\t{{.URL}}\\t{{.Swarm}}\\t{{.DockerVersion}}\\t{{.Error}}\""
-   (when quiet "-q ")
-   (when filters
-     (s-join " --filter=" filters))))
-
-(defun docker-machine-selection ()
-  "Get the machines selection as a list of ids."
-  (-map 'car (docker-utils-get-marked-items)))
+  (docker-machine "rm" (when force "--force") name))
 
 (defun docker-machine-run-command-on-selection (command arguments)
   "Run a docker COMMAND on the machines selection with ARGUMENTS."
   (interactive "sCommand: \nsArguments: ")
-  (--each (docker-machine-selection)
-    (docker-machine-command command arguments it))
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-machine command arguments it))
   (tablist-revert))
 
 (defmacro docker-machine-create-selection-functions (&rest functions)
@@ -218,7 +173,7 @@ This is called `docker-machine-command' because the name
 
 (defun docker-machine-refresh ()
   "Refresh the machines list."
-  (setq tabulated-list-entries (-map 'docker-machine-to-tabulated-list (docker-get-machines))))
+  (setq tabulated-list-entries (docker-machines-entries)))
 
 (defvar docker-machine-mode-map
   (let ((map (make-sparse-keymap)))
@@ -231,10 +186,10 @@ This is called `docker-machine-command' because the name
   "Keymap for `docker-machine-mode'.")
 
 ;;;###autoload
-(defun docker-machine-ls ()
+(defun docker-machines ()
   "List docker machines."
   (interactive)
-  (pop-to-buffer "*docker-machine*")
+  (pop-to-buffer "*docker-machines*")
   (docker-machine-mode)
   (tablist-revert))
 
