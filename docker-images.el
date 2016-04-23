@@ -196,7 +196,7 @@
 (defun docker-images ()
   "List docker images."
   (interactive)
-  (docker--buffer-pop-to "*docker-images*")
+  (docker-utils-pop-to-buffer "*docker-images*")
   (docker-images-mode)
   (docker-images-refresh)
   (tabulated-list-revert))

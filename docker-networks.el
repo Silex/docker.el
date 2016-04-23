@@ -105,7 +105,7 @@
 (defun docker-networks ()
   "List docker networks."
   (interactive)
-  (docker--buffer-pop-to "*docker-networks*")
+  (docker-utils-pop-to-buffer "*docker-networks*")
   (docker-networks-mode)
   (docker-networks-refresh)
   (tabulated-list-revert))

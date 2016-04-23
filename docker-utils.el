@@ -50,12 +50,12 @@
 
 (put 'docker-utils-define-popup 'lisp-indent-function 'defun)
 
-(defun docker--buffer-pop-to (buffer-name)
+(defun docker-utils-pop-to-buffer (name)
+  "Like `pop-to-buffer', but suffix NAME with the host if on a remote host."
   (pop-to-buffer
-   (if (not (file-remote-p default-directory))
-       buffer-name
-     (with-parsed-tramp-file-name default-directory tramp-file
-       (concat buffer-name "--" tramp-file-host)))))
+   (if (file-remote-p default-directory)
+       (with-parsed-tramp-file-name default-directory nil (concat name " - " host))
+     name)))
 
 (provide 'docker-utils)
 
