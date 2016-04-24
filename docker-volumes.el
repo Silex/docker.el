@@ -38,7 +38,7 @@
 (defun docker-volume-parse (line)
   "Convert a LINE from \"docker volume ls\" to a `tabulated-list-entries' entry."
   (let ((data (s-split " \\{3,15\\}" line t)))
-    (list (cadr data) (apply #'vector data))))
+    (list (nth 1 data) (apply #'vector data))))
 
 (defun docker-read-volume-name (prompt)
   "Read a volume name using PROMPT."

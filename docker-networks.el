@@ -38,11 +38,11 @@
 (defun docker-network-parse (line)
   "Convert a LINE from \"docker network ls\" to a `tabulated-list-entries' entry."
   (let ((data (s-split " \\{3,\\}" line t)))
-    (list (car data) (apply #'vector data))))
+    (list (nth 1 data) (apply #'vector data))))
 
 (defun docker-read-network-name (prompt)
   "Read a network name using PROMPT."
-  (completing-read prompt (--map (aref (cadr it) 1) (docker-networks-entries))))
+  (completing-read prompt (-map #'car (docker-networks-entries))))
 
 (defun docker-network-rm (name)
   "Destroy the network named NAME."
