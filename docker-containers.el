@@ -38,6 +38,7 @@
 
 (defun docker-container-parse (line)
   "Convert a LINE from \"docker ps\" to a `tabulated-list-entries' entry."
+  ;; TODO what if command contains a \t ?
   (let ((data (s-split "\t" line)))
     (list (car data) (apply #'vector data))))
 
