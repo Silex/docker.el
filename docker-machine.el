@@ -42,7 +42,7 @@
     (list (car data) (apply #'vector data))))
 
 (defun docker-read-machine-name (prompt)
-  "Read an machine name using PROMPT."
+  "Read a machine name using PROMPT."
   (completing-read prompt (-map #'car (docker-machines-entries))))
 
 (defun docker-machine (action &rest args)
@@ -54,10 +54,6 @@
 (defun docker-machine-active ()
   "Print which machine is active."
   (docker-machine "active"))
-
-(defun docker-read-machine-name (prompt)
-  "Read an machine name."
-  (completing-read prompt (docker-machine-names)))
 
 (defun docker-machine-config (name)
   "Print the connection config for machine."
@@ -118,7 +114,7 @@
   (docker-machine "restart" name))
 
 (defun docker-machine-rm (name &optional force)
-  "Destroy or uncommand an machine."
+  "Destroy or uncommand a machine."
   (interactive (list (docker-read-machine-name "Delete machine: ") current-prefix-arg))
   (docker-machine "rm" (when force "--force") name))
 
