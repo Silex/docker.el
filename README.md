@@ -8,15 +8,26 @@ Otherwise, simply add the files to your load-path and then `(require 'docker)`.
 
 ## Quickstart
 
-Use <kbd>M-x docker-images</kbd>, <kbd>M-x docker-containers</kbd>, <kbd>M-x docker-volumes</kbd> or <kbd>M-x docker-networks</kbd>
-then mark/unmark items using the following keybindings:
+Use <kbd>M-x docker-images</kbd>, <kbd>M-x docker-containers</kbd>,
+<kbd>M-x docker-volumes</kbd>, <kbd>M-x docker-networks</kbd> or
+<kbd>M-x docker-machines</kbd> then mark/unmark items using the
+following keybindings:
 
-- `m`: mark
-- `u`: unmark
-- `t`: toggle marks
-- `U`: unmark all
+| Keymap             | Description          |
+|--------------------|----------------------|
+| <kbd>m</kbd>       | Mark item            |
+| <kbd>U</kbd>       | Unmark all           |
+| <kbd>u</kbd>       | Unmark item          |
+| <kbd>t</kbd>       | Toggle marks         |
+| <kbd>s</kbd>       | Sort                 |
+| <kbd><</kbd>       | Shrink column        |
+| <kbd>></kbd>       | Enlarge column       |
+| <kbd>C-c C-e</kbd> | Export to csv        |
+| <kbd>* r</kbd>     | Mark items by regexp |
 
-Press `?` to known about available keybindings in order to run actions on these items.
+Press `?` to known about available keybindings in order to run actions
+on these items. Also check out https://github.com/politza/tablist to find more
+about the marking possibilities.
 
 You can also call the [API](#api) directly.
 
