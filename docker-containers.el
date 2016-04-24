@@ -40,11 +40,11 @@
   "Convert a LINE from \"docker ps\" to a `tabulated-list-entries' entry."
   ;; TODO what if command contains a \t ?
   (let ((data (s-split "\t" line)))
-    (list (car data) (apply #'vector data))))
+    (list (nth 6 data) (apply #'vector data))))
 
 (defun docker-read-container-name (prompt)
   "Read an container name using PROMPT."
-  (completing-read prompt (--map (aref (cadr it) 6) (docker-containers-entries))))
+  (completing-read prompt (-map #'car (docker-containers-entries))))
 
 (defun docker-start (name)
   "Start the container named NAME."
