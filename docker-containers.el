@@ -120,6 +120,18 @@ Remove the volumes associated with the container when VOLUMES is set."
                                                             (s-join " " ,(list (intern (format "docker-containers-%s-arguments" it))))))
              functions)))
 
+
+(defun docker-containers-cp-from (container-path host-path)
+  "Run `docker-cp' on the container to copy files from."
+  (interactive "sContainerPath: \nFHostFile: ")
+  (docker "cp" (concat (tabulated-list-get-id) ":" container-path) host-path))
+
+(defun docker-containers-cp-to-selection (host-path container-path)
+  "Run `docker-cp' on the containers selection to copy file into."
+  (interactive "fHostFile: \nsContainerPath: ")
+  (--each (docker-utils-get-marked-items-ids)
+    (docker "cp" host-path (concat it ":" container-path))))
+
 (defmacro docker-containers-create-selection-print-functions (&rest functions)
   `(progn ,@(--map
              `(defun ,(intern (format "docker-containers-%s-selection" it)) ()
@@ -180,12 +192,20 @@ Remove the volumes associated with the container when VOLUMES is set."
               (?v "Volumes" "-v"))
   :actions  '((?D "Remove" docker-containers-rm-selection)))
 
+(docker-utils-define-popup docker-containers-cp-popup
+  "Popup for copying files from/to containers."
+  'docker-containers-popups
+  :man-page "docker-cp"
+  :actions  '((?F "Copy From" docker-containers-cp-from)
+              (?T "Copy To" docker-containers-cp-to-selection)))
+
 (defun docker-containers-refresh ()
   "Refresh the containers list."
   (setq tabulated-list-entries (docker-containers-entries)))
 
 (defvar docker-containers-mode-map
   (let ((map (make-sparse-keymap)))
+    (define-key map "C" 'docker-containers-cp-popup)
     (define-key map "I" 'docker-containers-inspect-popup)
     (define-key map "L" 'docker-containers-logs-popup)
     (define-key map "S" 'docker-containers-start-popup)
