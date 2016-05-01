@@ -31,16 +31,14 @@
 
 (defun docker-containers-entries ()
   "Return the docker containers data for `tabulated-list-entries'."
-  (let* ((fmt "{{.ID}}\\t{{.Image}}\\t{{.Command}}\\t{{.RunningFor}}\\t{{.Status}}\\t{{.Ports}}\\t{{.Names}}")
+  (let* ((fmt "[{{.ID|json}},{{.Image|json}},{{.Command|json}},{{.RunningFor|json}},{{.Status|json}},{{.Ports|json}},{{.Names|json}}]")
          (data (docker "ps" (format "--format='%s'" fmt) "-a "))
-         (lines (s-split "\n" data t)))
+         (lines (docker-utils-json-read-from-string-multiple data)))
     (-map #'docker-container-parse lines)))
 
 (defun docker-container-parse (line)
   "Convert a LINE from \"docker ps\" to a `tabulated-list-entries' entry."
-  ;; TODO what if command contains a \t ?
-  (let ((data (s-split "\t" line)))
-    (list (nth 6 data) (apply #'vector data))))
+  (list (elt line 6) line))
 
 (defun docker-read-container-name (prompt)
   "Read an container name using PROMPT."
