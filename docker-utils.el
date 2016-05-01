@@ -24,7 +24,6 @@
 ;;; Code:
 
 (require 'magit-popup)
-(require 'json)
 
 (defun docker-utils-get-marked-items ()
   "Get the marked items data from `tabulated-list-entries'."
@@ -61,18 +60,6 @@
    (if (file-remote-p default-directory)
        (with-parsed-tramp-file-name default-directory nil (concat name " - " host))
      name)))
-
-
-(defun docker-utils-json-read-from-string-multiple (string)
-  "Read the JSON objects contained in STRING and return it."
-  (with-temp-buffer
-    (insert string)
-    (goto-char (point-min))
-    (let (result)
-      (condition-case err
-          (while t
-            (setq result (cons (json-read) result)))
-        (end-of-file (nreverse result))))))
 
 (provide 'docker-utils)
 

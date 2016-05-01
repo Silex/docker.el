@@ -25,20 +25,21 @@
 
 (require 'docker-process)
 (require 'docker-utils)
-(require 'tablist)
-
 (require 'magit-popup)
+(require 'tablist)
+(require 'json)
 
 (defun docker-containers-entries ()
   "Return the docker containers data for `tabulated-list-entries'."
   (let* ((fmt "[{{.ID|json}},{{.Image|json}},{{.Command|json}},{{.RunningFor|json}},{{.Status|json}},{{.Ports|json}},{{.Names|json}}]")
          (data (docker "ps" (format "--format='%s'" fmt) "-a "))
-         (lines (docker-utils-json-read-from-string-multiple data)))
+         (lines (s-split "\n" data t)))
     (-map #'docker-container-parse lines)))
 
 (defun docker-container-parse (line)
   "Convert a LINE from \"docker ps\" to a `tabulated-list-entries' entry."
-  (list (elt line 6) line))
+  (let ((data (json-read-from-string line)))
+    (list (aref data 6) data)))
 
 (defun docker-read-container-name (prompt)
   "Read an container name using PROMPT."
