@@ -25,9 +25,8 @@
 
 (require 'docker-process)
 (require 'docker-utils)
-(require 'tablist)
-
 (require 'magit-popup)
+(require 'tablist)
 
 (defun docker-volumes-entries ()
   "Returns the docker volumes data for `tabulated-list-entries'."

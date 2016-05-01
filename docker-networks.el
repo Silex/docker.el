@@ -25,9 +25,8 @@
 
 (require 'docker-process)
 (require 'docker-utils)
-(require 'tablist)
-
 (require 'magit-popup)
+(require 'tablist)
 
 (defun docker-networks-entries ()
   "Returns the docker networks data for `tabulated-list-entries'."

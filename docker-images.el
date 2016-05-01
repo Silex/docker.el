@@ -25,9 +25,8 @@
 
 (require 'docker-process)
 (require 'docker-utils)
-(require 'tablist)
-
 (require 'magit-popup)
+(require 'tablist)
 
 (defun docker-images-entries ()
   "Returns the docker images data for `tabulated-list-entries'."

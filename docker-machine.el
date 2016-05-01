@@ -25,9 +25,8 @@
 
 (require 'docker-process)
 (require 'docker-utils)
-(require 'tablist)
-
 (require 'magit-popup)
+(require 'tablist)
 
 (defun docker-machines-entries ()
   "Returns the docker machines data for `tabulated-list-entries'."
