@@ -136,6 +136,15 @@
 
 (docker-machine-create-selection-functions start stop restart rm)
 
+(defun docker-machine-env-selection ()
+  "Run docker-machine-env on selected machine"
+  (interactive)
+  (let ((marked (docker-utils-get-marked-items-ids)))
+    (when (/= (length marked) 1)
+      (error "Can only set environment vars for one machine at a time."))
+    (docker-machine-env (car marked))
+    (tablist-revert)))
+
 (docker-utils-define-popup docker-machine-start-popup
   "Popup for starting machines."
   'docker-machine-popups
