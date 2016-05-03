@@ -31,7 +31,8 @@
 (defun docker-machines-entries ()
   "Returns the docker machines data for `tabulated-list-entries'."
   (let* ((fmt "{{.Name}}\\t{{.Active}}\\t{{.DriverName}}\\t{{.State}}\\t{{.URL}}\\t{{.Swarm}}\\t{{.DockerVersion}}\\t{{.Error}}")
-         (data (docker "machine" (format "--format='%s'" fmt)))
+         (command (format "docker-machine ls %s" (format "--format='%s'" fmt)))
+         (data (shell-command-to-string command))
          (lines (s-split "\n" data t)))
     (-map #'docker-machine-parse lines)))
 
@@ -134,6 +135,15 @@
              functions)))
 
 (docker-machine-create-selection-functions start stop restart rm)
+
+(defun docker-machine-env-selection ()
+  "Run docker-machine-env on selected machine"
+  (interactive)
+  (let ((marked (docker-utils-get-marked-items-ids)))
+    (when (/= (length marked) 1)
+      (error "Can only set environment vars for one machine at a time."))
+    (docker-machine-env (car marked))
+    (tablist-revert)))
 
 (docker-utils-define-popup docker-machine-start-popup
   "Popup for starting machines."
