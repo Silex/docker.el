@@ -142,7 +142,13 @@ Remove the volumes associated with the container when VOLUMES is set."
 
 (docker-containers-create-selection-functions start stop restart pause unpause rm)
 
-(docker-containers-create-selection-print-functions inspect logs)
+(docker-containers-create-selection-print-functions inspect logs diff)
+
+(docker-utils-define-popup docker-containers-diff-popup
+  "Popup for showing containers diffs."
+  'docker-containers-popups
+  :man-page "docker-diff"
+  :actions  '((?d "Diff" docker-containers-diff-selection)))
 
 (docker-utils-define-popup docker-containers-inspect-popup
   "Popup for inspecting containers."
@@ -204,6 +210,7 @@ Remove the volumes associated with the container when VOLUMES is set."
 
 (defvar docker-containers-mode-map
   (let ((map (make-sparse-keymap)))
+    (define-key map "d" 'docker-containers-diff-popup)
     (define-key map "C" 'docker-containers-cp-popup)
     (define-key map "I" 'docker-containers-inspect-popup)
     (define-key map "L" 'docker-containers-logs-popup)
