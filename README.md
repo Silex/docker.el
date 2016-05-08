@@ -107,6 +107,7 @@ After having selected some containers, you can do the following actions:
 * `L`: logs
 * `C`: cp
 * `D`: rm
+* `d`: diff
 
 ### docker-volumes
 
