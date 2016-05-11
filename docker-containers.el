@@ -1,6 +1,7 @@
 ;;; docker-containers.el --- Emacs interface to docker-containers
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
+;;         Yuki Inoue <inouetakahiroki@gmail.com>
 
 ;; This file is NOT part of GNU Emacs.
 
