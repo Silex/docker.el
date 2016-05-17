@@ -103,6 +103,20 @@ Do not delete untagged parents when NO-PRUNE is set."
         (async-shell-command (s-join " " command-args) (format "*run %s*" it))))
     (tablist-revert)))
 
+(defun docker-images-inspect-selection ()
+  "Run `docker-inspect' on the images selection."
+  (interactive)
+
+  (let ((buffer (get-buffer-create "*docker result*")))
+    (with-current-buffer buffer
+      (erase-buffer))
+    (--each (docker-utils-get-marked-items-ids)
+      (let ((result (docker "inspect" (s-join " " (docker-images-rmi-arguments)) it)))
+        (with-current-buffer buffer
+          (goto-char (point-max))
+          (insert result))))
+    (display-buffer buffer)))
+
 (docker-utils-define-popup docker-images-rmi-popup
   "Popup for removing images."
   'docker-images-popups
@@ -123,6 +137,12 @@ Do not delete untagged parents when NO-PRUNE is set."
   'docker-images-popups
   :man-page "docker-push"
   :actions  '((?P "Push" docker-images-push-selection)))
+
+(docker-utils-define-popup docker-images-inspect-popup
+  "Popup for inspecting images."
+  'docker-images-popups
+  :man-page "docker-inspect"
+  :actions  '((?I "Inspect" docker-images-inspect-selection)))
 
 (docker-utils-define-popup docker-images-run-popup
   "Popup for running images."
@@ -157,6 +177,7 @@ Do not delete untagged parents when NO-PRUNE is set."
     (define-key map "F" 'docker-images-pull-popup)
     (define-key map "P" 'docker-images-push-popup)
     (define-key map "R" 'docker-images-run-popup)
+    (define-key map "I" 'docker-images-inspect-popup)
     map)
   "Keymap for `docker-images-mode'.")
 
