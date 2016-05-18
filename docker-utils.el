@@ -61,6 +61,20 @@
        (with-parsed-tramp-file-name default-directory nil (concat name " - " host))
      name)))
 
+(defun docker-utils-run-command-on-selection-print (command &optional post-process buffer-name)
+  "Run COMMAND on the selections and show the result in BUFFER-NAME.
+Optionally run POST-PROCESS in BUFFER-NAME."
+  (let ((id-list (docker-utils-get-marked-items-ids))
+        (buffer (get-buffer-create (or buffer-name "*docker result*"))))
+    (with-current-buffer buffer
+      (setq buffer-read-only nil)
+      (erase-buffer)
+      (mapc 'insert (mapcar command id-list))
+      (when post-process
+        (funcall post-process))
+      (setq buffer-read-only t))
+    (display-buffer buffer)))
+
 (provide 'docker-utils)
 
 ;;; docker-utils.el ends here

@@ -101,15 +101,8 @@ Remove the volumes associated with the container when VOLUMES is set."
 (defun docker-containers-run-command-on-selection-print (command arguments)
   "Run a docker COMMAND on the containers selection with ARGUMENTS and print"
   (interactive "sCommand: \nsArguments: ")
-  (let ((buffer (get-buffer-create "*docker result*")))
-    (with-current-buffer buffer
-      (erase-buffer))
-    (--each (docker-utils-get-marked-items-ids)
-      (let ((result (docker command arguments it)))
-        (with-current-buffer buffer
-          (goto-char (point-max))
-          (insert result))))
-    (display-buffer buffer)))
+  (docker-utils-run-command-on-selection-print
+   (lambda (id) (docker command arguments id))))
 
 (defmacro docker-containers-create-selection-functions (&rest functions)
   `(progn ,@(--map
