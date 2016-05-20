@@ -223,6 +223,19 @@ Remove the volumes associated with the container when VOLUMES is set."
     map)
   "Keymap for `docker-containers-mode'.")
 
+(with-eval-after-load "docker-tramp"
+  (defun docker-containers-dired ()
+    (interactive)
+    (find-file (concat "/docker:" (tabulated-list-get-id) ":/")))
+
+  (defun docker-containers-shell ()
+    (interactive)
+    (let ((default-directory (concat "/docker:" (tabulated-list-get-id) ":/")))
+      (shell)))
+
+  (define-key docker-containers-mode-map "f" 'docker-containers-dired)
+  (define-key docker-containers-mode-map "b" 'docker-containers-shell))
+
 ;;;###autoload
 (defun docker-containers ()
   "List docker containers."
