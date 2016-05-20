@@ -173,8 +173,9 @@
   "Popup for removing machines."
   'docker-machine-popups
   :man-page "docker-machine-rm"
-  :switches '((?f "Force" "-f"))
-  :actions  '((?D "Remove" docker-machine-rm-selection)))
+  :switches '((?y "Automatic yes" "-y")(?f "Force" "-f"))
+  :actions  '((?D "Remove" docker-machine-rm-selection))
+  :default-arguments '("-y"))
 
 (defun docker-machine-refresh ()
   "Refresh the machines list."
