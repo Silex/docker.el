@@ -146,7 +146,6 @@ Remove the volumes associated with the container when VOLUMES is set."
                                                             (s-join " " ,(list (intern (format "docker-containers-%s-arguments" it))))))
              functions)))
 
-
 (defun docker-containers-cp-from (container-path host-path)
   "Run `docker-cp' on the container to copy files from."
   (interactive "sContainerPath: \nFHostFile: ")
