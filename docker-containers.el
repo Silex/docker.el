@@ -91,6 +91,39 @@ Remove the volumes associated with the container when VOLUMES is set."
   (interactive (list (docker-read-container-name "Inspect container: ")))
   (docker "inspect" name))
 
+(defun docker-container-find-file (container file)
+  (interactive
+   (let* ((container-name (docker-read-container-name "container: "))
+          (tramp-filename (read-file-name "file: " (format "/docker:%s:/" container-name))))
+     (with-parsed-tramp-file-name tramp-filename nil
+       (list host localname))))
+  (find-file (format "/docker:%s:%s" container file)))
+
+(defun docker-container-dired (container directory)
+  (interactive
+   (let* ((container-name (docker-read-container-name "container: "))
+          (tramp-filename (read-directory-name "directory: " (format "/docker:%s:/" container-name))))
+     (with-parsed-tramp-file-name tramp-filename nil
+       (list host localname))))
+  (dired (format "/docker:%s:%s" container directory)))
+
+(defun docker-container-shell (container)
+  (interactive (list (docker-read-container-name "container: ")))
+  (let ((default-directory (format "/docker:%s:" container)))
+    (shell)))
+
+(defun docker-containers-find-file-selection ()
+  "Run `docker-container-find-file' on the containers selection."
+  (interactive)
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-container-find-file it "/")))
+
+(defun docker-containers-shell-selection ()
+  "Run `docker-container-shell' on the containers selection."
+  (interactive)
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-container-shell it)))
+
 (defun docker-containers-run-command-on-selection (command arguments)
   "Run a docker COMMAND on the containers selection with ARGUMENTS."
   (interactive "sCommand: \nsArguments: ")
@@ -143,6 +176,16 @@ Remove the volumes associated with the container when VOLUMES is set."
   'docker-containers-popups
   :man-page "docker-diff"
   :actions  '((?d "Diff" docker-containers-diff-selection)))
+
+(docker-utils-define-popup docker-containers-find-file-popup
+  "Popup for opening containers files."
+  'docker-containers-popups
+  :actions  '((?f "Open file" docker-containers-find-file-selection)))
+
+(docker-utils-define-popup docker-containers-shell-popup
+  "Popup for doing M-x `shell' to containers."
+  'docker-containers-popups
+  :actions  '((?b "Shell" docker-containers-shell-selection)))
 
 (docker-utils-define-popup docker-containers-inspect-popup
   "Popup for inspecting containers."
@@ -205,6 +248,8 @@ Remove the volumes associated with the container when VOLUMES is set."
 (defvar docker-containers-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "d" 'docker-containers-diff-popup)
+    (define-key map "f" 'docker-containers-find-file-popup)
+    (define-key map "b" 'docker-containers-shell-popup)
     (define-key map "C" 'docker-containers-cp-popup)
     (define-key map "I" 'docker-containers-inspect-popup)
     (define-key map "L" 'docker-containers-logs-popup)
@@ -215,19 +260,6 @@ Remove the volumes associated with the container when VOLUMES is set."
     (define-key map "D" 'docker-containers-rm-popup)
     map)
   "Keymap for `docker-containers-mode'.")
-
-(with-eval-after-load "docker-tramp"
-  (defun docker-containers-dired ()
-    (interactive)
-    (find-file (concat "/docker:" (tabulated-list-get-id) ":/")))
-
-  (defun docker-containers-shell ()
-    (interactive)
-    (let ((default-directory (concat "/docker:" (tabulated-list-get-id) ":/")))
-      (shell)))
-
-  (define-key docker-containers-mode-map "f" 'docker-containers-dired)
-  (define-key docker-containers-mode-map "b" 'docker-containers-shell))
 
 ;;;###autoload
 (defun docker-containers ()
