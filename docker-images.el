@@ -106,16 +106,9 @@ Do not delete untagged parents when NO-PRUNE is set."
 (defun docker-images-inspect-selection ()
   "Run `docker-inspect' on the images selection."
   (interactive)
-
-  (let ((buffer (get-buffer-create "*docker result*")))
-    (with-current-buffer buffer
-      (erase-buffer))
-    (--each (docker-utils-get-marked-items-ids)
-      (let ((result (docker "inspect" (s-join " " (docker-images-rmi-arguments)) it)))
-        (with-current-buffer buffer
-          (goto-char (point-max))
-          (insert result))))
-    (display-buffer buffer)))
+  (docker-utils-run-command-on-selection-print
+   (lambda (id) (docker "inspect" id))
+   #'json-mode))
 
 (docker-utils-define-popup docker-images-rmi-popup
   "Popup for removing images."
