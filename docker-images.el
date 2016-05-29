@@ -47,16 +47,19 @@
   "Read an image name using PROMPT."
   (completing-read prompt (-map #'car (docker-images-entries))))
 
+;;;###autoload
 (defun docker-pull (name &optional all)
   "Pull the image named NAME."
   (interactive (list (docker-read-image-name "Pull image: ") current-prefix-arg))
   (docker "pull" (when all "-a ") name))
 
+;;;###autoload
 (defun docker-push (name)
   "Push the image named NAME."
   (interactive (list (docker-read-image-name "Push image: ")))
   (docker "push" name))
 
+;;;###autoload
 (defun docker-rmi (name &optional force no-prune)
   "Destroy or untag the image named NAME.
 

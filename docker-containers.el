@@ -46,11 +46,13 @@
   "Read an container name using PROMPT."
   (completing-read prompt (-map #'car (docker-containers-entries))))
 
+;;;###autoload
 (defun docker-start (name)
   "Start the container named NAME."
   (interactive (list (docker-read-container-name "Start container: ")))
   (docker "start" name))
 
+;;;###autoload
 (defun docker-stop (name &optional timeout)
   "Stop the container named NAME.
 
@@ -58,6 +60,7 @@ TIMEOUT is the number of seconds to wait for the container to stop before killin
   (interactive (list (docker-read-container-name "Stop container: ") current-prefix-arg))
   (docker "stop" (when timeout (format "-t %d" timeout)) name))
 
+;;;###autoload
 (defun docker-restart (name &optional timeout)
   "Restart the container named NAME.
 
@@ -65,16 +68,19 @@ TIMEOUT is the number of seconds to wait for the container to stop before killin
   (interactive (list (docker-read-container-name "Restart container: ") current-prefix-arg))
   (docker "restart" (when timeout (format "-t %d" timeout)) name))
 
+;;;###autoload
 (defun docker-pause (name)
   "Pause the container named NAME."
   (interactive (list (docker-read-container-name "Pause container: ")))
   (docker "pause" name))
 
+;;;###autoload
 (defun docker-unpause (name)
   "Unpause the container named NAME."
   (interactive (list (docker-read-container-name "Unpause container: ")))
   (docker "unpause" name))
 
+;;;###autoload
 (defun docker-rm (name &optional force link volumes)
   "Remove the container named NAME.
 
@@ -86,11 +92,13 @@ Remove the volumes associated with the container when VOLUMES is set."
   (interactive (list (docker-read-container-name "Delete container: ") current-prefix-arg))
   (docker "rm" (when force "-f") (when link "-l") (when volumes "-v") name))
 
+;;;###autoload
 (defun docker-inspect (name)
   "Inspect the container named NAME."
   (interactive (list (docker-read-container-name "Inspect container: ")))
   (docker "inspect" name))
 
+;;;###autoload
 (defun docker-container-find-file (container file)
   (interactive
    (let* ((container-name (docker-read-container-name "container: "))
@@ -99,6 +107,7 @@ Remove the volumes associated with the container when VOLUMES is set."
        (list host localname))))
   (find-file (format "/docker:%s:%s" container file)))
 
+;;;###autoload
 (defun docker-container-dired (container directory)
   (interactive
    (let* ((container-name (docker-read-container-name "container: "))
@@ -107,6 +116,7 @@ Remove the volumes associated with the container when VOLUMES is set."
        (list host localname))))
   (dired (format "/docker:%s:%s" container directory)))
 
+;;;###autoload
 (defun docker-container-shell (container)
   (interactive (list (docker-read-container-name "container: ")))
   (let ((default-directory (format "/docker:%s:" container)))

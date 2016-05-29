@@ -43,6 +43,7 @@
   "Read a network name using PROMPT."
   (completing-read prompt (-map #'car (docker-networks-entries))))
 
+;;;###autoload
 (defun docker-network-rm (name)
   "Destroy the network named NAME."
   (interactive (list (docker-read-network-name "Delete network: ")))

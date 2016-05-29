@@ -55,36 +55,43 @@
   "Print which machine is active."
   (docker-machine "active"))
 
+;;;###autoload
 (defun docker-machine-config (name)
   "Print the connection config for machine."
   (interactive (list (docker-read-machine-name "Config for machine: ")))
   (docker-machine "config" name))
 
+;;;###autoload
 (defun docker-machine-inspect (name)
   "Inspect information about a machine."
   (interactive (list (docker-read-machine-name "Inspect machine: ")))
   (docker-machine "inspect" name))
 
+;;;###autoload
 (defun docker-machine-ip (name)
   "Get the IP address of a machine."
   (interactive (list (docker-read-machine-name "IP for machine: ")))
   (docker-machine "ip" name))
 
+;;;###autoload
 (defun docker-machine-status (name)
   "Get the status of a machine."
   (interactive (list (docker-read-machine-name "Status of machine: ")))
   (docker-machine "status" name))
 
+;;;###autoload
 (defun docker-machine-upgrade (name)
   "Upgrade a machine to the latest version of Docker."
   (interactive (list (docker-read-machine-name "Upgrade machine: ")))
   (docker-machine "upgrade" name))
 
+;;;###autoload
 (defun docker-machine-kill (name)
   "Kill a machine."
   (interactive (list (docker-read-machine-name "Kill machine: ")))
   (docker-machine "kill" name))
 
+;;;###autoload
 (defun docker-machine-start (name)
   "Start a machine."
   (interactive (list (docker-read-machine-name "Start machine: ")))
@@ -95,6 +102,7 @@
     (setenv (car split-string)
             (read (cdr split-string)))))
 
+;;;###autoload
 (defun docker-machine-env (name)
   "Parse and set environment variables from 'docker-machine env' output"
   (interactive (list (docker-read-machine-name "Set up environment for machine: ")))
@@ -103,16 +111,19 @@
       (s-prefix? "export" it)
     (docker-machine-env-export it)))
 
+;;;###autoload
 (defun docker-machine-stop (name)
   "Stop a machine."
   (interactive (list (docker-read-machine-name "Stop machine: ") current-prefix-arg))
   (docker-machine "stop" name))
 
+;;;###autoload
 (defun docker-machine-restart (name)
   "Restart a machine."
   (interactive (list (docker-read-machine-name "Restart machine: ") current-prefix-arg))
   (docker-machine "restart" name))
 
+;;;###autoload
 (defun docker-machine-rm (name &optional force)
   "Destroy or uncommand a machine."
   (interactive (list (docker-read-machine-name "Delete machine: ") current-prefix-arg))

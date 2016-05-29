@@ -53,9 +53,6 @@
 
 ;;; Code:
 
-(require 'docker-images)
-(require 'docker-containers)
-
 (defgroup docker nil
   "Docker customization group."
   :group 'convenience)

@@ -43,6 +43,7 @@
   "Read a volume name using PROMPT."
   (completing-read prompt (-map #'car (docker-volumes-entries))))
 
+;;;###autoload
 (defun docker-volume-rm (name)
   "Destroy the volume named NAME."
   (interactive (list (docker-read-volume-name "Delete volume: ")))
