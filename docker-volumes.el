@@ -48,17 +48,6 @@
   (interactive (list (docker-read-volume-name "Delete volume: ")))
   (docker "volume rm" name))
 
-(defun docker-get-volumes (&optional quiet filters)
-  "Get volumes as eieio objects."
-  (let* ((data (docker-get-volumes-raw quiet filters))
-         (lines (s-split "\n" data t))
-         (lines (cdr lines)))
-    (-map 'docker-volume-parse lines)))
-
-(defun docker-get-volumes-raw (&optional quiet filters)
-  "Equivalent of \"docker volume ls\" as raw data for `tabulated-list-entries'."
-  (docker "volume ls" (when quiet "-q ") (when filters (s-join " --filter=" filters))))
-
 (defun docker-volumes-rm-selection ()
   "Run `docker-volume-rm' on the volumes selection."
   (interactive)
