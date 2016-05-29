@@ -53,6 +53,7 @@
               (?n "Networks"   ,(docker-utils-set-then-call 'docker-arguments 'docker-networks))
               (?v "Volumes"    ,(docker-utils-set-then-call 'docker-arguments 'docker-volumes))
               "Other"
+              (?C "Compose"    docker-compose)
               (?M "Machines"   docker-machines)))
 
 (provide 'docker)

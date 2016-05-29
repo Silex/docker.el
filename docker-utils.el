@@ -91,6 +91,10 @@ Execute BODY in a buffer."
          (multiplier (docker-utils-unit-multiplier (-third-item parts))))
     (* value multiplier)))
 
+(defun docker-utils-read-directory-name (&rest _ignore)
+  "Wrapper around `read-directory-name'."
+  (read-directory-name "Directory: "))
+
 (provide 'docker-utils)
 
 ;;; docker-utils.el ends here
