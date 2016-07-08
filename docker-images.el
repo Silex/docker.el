@@ -113,6 +113,17 @@ Do not delete untagged parents when NO-PRUNE is set."
    (lambda (id) (docker "inspect" id))
    #'json-mode))
 
+;;;###autoload
+(defun docker-images-tag-entry()
+  (interactive)
+  (docker-utils-select-if-empty)
+  (let ((ids (docker-utils-get-marked-items-ids)))
+    (if (/= 1 (length ids))
+        (error "Multiple images cannot be selected.")
+      (let ((tag-name (read-string "Tag Name: ")))
+        (docker "tag" (nth 0 ids) tag-name)
+        (tablist-revert)))))
+
 (docker-utils-define-popup docker-images-rmi-popup
   "Popup for removing images."
   'docker-images-popups
@@ -174,6 +185,7 @@ Do not delete untagged parents when NO-PRUNE is set."
     (define-key map "P" 'docker-images-push-popup)
     (define-key map "R" 'docker-images-run-popup)
     (define-key map "I" 'docker-images-inspect-popup)
+    (define-key map "T" 'docker-images-tag-entry)
     map)
   "Keymap for `docker-images-mode'.")
 
