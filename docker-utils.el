@@ -61,19 +61,24 @@
        (with-parsed-tramp-file-name default-directory nil (concat name " - " host))
      name)))
 
-(defun docker-utils-run-command-on-selection-print (cmd &optional post-process buffer-name)
+(defmacro docker-utils-with-result-buffer (&rest body)
+  `(let ((buffer (get-buffer-create "*docker result*")))
+     (with-current-buffer buffer
+       (setq buffer-read-only nil)
+       (erase-buffer)
+       ,@body
+       (setq buffer-read-only t))
+     (display-buffer buffer)))
+
+(defun docker-utils-run-command-on-selection-print (cmd &optional post-process)
   "Run COMMAND on the selections and show the result in BUFFER-NAME.
 Optionally run POST-PROCESS in BUFFER-NAME."
-  (let ((id-list (docker-utils-get-marked-items-ids))
-        (buffer (get-buffer-create (or buffer-name "*docker result*"))))
-    (with-current-buffer buffer
-      (setq buffer-read-only nil)
-      (erase-buffer)
-      (mapc 'insert (mapcar cmd id-list))
-      (when post-process
-        (funcall post-process))
-      (setq buffer-read-only t))
-    (display-buffer buffer)))
+  (let* ((id-list (docker-utils-get-marked-items-ids))
+         (results (mapcar cmd id-list)))
+    (docker-utils-with-result-buffer
+     (mapc 'insert results)
+     (when post-process
+       (funcall post-process)))))
 
 (provide 'docker-utils)
 
