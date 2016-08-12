@@ -200,8 +200,9 @@ Remove the volumes associated with the container when VOLUMES is set."
              (parsed (json-read-from-string json))
              (commands
               (docker-containers-convert-container-info-to-command parsed)))
+        (pop-to-buffer "*docker result*" )
         (--each commands
-          (princ (combine-and-quote-strings it)))))))
+          (insert (combine-and-quote-strings it)))))))
 
 (defmacro docker-containers-create-selection-print-functions (&rest functions)
   `(progn ,@(--map
