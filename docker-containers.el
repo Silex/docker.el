@@ -178,18 +178,28 @@ Remove the volumes associated with the container when VOLUMES is set."
   (--each (docker-utils-get-marked-items-ids)
     (docker "cp" host-path (concat it ":" container-path))))
 
+(defun docker-containers-convert-container-info-to-command (container-info)
+  (-map
+   (lambda (container-info)
+     `("docker" "run"
+       ,(assoc-default 'Image container-info)
+       ,@(->>
+          (assoc-default 'Config container-info)
+          (assoc-default 'Env)
+          (append)
+          (-map
+           (lambda (env-cmd) (list "-e" env-cmd)))
+          (apply '-concat))
+       )) container-info))
+
 (defun docker-containers-inspect-command-selection ()
   (interactive)
   (-each (docker-utils-get-marked-items-ids)
     (lambda (id)
       (let* ((json (docker "inspect" id))
              (parsed (json-read-from-string json))
-             (commands (-map
-                        (lambda (container-info)
-                          (list
-                           "docker" "run"
-                           (assoc-default 'Image container-info)
-                           )) parsed )))
+             (commands
+              (docker-containers-convert-container-info-to-command parsed)))
         (--each commands
           (princ (combine-and-quote-strings it)))))))
 
