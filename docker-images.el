@@ -165,6 +165,7 @@ Do not delete untagged parents when NO-PRUNE is set."
               (?W "Web ports" "-p 80:80 -p 443:443 -p 8080:8080")
               (?D "With display" "-v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=unix$DISPLAY"))
   :options  '((?v "volume" "-v ")
+              (?m "name" "--name ")
               (?e "environment" "-e ")
               (?p "port" "-p ")
               (?w "workdir" "-w ")
