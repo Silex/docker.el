@@ -178,6 +178,32 @@ Remove the volumes associated with the container when VOLUMES is set."
   (--each (docker-utils-get-marked-items-ids)
     (docker "cp" host-path (concat it ":" container-path))))
 
+(defun docker-containers-convert-container-info-to-command (container-info)
+  (-map
+   (lambda (container-info)
+     `("docker" "run"
+       ,(assoc-default 'Image container-info)
+       ,@(->>
+          (assoc-default 'Config container-info)
+          (assoc-default 'Env)
+          (append)
+          (-map
+           (lambda (env-cmd) (list "-e" env-cmd)))
+          (apply '-concat))
+       )) container-info))
+
+(defun docker-containers-inspect-command-selection ()
+  (interactive)
+  (-each (docker-utils-get-marked-items-ids)
+    (lambda (id)
+      (let* ((json (docker "inspect" id))
+             (parsed (json-read-from-string json))
+             (commands
+              (docker-containers-convert-container-info-to-command parsed)))
+        (docker-utils-with-result-buffer
+         (--each commands
+           (insert (combine-and-quote-strings it))))))))
+
 (defmacro docker-containers-create-selection-print-functions (&rest functions)
   `(progn ,@(--map
              `(defun ,(intern (format "docker-containers-%s-selection" it)) ()
@@ -211,7 +237,8 @@ Remove the volumes associated with the container when VOLUMES is set."
   "Popup for inspecting containers."
   'docker-containers-popups
   :man-page "docker-inspect"
-  :actions  '((?I "Inspect" docker-containers-inspect-selection)))
+  :actions  '((?I "Inspect" docker-containers-inspect-selection)
+              (?C "As Command" docker-containers-inspect-command-selection)))
 
 (docker-utils-define-popup docker-containers-logs-popup
   "Popup for showing containers logs."
