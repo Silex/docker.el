@@ -61,6 +61,10 @@
   "Prefix for `docker-mode'."
   :group 'docker)
 
+(defcustom docker-containers-show-all nil
+  "Shall `docker-containers' show all containers, when nil only running containers are shown."
+  :group 'docker)
+
 (defvar docker-images-command-map
   (let ((map (make-sparse-keymap)))
     (define-key map "d" 'docker-rmi)
