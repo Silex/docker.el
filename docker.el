@@ -59,11 +59,13 @@
 
 (defcustom docker-keymap-prefix "C-c d"
   "Prefix for `docker-mode'."
-  :group 'docker)
+  :group 'docker
+  :type 'string)
 
 (defcustom docker-containers-show-all nil
   "Shall `docker-containers' show all containers, when nil only running containers are shown."
-  :group 'docker)
+  :group 'docker
+  :type 'boolean)
 
 (defvar docker-images-command-map
   (let ((map (make-sparse-keymap)))
