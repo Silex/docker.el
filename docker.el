@@ -63,7 +63,7 @@
   :type 'string)
 
 (defcustom docker-containers-show-all t
-  "Shall `docker-containers' show all containers, when nil only running containers are shown."
+  "When nil, `docker-containers' will only show running containers."
   :group 'docker
   :type 'boolean)
 
