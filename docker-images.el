@@ -31,7 +31,7 @@
 (defun docker-images-entries ()
   "Returns the docker images data for `tabulated-list-entries'."
   (let* ((fmt "{{.Repository}}\\t{{.Tag}}\\t{{.ID}}\\t{{.CreatedSince}}\\t{{.Size}}")
-         (data (docker "images" (format "--format='%s'" fmt)))
+         (data (docker "images" (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
     (-map #'docker-image-parse lines)))
 
