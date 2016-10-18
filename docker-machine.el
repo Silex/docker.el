@@ -104,7 +104,7 @@
 
 ;;;###autoload
 (defun docker-machine-env (name)
-  "Parse and set environment variables from 'docker-machine env' output"
+  "Parse and set environment variables from \"docker-machine env\" output"
   (interactive (list (docker-read-machine-name "Set up environment for machine: ")))
   (--each-while
       (s-lines (docker-machine "env" name))
