@@ -99,8 +99,8 @@
 
 (defun docker-machine-env-export (line)
   (let ((split-string (s-split "=" (s-chop-prefix "export " line))))
-    (setenv (car split-string)
-            (read (cdr split-string)))))
+    (setenv (first split-string)
+            (read (s-replace "\\" "\\\\" (second split-string))))))
 
 ;;;###autoload
 (defun docker-machine-env (name)
