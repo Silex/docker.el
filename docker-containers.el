@@ -30,6 +30,11 @@
 (require 'tablist)
 (require 'json)
 
+(defcustom docker-containers-show-all t
+  "When nil, `docker-containers' will only show running containers."
+  :group 'docker
+  :type 'boolean)
+
 (defun docker-containers-entries ()
   "Return the docker containers data for `tabulated-list-entries'."
   (let* ((fmt "[{{.ID|json}},{{.Image|json}},{{.Command|json}},{{.RunningFor|json}},{{.Status|json}},{{.Ports|json}},{{.Names|json}}]")

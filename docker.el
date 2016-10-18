@@ -62,11 +62,6 @@
   :group 'docker
   :type 'string)
 
-(defcustom docker-containers-show-all t
-  "When nil, `docker-containers' will only show running containers."
-  :group 'docker
-  :type 'boolean)
-
 (defvar docker-images-command-map
   (let ((map (make-sparse-keymap)))
     (define-key map "d" 'docker-rmi)
