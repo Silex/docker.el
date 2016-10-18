@@ -98,9 +98,10 @@
   (docker-machine "start" name))
 
 (defun docker-machine-env-export (line)
-  (let ((split-string (s-split "=" (s-chop-prefix "export " line))))
-    (setenv (car split-string)
-            (read (cdr split-string)))))
+  (let ((index (s-index-of "=" line)))
+    (unless index
+      (error (format "Cannot find separator in %s" line)))
+    (setenv (substring line (length "export ") index) (substring line (+ 2 index) -1))))
 
 ;;;###autoload
 (defun docker-machine-env (name)
