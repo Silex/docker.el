@@ -92,6 +92,12 @@
   (docker-machine "kill" name))
 
 ;;;###autoload
+(defun docker-machine-create (name driver)
+  "Create a machine NAME using DRIVER."
+  (interactive "sName: \nsDriver: ")
+  (docker-machine "create" name "-d" driver))
+
+;;;###autoload
 (defun docker-machine-start (name)
   "Start a machine."
   (interactive (list (docker-read-machine-name "Start machine: ")))
@@ -195,6 +201,7 @@
 
 (defvar docker-machine-mode-map
   (let ((map (make-sparse-keymap)))
+    (define-key map "C" 'docker-machine-create)
     (define-key map "S" 'docker-machine-start-popup)
     (define-key map "E" 'docker-machine-env-popup)
     (define-key map "O" 'docker-machine-stop-popup)

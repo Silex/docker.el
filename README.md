@@ -123,11 +123,12 @@ After having selected some networks, you can do the following actions:
 
 * `D`: rm
 
-### docker-machine-ls
+### docker-machines
 
-Running <kbd>M-x docker-machine-ls</kbd> lists the docker machines.
+Running <kbd>M-x docker-machines</kbd> lists the docker machines.
 After having selected some machines, you can do the following actions:
 
+* `C`: create
 * `S`: start
 * `E`: env
 * `O`: stop
