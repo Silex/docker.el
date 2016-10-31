@@ -3,7 +3,7 @@
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 ;; URL: https://github.com/Silex/docker.el
 ;; Keywords: filename, convenience
-;; Version: 0.5.1
+;; Version: 0.5.2
 ;; Package-Requires: ((emacs "24.4") (dash "2.12.1") (docker-tramp "0.1") (magit-popup "2.6.0") (s "1.11.0") (tablist "0.70") (json-mode "1.7.0"))
 
 ;; This file is NOT part of GNU Emacs.
