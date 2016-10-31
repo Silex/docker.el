@@ -40,7 +40,7 @@
   (let* ((data (s-split "\t" line))
          (name (format "%s:%s" (nth 0 data) (nth 1 data))))
     (list
-     (if (string-equal name "<none>:<none>") (nth 2 data) name)
+     (if (s-contains? "<none>" name) (nth 2 data) name)
      (apply #'vector data))))
 
 (defun docker-read-image-name (prompt)
