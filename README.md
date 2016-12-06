@@ -135,14 +135,6 @@ After having selected some machines, you can do the following actions:
 * `R`: restart
 * `D`: rm
 
-## Philosophy
-
-This package is inspired by packages like:
-
-- `dired` / `ibuffer` for selecting images / containers to operate on.
-- [magit](https://github.com/magit/magit) for the various actions popups.
-- [projectile](https://github.com/bbatsov/projectile) for the keymap.
-
 ## Contributions welcome!
 
 Either as suggestions or as pull requests by opening tickets on the
