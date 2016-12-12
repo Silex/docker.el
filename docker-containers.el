@@ -226,8 +226,7 @@ Remove the volumes associated with the container when VOLUMES is set."
   pause
   unpause
   rm
-  kill
-  )
+  kill)
 
 (docker-containers-create-selection-print-functions inspect logs diff)
 
