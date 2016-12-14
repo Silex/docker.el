@@ -75,6 +75,7 @@ changed with <kbd>M-x customize-variable docker-keymap-prefix</kbd>.
 | docker-rm                    | <kbd>C-c d c d</kbd> | delete container                                                |
 | docker-stop                  | <kbd>C-c d c o</kbd> | stop container                                                  |
 | docker-pause                 | <kbd>C-c d c p</kbd> | pause container                                                 |
+| docker-kill                  | <kbd>C-c d c k</kbd> | kill container                                                  |
 | docker-restart               | <kbd>C-c d c r</kbd> | restart container                                               |
 | docker-start                 | <kbd>C-c d c s</kbd> | start container                                                 |
 | docker-unpause               | <kbd>C-c d c u</kbd> | unpause container                                               |
@@ -107,6 +108,7 @@ After having selected some containers, you can do the following actions:
 * `L`: logs
 * `C`: cp
 * `D`: rm
+* `K`: kill
 * `d`: diff
 
 ### docker-volumes

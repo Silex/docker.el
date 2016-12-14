@@ -98,6 +98,12 @@ Remove the volumes associated with the container when VOLUMES is set."
   (docker "rm" (when force "-f") (when link "-l") (when volumes "-v") name))
 
 ;;;###autoload
+(defun docker-kill (name &optional signal)
+  "Kill the container named NAME using SIGNAL."
+  (interactive (list (docker-read-container-name "Kill container: ")))
+  (docker "kill" (when signal (format "-s %s" signal)) name))
+
+;;;###autoload
 (defun docker-inspect (name)
   "Inspect the container named NAME."
   (interactive (list (docker-read-container-name "Inspect container: ")))
@@ -298,7 +304,8 @@ Remove the volumes associated with the container when VOLUMES is set."
   "Popup for kill signaling containers"
   'docker-containers-popups
   :man-page "docker-kill"
-  :actions  '((?K "kill" docker-containers-kill-selection)))
+  :options  '((?s "Signal" "-s "))
+  :actions  '((?K "Kill" docker-containers-kill-selection)))
 
 (docker-utils-define-popup docker-containers-cp-popup
   "Popup for copying files from/to containers."
