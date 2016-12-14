@@ -153,6 +153,7 @@ Remove the volumes associated with the container when VOLUMES is set."
    (lambda (id) (docker command arguments id))))
 
 (defmacro docker-containers-create-selection-functions (&rest functions)
+  (declare (indent defun) (doc-string 2))
   `(progn ,@(--map
              `(defun ,(intern (format "docker-containers-%s-selection" it)) ()
                 ,(format "Run `docker-%s' on the containers selection." it)
@@ -218,7 +219,14 @@ Remove the volumes associated with the container when VOLUMES is set."
                                                                   (s-join " " ,(list (intern (format "docker-containers-%s-arguments" it))))))
              functions)))
 
-(docker-containers-create-selection-functions start stop restart pause unpause rm)
+(docker-containers-create-selection-functions
+  start
+  stop
+  restart
+  pause
+  unpause
+  rm
+  kill)
 
 (docker-containers-create-selection-print-functions inspect logs diff)
 
@@ -286,6 +294,12 @@ Remove the volumes associated with the container when VOLUMES is set."
               (?v "Volumes" "-v"))
   :actions  '((?D "Remove" docker-containers-rm-selection)))
 
+(docker-utils-define-popup docker-containers-kill-popup
+  "Popup for kill signaling containers"
+  'docker-containers-popups
+  :man-page "docker-kill"
+  :actions  '((?K "kill" docker-containers-kill-selection)))
+
 (docker-utils-define-popup docker-containers-cp-popup
   "Popup for copying files from/to containers."
   'docker-containers-popups
@@ -304,6 +318,7 @@ Remove the volumes associated with the container when VOLUMES is set."
     (define-key map "b" 'docker-containers-shell-popup)
     (define-key map "C" 'docker-containers-cp-popup)
     (define-key map "I" 'docker-containers-inspect-popup)
+    (define-key map "K" 'docker-containers-kill-popup)
     (define-key map "L" 'docker-containers-logs-popup)
     (define-key map "S" 'docker-containers-start-popup)
     (define-key map "O" 'docker-containers-stop-popup)
