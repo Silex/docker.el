@@ -37,7 +37,7 @@
 
 (defun docker-containers-entries ()
   "Return the docker containers data for `tabulated-list-entries'."
-  (let* ((fmt "[{{.ID|json}},{{.Image|json}},{{.Command|json}},{{.RunningFor|json}},{{.Status|json}},{{.Ports|json}},{{.Names|json}}]")
+  (let* ((fmt "[{{json .ID}},{{json .Image}},{{json .Command}},{{json .RunningFor}},{{json .Status}},{{json .Ports}},{{json .Names}}]")
          (data (docker "ps" (format "--format=\"%s\"" fmt) (when docker-containers-show-all "-a ")))
          (lines (s-split "\n" data t)))
     (-map #'docker-container-parse lines)))
