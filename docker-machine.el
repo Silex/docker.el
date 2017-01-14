@@ -31,8 +31,7 @@
 (defun docker-machines-entries ()
   "Returns the docker machines data for `tabulated-list-entries'."
   (let* ((fmt "{{.Name}}\\t{{.Active}}\\t{{.DriverName}}\\t{{.State}}\\t{{.URL}}\\t{{.Swarm}}\\t{{.DockerVersion}}\\t{{.Error}}")
-         (command (format "docker-machine ls %s" (format "--format=\"%s\"" fmt)))
-         (data (shell-command-to-string command))
+         (data (shell-command-to-string (format "docker-machine ls %s" (format "--format=\"%s\"" fmt))))
          (lines (s-split "\n" data t)))
     (-map #'docker-machine-parse lines)))
 
