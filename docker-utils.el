@@ -25,6 +25,20 @@
 
 (require 'magit-popup)
 
+;;;###autoload
+(defun docker-version (&optional called-interactively)
+  "Print or return the docker version as as string, depending on CALLED-INTERACTIVELY."
+  (interactive "p")
+  (let ((version (s-trim (shell-command-to-string "docker version --format '{{.Server.Version}}'"))))
+    (when called-interactively
+      (message "The docker version is %s" version))
+    version))
+
+(defun docker-utils-json-format (fmt)
+  "Formats FMT to return the appropriate JSON data."
+  (let ((replacement (if (version< (docker-version) "1.12.0") "\\1|json" "json \\1")))
+    (replace-regexp-in-string "\\(\\.[_[:alnum:]]+\\)" replacement fmt t)))
+
 (defun docker-utils-get-marked-items ()
   "Get the marked items data from `tabulated-list-entries'."
   (save-excursion
