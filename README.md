@@ -1,3 +1,6 @@
+[![MELPA](http://melpa.org/packages/docker-badge.svg)](http://melpa.org/#/docker)
+[![MELPA Stable](http://stable.melpa.org/packages/docker-badge.svg)](http://stable.melpa.org/#/docker)
+
 # docker.el
 
 ## Installation
