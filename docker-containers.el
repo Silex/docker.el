@@ -174,7 +174,7 @@ Remove the volumes associated with the container when VOLUMES is set."
              functions)))
 
 ;;;###autoload
-(defun docker-rename-entry ()
+(defun docker-containers-rename ()
   (interactive)
   (docker-utils-select-if-empty)
   (let ((ids (docker-utils-get-marked-items-ids)))
@@ -183,6 +183,8 @@ Remove the volumes associated with the container when VOLUMES is set."
       (let ((new-name (read-string "New Name: ")))
         (docker "rename" (nth 0 ids) new-name)
         (tablist-revert)))))
+
+(defalias 'docker-rename-entry 'docker-containers-rename)
 
 (defun docker-containers-cp-from (container-path host-path)
   "Run `docker-cp' on the container to copy files from."
@@ -337,7 +339,7 @@ Remove the volumes associated with the container when VOLUMES is set."
     (define-key map "R" 'docker-containers-restart-popup)
     (define-key map "P" 'docker-containers-pause-popup)
     (define-key map "D" 'docker-containers-rm-popup)
-    (define-key map "r" 'docker-rename-entry)
+    (define-key map "r" 'docker-containers-rename)
     map)
   "Keymap for `docker-containers-mode'.")
 
