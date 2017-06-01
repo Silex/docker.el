@@ -130,8 +130,13 @@ Remove the volumes associated with the container when VOLUMES is set."
 ;;;###autoload
 (defun docker-container-shell (container)
   (interactive (list (docker-read-container-name "container: ")))
-  (let ((default-directory (format "/docker:%s:" container)))
-    (shell)))
+  (let* ((container-address (format "docker:%s:/" container))
+         (file-prefix (if (file-remote-p default-directory)
+                          (with-parsed-tramp-file-name default-directory nil
+                            (format "/%s:%s|" method host))
+                        "/"))
+         (default-directory (format "%s%s" file-prefix container-address)))
+    (shell (format "*shell %s*" default-directory))))
 
 (defun docker-containers-find-file-selection ()
   "Run `docker-container-find-file' on the containers selection."
