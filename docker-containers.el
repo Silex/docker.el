@@ -44,7 +44,11 @@
 
 (defun docker-container-parse (line)
   "Convert a LINE from \"docker ps\" to a `tabulated-list-entries' entry."
-  (let ((data (json-read-from-string line)))
+  (let (data)
+    (condition-case err
+        (setq data (json-read-from-string line))
+      (json-readtable-error
+       (error "could not read following string as json:\n%s" line)))
     (list (aref data 6) data)))
 
 (defun docker-read-container-name (prompt)
