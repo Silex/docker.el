@@ -56,11 +56,12 @@
     (docker "volume rm" it))
   (tablist-revert))
 
-(docker-utils-define-popup docker-volumes-rm-popup
+(magit-define-popup docker-volumes-rm-popup
   "Popup for removing volumes."
   'docker-volumes-popups
   :man-page "docker-volume-rm"
-  :actions  '((?D "Remove" docker-volumes-rm-selection)))
+  :actions  '((?D "Remove" docker-volumes-rm-selection))
+  :setup-function #'docker-utils-setup-popup)
 
 (defun docker-volumes-refresh ()
   "Refresh the volumes list."

@@ -23,8 +23,6 @@
 
 ;;; Code:
 
-(require 'magit-popup)
-
 (defun docker-utils-get-marked-items ()
   "Get the marked items data from `tabulated-list-entries'."
   (save-excursion
@@ -40,11 +38,9 @@
   "Get the id part of `docker-utils-get-marked-items'."
   (-map #'car (docker-utils-get-marked-items)))
 
-(defmacro docker-utils-define-popup (name doc &rest args)
-  "Wrapper around `magit-define-popup', check its documentation for the arguments NAME, DOC and ARGS."
-  `(progn
-     (magit-define-popup ,name ,doc ,@args)
-     (add-function :before (symbol-function ',name) #'docker-utils-select-if-empty)))
+(defun docker-utils-setup-popup (val def)
+  (magit-with-pre-popup-buffer (docker-utils-select-if-empty))
+  (magit-popup-default-setup val def))
 
 (defun docker-utils-select-if-empty (&optional arg)
   "Select current row is selection is empty.
@@ -52,8 +48,6 @@ ARG is unused here, but is required by `add-function'."
   (save-excursion
     (when (null (docker-utils-get-marked-items))
       (tablist-put-mark))))
-
-(put 'docker-utils-define-popup 'lisp-indent-function 'defun)
 
 (defun docker-utils-pop-to-buffer (name)
   "Like `pop-to-buffer', but suffix NAME with the host if on a remote host."

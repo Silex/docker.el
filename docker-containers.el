@@ -342,85 +342,97 @@ If the follow flag is enabled, run them using `async-shell-command'."
    "diff"
    (s-join " " (docker-containers-diff-arguments))))
 
-(docker-utils-define-popup docker-containers-diff-popup
+(magit-define-popup docker-containers-diff-popup
   "Popup for showing containers diffs."
   'docker-containers-popups
   :man-page "docker-diff"
-  :actions  '((?d "Diff" docker-containers-diff-selection)))
+  :actions  '((?d "Diff" docker-containers-diff-selection))
+  :setup-function #'docker-utils-setup-popup)
 
-(docker-utils-define-popup docker-containers-find-file-popup
+(magit-define-popup docker-containers-find-file-popup
   "Popup for opening containers files."
   'docker-containers-popups
-  :actions  '((?f "Open file" docker-containers-find-file-selection)))
+  :actions  '((?f "Open file" docker-containers-find-file-selection))
+  :setup-function #'docker-utils-setup-popup)
 
-(docker-utils-define-popup docker-containers-shell-popup
+(magit-define-popup docker-containers-shell-popup
   "Popup for doing M-x `shell'/`eshell' to containers."
   'docker-containers-popups
   :actions  '((?b "Shell" docker-containers-shell-selection)
-              (?e "Eshell" docker-containers-eshell-selection)))
+              (?e "Eshell" docker-containers-eshell-selection))
+  :setup-function #'docker-utils-setup-popup)
 
-(docker-utils-define-popup docker-containers-inspect-popup
+(magit-define-popup docker-containers-inspect-popup
   "Popup for inspecting containers."
   'docker-containers-popups
   :man-page "docker-inspect"
   :actions  '((?I "Inspect" docker-containers-inspect-selection)
-              (?C "As Command" docker-containers-inspect-command-selection)))
+              (?C "As Command" docker-containers-inspect-command-selection))
+  :setup-function #'docker-utils-setup-popup)
 
-(docker-utils-define-popup docker-containers-logs-popup
+(magit-define-popup docker-containers-logs-popup
   "Popup for showing containers logs."
   'docker-containers-popups
   :man-page "docker-logs"
   :switches '((?f "Follow" "-f"))
-  :actions  '((?L "Logs" docker-containers-logs-selection)))
+  :actions  '((?L "Logs" docker-containers-logs-selection))
+  :setup-function #'docker-utils-setup-popup)
 
-(docker-utils-define-popup docker-containers-start-popup
+(magit-define-popup docker-containers-start-popup
   "Popup for starting containers."
   'docker-containers-popups
   :man-page "docker-start"
-  :actions  '((?S "Start" docker-containers-start-selection)))
+  :actions  '((?S "Start" docker-containers-start-selection))
+  :setup-function #'docker-utils-setup-popup)
 
-(docker-utils-define-popup docker-containers-stop-popup
+(magit-define-popup docker-containers-stop-popup
   "Popup for stoping containers."
   'docker-containers-popups
   :man-page "docker-stop"
   :options '((?t "Timeout" "-t "))
-  :actions '((?O "Stop" docker-containers-stop-selection)))
+  :actions '((?O "Stop" docker-containers-stop-selection))
+  :setup-function #'docker-utils-setup-popup)
 
-(docker-utils-define-popup docker-containers-restart-popup
+(magit-define-popup docker-containers-restart-popup
   "Popup for restarting containers."
   'docker-containers-popups
   :man-page "docker-restart"
   :options '((?t "Timeout" "-t "))
-  :actions '((?R "Restart" docker-containers-restart-selection)))
+  :actions '((?R "Restart" docker-containers-restart-selection))
+  :setup-function #'docker-utils-setup-popup)
 
-(docker-utils-define-popup docker-containers-pause-popup
+(magit-define-popup docker-containers-pause-popup
   "Popup for pauseing containers."
   'docker-containers-popups
   :man-page "docker-pause"
   :actions  '((?P "Pause" docker-containers-pause-selection)
-              (?U "Unpause" docker-containers-unpause-selection)))
+              (?U "Unpause" docker-containers-unpause-selection))
+  :setup-function #'docker-utils-setup-popup)
 
-(docker-utils-define-popup docker-containers-rm-popup
+(magit-define-popup docker-containers-rm-popup
   "Popup for removing containers."
   'docker-containers-popups
   :man-page "docker-rm"
   :switches '((?f "Force" "-f")
               (?v "Volumes" "-v"))
-  :actions  '((?D "Remove" docker-containers-rm-selection)))
+  :actions  '((?D "Remove" docker-containers-rm-selection))
+  :setup-function #'docker-utils-setup-popup)
 
-(docker-utils-define-popup docker-containers-kill-popup
+(magit-define-popup docker-containers-kill-popup
   "Popup for kill signaling containers"
   'docker-containers-popups
   :man-page "docker-kill"
   :options  '((?s "Signal" "-s "))
-  :actions  '((?K "Kill" docker-containers-kill-selection)))
+  :actions  '((?K "Kill" docker-containers-kill-selection))
+  :setup-function #'docker-utils-setup-popup)
 
-(docker-utils-define-popup docker-containers-cp-popup
+(magit-define-popup docker-containers-cp-popup
   "Popup for copying files from/to containers."
   'docker-containers-popups
   :man-page "docker-cp"
   :actions  '((?F "Copy From" docker-containers-cp-from)
-              (?T "Copy To" docker-containers-cp-to-selection)))
+              (?T "Copy To" docker-containers-cp-to-selection))
+  :setup-function #'docker-utils-setup-popup)
 
 (defun docker-containers-refresh ()
   "Refresh the containers list."

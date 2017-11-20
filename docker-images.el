@@ -143,34 +143,38 @@ Do not delete untagged parents when NO-PRUNE is set."
         (docker "tag" (nth 0 ids) tag-name)
         (tablist-revert)))))
 
-(docker-utils-define-popup docker-images-rmi-popup
+(magit-define-popup docker-images-rmi-popup
   "Popup for removing images."
   'docker-images-popups
   :man-page "docker-rmi"
   :switches '((?f "Force" "-f")
               (?n "Don't prune" "--no-prune"))
-  :actions  '((?D "Remove" docker-images-rmi-selection)))
+  :actions  '((?D "Remove" docker-images-rmi-selection))
+  :setup-function #'docker-utils-setup-popup)
 
-(docker-utils-define-popup docker-images-pull-popup
+(magit-define-popup docker-images-pull-popup
   "Popup for pulling images."
   'docker-images-popups
   :man-page "docker-pull"
   :switches '((?a "All" "-a"))
-  :actions  '((?F "Pull" docker-images-pull-selection)))
+  :actions  '((?F "Pull" docker-images-pull-selection))
+  :setup-function #'docker-utils-setup-popup)
 
-(docker-utils-define-popup docker-images-push-popup
+(magit-define-popup docker-images-push-popup
   "Popup for pushing images."
   'docker-images-popups
   :man-page "docker-push"
-  :actions  '((?P "Push" docker-images-push-selection)))
+  :actions  '((?P "Push" docker-images-push-selection))
+  :setup-function #'docker-utils-setup-popup)
 
-(docker-utils-define-popup docker-images-inspect-popup
+(magit-define-popup docker-images-inspect-popup
   "Popup for inspecting images."
   'docker-images-popups
   :man-page "docker-inspect"
-  :actions  '((?I "Inspect" docker-images-inspect-selection)))
+  :actions  '((?I "Inspect" docker-images-inspect-selection))
+  :setup-function #'docker-utils-setup-popup)
 
-(docker-utils-define-popup docker-images-run-popup
+(magit-define-popup docker-images-run-popup
   "Popup for running images."
   'docker-images-popups
   :man-page "docker-run"
@@ -192,7 +196,8 @@ Do not delete untagged parents when NO-PRUNE is set."
               (?n "entrypoint" "--entrypoint ")
               (?c "command" "--command "))
   :actions  '((?R "Run images" docker-images-run-selection))
-  :default-arguments '("-i" "-t" "--rm"))
+  :default-arguments '("-i" "-t" "--rm")
+  :setup-function #'docker-utils-setup-popup)
 
 (defun docker-images-refresh ()
   "Refresh the images list."

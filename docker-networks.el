@@ -56,11 +56,12 @@
     (docker "network rm" it))
   (tablist-revert))
 
-(docker-utils-define-popup docker-networks-rm-popup
+(magit-define-popup docker-networks-rm-popup
   "Popup for removing networks."
   'docker-networks-popups
   :man-page "docker-network-rm"
-  :actions  '((?D "Remove" docker-networks-rm-selection)))
+  :actions  '((?D "Remove" docker-networks-rm-selection))
+  :setup-function #'docker-utils-popup-setup)
 
 (defun docker-networks-refresh ()
   "Refresh the networks list."

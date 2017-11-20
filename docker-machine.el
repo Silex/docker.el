@@ -180,37 +180,42 @@
     (docker-machine-env (car marked))
     (tablist-revert)))
 
-(docker-utils-define-popup docker-machine-start-popup
+(magit-define-popup docker-machine-start-popup
   "Popup for starting machines."
   'docker-machine-popups
   :man-page "docker-machine-start"
-  :actions  '((?S "Start" docker-machine-start-selection)))
+  :actions  '((?S "Start" docker-machine-start-selection))
+  :setup-function #'docker-utils-setup-popup)
 
-(docker-utils-define-popup docker-machine-env-popup
+(magit-define-popup docker-machine-env-popup
   "Popup for setting up environment variables."
   'docker-machine-popups
   :man-page "docker-machine-env"
-  :actions '((?E "Env" docker-machine-env-selection)))
+  :actions '((?E "Env" docker-machine-env-selection))
+  :setup-function #'docker-utils-setup-popup)
 
-(docker-utils-define-popup docker-machine-stop-popup
+(magit-define-popup docker-machine-stop-popup
   "Popup for stoping machines."
   'docker-machine-popups
   :man-page "docker-machine-stop"
-  :actions '((?O "Stop" docker-machine-stop-selection)))
+  :actions '((?O "Stop" docker-machine-stop-selection))
+  :setup-function #'docker-utils-setup-popup)
 
-(docker-utils-define-popup docker-machine-restart-popup
+(magit-define-popup docker-machine-restart-popup
   "Popup for restarting machines."
   'docker-machine-popups
   :man-page "docker-machine-restart"
-  :actions '((?R "Restart" docker-machine-restart-selection)))
+  :actions '((?R "Restart" docker-machine-restart-selection))
+  :setup-function #'docker-utils-setup-popup)
 
-(docker-utils-define-popup docker-machine-rm-popup
+(magit-define-popup docker-machine-rm-popup
   "Popup for removing machines."
   'docker-machine-popups
   :man-page "docker-machine-rm"
   :switches '((?y "Automatic yes" "-y")(?f "Force" "-f"))
   :actions  '((?D "Remove" docker-machine-rm-selection))
-  :default-arguments '("-y"))
+  :default-arguments '("-y")
+  :setup-function #'docker-utils-setup-popup)
 
 (defun docker-machine-refresh ()
   "Refresh the machines list."
