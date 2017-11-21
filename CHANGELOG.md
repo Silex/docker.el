@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.5.3 (2017-11-21)
 
 - Add changelog.
 - Handle JSON errors.
