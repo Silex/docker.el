@@ -213,7 +213,7 @@
 (defun docker-machines ()
   "List docker machines."
   (interactive)
-  (pop-to-buffer "*docker-machines*")
+  (docker-utils-pop-to-buffer "*docker-machines*")
   (docker-machine-mode)
   (tablist-revert))
 
