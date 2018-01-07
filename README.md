@@ -7,8 +7,6 @@
 
 The recommended way to install docker.el is through [MELPA](https://github.com/milkypostman/melpa).
 
-Otherwise, simply add the files to your load-path and then `(require 'docker)`.
-
 ## Quickstart
 
 Use <kbd>M-x docker-images</kbd>, <kbd>M-x docker-containers</kbd>,
