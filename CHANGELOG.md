@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Customize which shell to use when entering containers.
+
 ## 0.5.3 (2017-11-21)
 
 - Add changelog.

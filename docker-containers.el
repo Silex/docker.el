@@ -35,6 +35,12 @@
   :group 'docker
   :type 'boolean)
 
+(defcustom docker-containers-shell-file-name shell-file-name
+  "Shell to use when entering containers.
+For more information see the variable `shell-file-name'."
+  :group 'docker
+  :type 'string)
+
 (defun docker-containers-entries ()
   "Return the docker containers data for `tabulated-list-entries'."
   (let* ((fmt "[{{json .ID}},{{json .Image}},{{json .Command}},{{json .RunningFor}},{{json .Status}},{{json .Ports}},{{json .Names}}]")
@@ -134,7 +140,8 @@ Remove the volumes associated with the container when VOLUMES is set."
 ;;;###autoload
 (defun docker-container-shell (container)
   (interactive (list (docker-read-container-name "container: ")))
-  (let* ((container-address (format "docker:%s:/" container))
+  (let* ((shell-file-name docker-containers-shell-file-name)
+         (container-address (format "docker:%s:/" container))
          (file-prefix (if (file-remote-p default-directory)
                           (with-parsed-tramp-file-name default-directory nil
                             (format "/%s:%s|" method host))
