@@ -26,9 +26,12 @@
 
 (require 'docker-process)
 (require 'docker-utils)
+(require 'docker-engine-api)
 (require 'magit-popup)
 (require 'tablist)
+(require 'request)
 (require 'json)
+(require 'cl)
 
 (defcustom docker-containers-show-all t
   "When nil, `docker-containers' will only show running containers."
@@ -41,21 +44,29 @@ For more information see the variable `shell-file-name'."
   :group 'docker
   :type 'string)
 
-(defun docker-containers-entries ()
-  "Return the docker containers data for `tabulated-list-entries'."
-  (let* ((fmt "[{{json .ID}},{{json .Image}},{{json .Command}},{{json .RunningFor}},{{json .Status}},{{json .Ports}},{{json .Names}}]")
-         (data (docker "ps" (format "--format=\"%s\"" fmt) (when docker-containers-show-all "-a ")))
-         (lines (s-split "\n" data t)))
-    (-map #'docker-container-parse lines)))
+(defun docker-containers-parse-entry (con)
+  "Convert the alist CON to a `tabulated-list-entries' entry."
+  (let* ((id (substring (alist-get 'Id con) 0 12))
+         (img (substring (second (s-split ":" (alist-get 'ImageID con))) 0 12))
+         (cmd (replace-regexp-in-string
+               "^\/bin\/sh -c " ""
+               (alist-get 'Command con)))
+         (created (format-time-string
+                   "%F %T"
+                   (seconds-to-time (alist-get 'Created con))))
+         (status (alist-get 'State con))
+         (ports (format "%S" (alist-get 'Ports con)))
+         (names (replace-regexp-in-string
+                 "^\/" ""
+                 (aref (alist-get 'Names con) 0))))
+    (list id (vector id img cmd created status ports names))))
 
-(defun docker-container-parse (line)
-  "Convert a LINE from \"docker ps\" to a `tabulated-list-entries' entry."
-  (let (data)
-    (condition-case err
-        (setq data (json-read-from-string line))
-      (json-readtable-error
-       (error "could not read following string as json:\n%s" line)))
-    (list (aref data 6) data)))
+(defun docker-containers-entries ()
+  "Returns the docker containers data for `tabulated-list-entries`."
+  (docker-engine-api-get
+   "/containers/json"
+   `(("all" . ,(if docker-containers-show-all "true" "false")))
+   (lambda () (mapcar #'docker-containers-parse-entry (json-read)))))
 
 (defun docker-read-container-name (prompt)
   "Read an container name using PROMPT."
@@ -366,7 +377,7 @@ Remove the volumes associated with the container when VOLUMES is set."
 
 (define-derived-mode docker-containers-mode tabulated-list-mode "Containers Menu"
   "Major mode for handling a list of docker containers."
-  (setq tabulated-list-format [("Id" 16 t)("Image" 15 t)("Command" 30 t)("Created" 15 t)("Status" 20 t)("Ports" 10 t)("Names" 10 t)])
+  (setq tabulated-list-format [("Id" 16 t)("Image" 15 t)("Command" 25 t)("Created" 22 t)("Status" 10 t)("Ports" 10 t)("Names" 10 t)])
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key (cons "Image" nil))
   (add-hook 'tabulated-list-revert-hook 'docker-containers-refresh nil t)
