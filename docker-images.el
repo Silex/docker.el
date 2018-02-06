@@ -25,23 +25,33 @@
 
 (require 'docker-process)
 (require 'docker-utils)
+(require 'docker-engine-api)
 (require 'magit-popup)
 (require 'tablist)
+(require 'request)
+(require 'json)
+(require 'cl)
+
+(defun docker-images-parse-entry (im)
+  "Convert the alist IM to a `tabulated-list-entries` entry."
+  (let* ((id (substring (second (s-split ":" (alist-get 'Id im))) 0 12))
+         (repotag (aref (alist-get 'RepoTags im) 0))
+         (sp (s-split ":" repotag))
+         (repo (first sp))
+         (tag (second sp))
+         (created (format-time-string
+                   "%F %T"
+                   (seconds-to-time (alist-get 'Created im))))   ; yyyy-mm-dd h:m:s
+         (size (format "%8d" (/ (alist-get 'Size im) 1048576)))) ; megabytes
+    (list (if (string= repo "<none>") id repotag)
+          (vector repo tag id created size))))
 
 (defun docker-images-entries ()
-  "Returns the docker images data for `tabulated-list-entries'."
-  (let* ((fmt "{{.Repository}}\\t{{.Tag}}\\t{{.ID}}\\t{{.CreatedSince}}\\t{{.Size}}")
-         (data (docker "images" (format "--format=\"%s\"" fmt)))
-         (lines (s-split "\n" data t)))
-    (-map #'docker-image-parse lines)))
-
-(defun docker-image-parse (line)
-  "Convert a LINE from \"docker images\" to a `tabulated-list-entries' entry."
-  (let* ((data (s-split "\t" line))
-         (name (format "%s:%s" (nth 0 data) (nth 1 data))))
-    (list
-     (if (s-contains? "<none>" name) (nth 2 data) name)
-     (apply #'vector data))))
+  "Returns the docker images data for `tabulated-list-entries`."
+  (docker-engine-api-get
+   "/images/json"
+   '()
+   (lambda () (mapcar #'docker-images-parse-entry (json-read)))))
 
 (defun docker-read-image-name (prompt)
   "Read an image name using PROMPT."
@@ -200,7 +210,7 @@ Do not delete untagged parents when NO-PRUNE is set."
 
 (define-derived-mode docker-images-mode tabulated-list-mode "Images Menu"
   "Major mode for handling a list of docker images."
-  (setq tabulated-list-format [("Repository" 30 t)("Tag" 20 t)("Id" 16 t)("Created" 25 t)("Size" 10 t)])
+  (setq tabulated-list-format [("Repository" 30 t)("Tag" 20 t)("Id" 16 t)("Created" 22 t)("Size(MB)" 10 t)])
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key (cons "Repository" nil))
   (add-hook 'tabulated-list-revert-hook 'docker-images-refresh nil t)
