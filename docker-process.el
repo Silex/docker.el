@@ -38,7 +38,7 @@
 
 (defun docker (action &rest args)
   "Execute docker ACTION passing arguments ARGS."
-  (let ((default-directory (if docker-run-as-root "/sudo::" nil)))
+  (let ((default-directory (if (and docker-run-as-root (not (file-remote-p default-directory))) "/sudo::" default-directory)))
     (let ((command (format "%s %s %s" docker-command action (s-join " " (-non-nil args)))))
       (message command)
       (shell-command-to-string command))))
