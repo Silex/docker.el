@@ -26,6 +26,11 @@
 (require 's)
 (require 'dash)
 
+(defcustom docker-run-as-root nil
+  "Controls wether docker runs as root or not."
+  :type 'boolean
+  :group 'docker)
+
 (defcustom docker-command "docker"
   "The command for \\[docker] package."
   :type 'string
@@ -33,9 +38,10 @@
 
 (defun docker (action &rest args)
   "Execute docker ACTION passing arguments ARGS."
-  (let ((command (format "%s %s %s" docker-command action (s-join " " (-non-nil args)))))
-    (message command)
-    (shell-command-to-string command)))
+  (let ((default-directory (if docker-run-as-root "/sudo::" nil)))
+    (let ((command (format "%s %s %s" docker-command action (s-join " " (-non-nil args)))))
+      (message command)
+      (shell-command-to-string command))))
 
 (provide 'docker-process)
 
