@@ -138,6 +138,18 @@ Remove the volumes associated with the container when VOLUMES is set."
   (dired (format "/docker:%s:%s" container directory)))
 
 ;;;###autoload
+(defun docker-container-eshell (container)
+  (interactive (list (docker-read-container-name "container: ")))
+  (let* ((container-address (format "docker:%s:/" container))
+         (file-prefix (if (file-remote-p default-directory)
+                          (with-parsed-tramp-file-name default-directory nil
+                            (format "/%s:%s|" method host))
+                        "/"))
+         (default-directory (format "%s%s" file-prefix container-address))
+         (eshell-buffer-name (format "*eshell %s*" default-directory)))
+    (eshell)))
+
+;;;###autoload
 (defun docker-container-shell (container)
   (interactive (list (docker-read-container-name "container: ")))
   (let* ((shell-file-name docker-containers-shell-file-name)
@@ -160,6 +172,12 @@ Remove the volumes associated with the container when VOLUMES is set."
   (interactive)
   (--each (docker-utils-get-marked-items-ids)
     (docker-container-shell it)))
+
+(defun docker-containers-eshell-selection ()
+  "Run `docker-container-eshell' on the containers selection."
+  (interactive)
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-container-eshell it)))
 
 (defun docker-containers-run-command-on-selection (command arguments)
   "Run a docker COMMAND on the containers selection with ARGUMENTS."
@@ -266,9 +284,10 @@ Remove the volumes associated with the container when VOLUMES is set."
   :actions  '((?f "Open file" docker-containers-find-file-selection)))
 
 (docker-utils-define-popup docker-containers-shell-popup
-  "Popup for doing M-x `shell' to containers."
+  "Popup for doing M-x `shell'/`eshell' to containers."
   'docker-containers-popups
-  :actions  '((?b "Shell" docker-containers-shell-selection)))
+  :actions  '((?b "Shell" docker-containers-shell-selection)
+              (?e "Eshell" docker-containers-eshell-selection)))
 
 (docker-utils-define-popup docker-containers-inspect-popup
   "Popup for inspecting containers."
