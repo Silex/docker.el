@@ -41,6 +41,23 @@ For more information see the variable `shell-file-name'."
   :group 'docker
   :type 'string)
 
+(defcustom docker-containers-default-sort-key '("Image" . nil)
+  "Sort key for the docker containers list.
+
+This should be a cons cell (NAME . FLIP) where
+NAME is a string matching one of the column names
+and FLIP is a boolean to specify the sort order."
+  :group 'docker
+  :type '(cons (choice (const "Id")
+                       (const "Image")
+                       (const "Command")
+                       (const "Created")
+                       (const "Status")
+                       (const "Ports")
+                       (const "Names"))
+               (choice (const :tag "Ascending" nil)
+                       (const :tag "Descending" t))))
+
 (defun docker-containers-entries ()
   "Return the docker containers data for `tabulated-list-entries'."
   (let* ((fmt "[{{json .ID}},{{json .Image}},{{json .Command}},{{json .RunningFor}},{{json .Status}},{{json .Ports}},{{json .Names}}]")
@@ -387,7 +404,7 @@ Remove the volumes associated with the container when VOLUMES is set."
   "Major mode for handling a list of docker containers."
   (setq tabulated-list-format [("Id" 16 t)("Image" 15 t)("Command" 30 t)("Created" 15 t)("Status" 20 t)("Ports" 10 t)("Names" 10 t)])
   (setq tabulated-list-padding 2)
-  (setq tabulated-list-sort-key (cons "Image" nil))
+  (setq tabulated-list-sort-key docker-containers-default-sort-key)
   (add-hook 'tabulated-list-revert-hook 'docker-containers-refresh nil t)
   (tabulated-list-init-header)
   (tablist-minor-mode))

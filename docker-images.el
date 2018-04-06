@@ -28,6 +28,21 @@
 (require 'magit-popup)
 (require 'tablist)
 
+(defcustom docker-images-default-sort-key '("Repository" . nil)
+  "Sort key for the docker images list.
+
+This should be a cons cell (NAME . FLIP) where
+NAME is a string matching one of the column names
+and FLIP is a boolean to specify the sort order."
+  :group 'docker
+  :type '(cons (choice (const "Repository")
+                       (const "Tag")
+                       (const "Id")
+                       (const "Created")
+                       (const "Size"))
+               (choice (const :tag "Ascending" nil)
+                       (const :tag "Descending" t))))
+
 (defun docker-images-entries ()
   "Returns the docker images data for `tabulated-list-entries'."
   (let* ((fmt "{{.Repository}}\\t{{.Tag}}\\t{{.ID}}\\t{{.CreatedSince}}\\t{{.Size}}")
@@ -202,7 +217,7 @@ Do not delete untagged parents when NO-PRUNE is set."
   "Major mode for handling a list of docker images."
   (setq tabulated-list-format [("Repository" 30 t)("Tag" 20 t)("Id" 16 t)("Created" 25 t)("Size" 10 t)])
   (setq tabulated-list-padding 2)
-  (setq tabulated-list-sort-key (cons "Repository" nil))
+  (setq tabulated-list-sort-key docker-images-default-sort-key)
   (add-hook 'tabulated-list-revert-hook 'docker-images-refresh nil t)
   (tabulated-list-init-header)
   (tablist-minor-mode))
