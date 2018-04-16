@@ -25,6 +25,7 @@
 ;;; Code:
 
 (require 'docker-process)
+(require 'docker-logs)
 (require 'docker-utils)
 (require 'magit-popup)
 (require 'tablist)
@@ -278,6 +279,18 @@ Remove the volumes associated with the container when VOLUMES is set."
                                                                   (s-join " " ,(list (intern (format "docker-containers-%s-arguments" it))))))
              functions)))
 
+(defun docker-containers-logs-selection ()
+  "Run docker-logs on the containers selection. If only one
+container selected run it in compile-mode."
+  (interactive)
+  (let* ((id-list (docker-utils-get-marked-items-ids))
+         (containers (mapconcat 'identity id-list " "))
+         (docker-logs-command (format "docker logs %s" containers)))
+    (if (= 1 (length id-list))
+        (docker-logs-show (car id-list))
+      (docker-containers-run-command-on-selection-print "logs"
+                                                        (s-join " " (docker-containers-logs-arguments))))))
+
 (docker-containers-create-selection-functions
   start
   stop
@@ -287,7 +300,7 @@ Remove the volumes associated with the container when VOLUMES is set."
   rm
   kill)
 
-(docker-containers-create-selection-print-functions inspect logs diff)
+(docker-containers-create-selection-print-functions inspect diff)
 
 (docker-utils-define-popup docker-containers-diff-popup
   "Popup for showing containers diffs."
