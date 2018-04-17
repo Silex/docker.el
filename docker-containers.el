@@ -25,7 +25,6 @@
 ;;; Code:
 
 (require 'docker-process)
-(require 'docker-logs)
 (require 'docker-utils)
 (require 'magit-popup)
 (require 'tablist)
@@ -280,16 +279,17 @@ Remove the volumes associated with the container when VOLUMES is set."
              functions)))
 
 (defun docker-containers-logs-selection ()
-  "Run docker-logs on the containers selection. If only one
-container selected run it in compile-mode."
+  "Run docker-logs on the containers selection. If the follow
+flag is enabled, run them in shell-mode"
   (interactive)
   (let* ((id-list (docker-utils-get-marked-items-ids))
-         (containers (mapconcat 'identity id-list " "))
-         (docker-logs-command (format "docker logs %s" containers)))
-    (if (= 1 (length id-list))
-        (docker-logs-show (car id-list))
-      (docker-containers-run-command-on-selection-print "logs"
-                                                        (s-join " " (docker-containers-logs-arguments))))))
+         (args (docker-containers-logs-arguments)))
+    (if (-contains? args "-f")
+        (dolist (id id-list)
+          (let* ((docker-logs-command (format "docker logs -f %s" id))
+               (docker-logs-buffer (get-buffer-create (concat "*" docker-logs-command "*"))))
+          (async-shell-command docker-logs-command docker-logs-buffer)))
+      (docker-containers-run-command-on-selection-print "logs" args))))
 
 (docker-containers-create-selection-functions
   start
@@ -330,6 +330,7 @@ container selected run it in compile-mode."
   "Popup for showing containers logs."
   'docker-containers-popups
   :man-page "docker-logs"
+  :switches '((?f "Follow" "-f"))
   :actions  '((?L "Logs" docker-containers-logs-selection)))
 
 (docker-utils-define-popup docker-containers-start-popup
