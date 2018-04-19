@@ -1,4 +1,4 @@
-;;; docker-networks.el --- Emacs interface to docker-network
+;;; docker-networks.el --- Emacs interface to docker-network  -*- lexical-binding: t -*-
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 

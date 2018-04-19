@@ -1,4 +1,4 @@
-;;; docker.el --- Emacs interface to Docker
+;;; docker.el --- Emacs interface to Docker  -*- lexical-binding: t -*-
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 ;; URL: https://github.com/Silex/docker.el

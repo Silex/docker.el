@@ -1,4 +1,4 @@
-;;; docker-process.el --- Emacs interface to Docker
+;;; docker-process.el --- Emacs interface to Docker  -*- lexical-binding: t -*-
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 

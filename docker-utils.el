@@ -1,4 +1,4 @@
-;;; docker-utils.el --- Random utilities
+;;; docker-utils.el --- Random utilities  -*- lexical-binding: t -*-
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 

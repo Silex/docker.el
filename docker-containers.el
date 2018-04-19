@@ -1,4 +1,4 @@
-;;; docker-containers.el --- Emacs interface to docker-containers
+;;; docker-containers.el --- Emacs interface to docker-containers  -*- lexical-binding: t -*-
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 ;;         Yuki Inoue <inouetakahiroki@gmail.com>

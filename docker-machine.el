@@ -1,4 +1,4 @@
-;;; docker-machine.el --- Emacs interface to docker-machine
+;;; docker-machine.el --- Emacs interface to docker-machine  -*- lexical-binding: t -*-
 
 ;; Author: Ben Swift <ben@benswift.me>
 

@@ -1,4 +1,4 @@
-;;; docker-volumes.el --- Emacs interface to docker-volume
+;;; docker-volumes.el --- Emacs interface to docker-volume  -*- lexical-binding: t -*-
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 
