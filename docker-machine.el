@@ -29,7 +29,7 @@
 (require 'tablist)
 
 (defun docker-machines-entries ()
-  "Returns the docker machines data for `tabulated-list-entries'."
+  "Return the docker machines data for `tabulated-list-entries'."
   (let* ((fmt "{{.Name}}\\t{{.Active}}\\t{{.DriverName}}\\t{{.State}}\\t{{.URL}}\\t{{.Swarm}}\\t{{.DockerVersion}}\\t{{.Error}}")
          (data (shell-command-to-string (format "docker-machine ls %s" (format "--format=\"%s\"" fmt))))
          (lines (s-split "\n" data t)))
@@ -45,7 +45,7 @@
   (completing-read prompt (-map #'car (docker-machines-entries))))
 
 (defun docker-machine (action &rest args)
-  "Execute docker-machine ACTION passing arguments ARGS."
+  "Execute \"docker-machine ACTION\" passing arguments ARGS."
   (let ((command (format "docker-machine %s %s" action (s-join " " (-non-nil args)))))
     (message command)
     (shell-command-to-string command)))
@@ -56,37 +56,37 @@
 
 ;;;###autoload
 (defun docker-machine-config (name)
-  "Print the connection config for machine."
+  "Print the connection config for the machine NAME."
   (interactive (list (docker-read-machine-name "Config for machine: ")))
   (docker-machine "config" name))
 
 ;;;###autoload
 (defun docker-machine-inspect (name)
-  "Inspect information about a machine."
+  "Inspect information about the machine NAME."
   (interactive (list (docker-read-machine-name "Inspect machine: ")))
   (docker-machine "inspect" name))
 
 ;;;###autoload
 (defun docker-machine-ip (name)
-  "Get the IP address of a machine."
+  "Get the IP address of the machine NAME."
   (interactive (list (docker-read-machine-name "IP for machine: ")))
   (docker-machine "ip" name))
 
 ;;;###autoload
 (defun docker-machine-status (name)
-  "Get the status of a machine."
+  "Get the status of the machine NAME."
   (interactive (list (docker-read-machine-name "Status of machine: ")))
   (docker-machine "status" name))
 
 ;;;###autoload
 (defun docker-machine-upgrade (name)
-  "Upgrade a machine to the latest version of Docker."
+  "Upgrade the machine NAME to the latest version of Docker."
   (interactive (list (docker-read-machine-name "Upgrade machine: ")))
   (docker-machine "upgrade" name))
 
 ;;;###autoload
 (defun docker-machine-kill (name)
-  "Kill a machine."
+  "Kill the machine NAME."
   (interactive (list (docker-read-machine-name "Kill machine: ")))
   (docker-machine "kill" name))
 
@@ -98,11 +98,12 @@
 
 ;;;###autoload
 (defun docker-machine-start (name)
-  "Start a machine."
+  "Start the machine NAME."
   (interactive (list (docker-read-machine-name "Start machine: ")))
   (docker-machine "start" name))
 
 (defun docker-machine-env-export (line)
+  "Export the env for LINE."
   (let ((index (s-index-of "=" line)))
     (unless index
       (error (format "Cannot find separator in %s" line)))
@@ -110,7 +111,7 @@
 
 ;;;###autoload
 (defun docker-machine-env (name)
-  "Parse and set environment variables from \"docker-machine env\" output"
+  "Parse and set environment variables from \"docker-machine env NAME\" output."
   (interactive (list (docker-read-machine-name "Set up environment for machine: ")))
   (--each-while
       (s-lines (docker-machine "env" name))
@@ -119,19 +120,19 @@
 
 ;;;###autoload
 (defun docker-machine-stop (name)
-  "Stop a machine."
+  "Stop the machine NAME."
   (interactive (list (docker-read-machine-name "Stop machine: ") current-prefix-arg))
   (docker-machine "stop" name))
 
 ;;;###autoload
 (defun docker-machine-restart (name)
-  "Restart a machine."
+  "Restart the machine NAME."
   (interactive (list (docker-read-machine-name "Restart machine: ") current-prefix-arg))
   (docker-machine "restart" name))
 
 ;;;###autoload
 (defun docker-machine-rm (name &optional force)
-  "Destroy or uncommand a machine."
+  "Destroy or uncommand the machine NAME.  If FORCE is set, use \"--force\"."
   (interactive (list (docker-read-machine-name "Delete machine: ") current-prefix-arg))
   (docker-machine "rm" (when force "--force") name))
 
@@ -142,23 +143,24 @@
     (docker-machine command arguments it))
   (tablist-revert))
 
-(defmacro docker-machine-create-selection-functions (&rest functions)
+(defmacro docker-machine-create-selection-functions (&rest names)
+  "Create selection functions using NAMES."
   `(progn ,@(--map
              `(defun ,(intern (format "docker-machine-%s-selection" it)) ()
                 ,(format "Run `docker-machine-%s' on the machines selection." it)
                 (interactive)
                 (docker-machine-run-command-on-selection ,(symbol-name it)
                                                          (s-join " " ,(list (intern (format "docker-machine-%s-arguments" it))))))
-             functions)))
+             names)))
 
 (docker-machine-create-selection-functions start stop restart rm)
 
 (defun docker-machine-env-selection ()
-  "Run docker-machine-env on selected machine"
+  "Run \"docker-machine env\" on selected machine."
   (interactive)
   (let ((marked (docker-utils-get-marked-items-ids)))
     (when (/= (length marked) 1)
-      (error "Can only set environment vars for one machine at a time."))
+      (error "Can only set environment vars for one machine at a time"))
     (docker-machine-env (car marked))
     (tablist-revert)))
 

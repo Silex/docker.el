@@ -41,13 +41,14 @@
   (-map #'car (docker-utils-get-marked-items)))
 
 (defmacro docker-utils-define-popup (name doc &rest args)
-  "Wrapper around `docker-utils-define-popup'."
+  "Wrapper around `magit-define-popup', check its documentation for the arguments NAME, DOC and ARGS."
   `(progn
      (magit-define-popup ,name ,doc ,@args)
      (add-function :before (symbol-function ',name) #'docker-utils-select-if-empty)))
 
-(defun docker-utils-select-if-empty (&optional arg)
-  "Select current row is selection is empty."
+(defun docker-utils-select-if-empty (&optional ARG)
+  "Select current row is selection is empty.
+ARG is unused here, but is required by `add-function'."
   (save-excursion
     (when (null (docker-utils-get-marked-items))
       (tablist-put-mark))))
@@ -62,6 +63,8 @@
      name)))
 
 (defmacro docker-utils-with-result-buffer (&rest body)
+  "Like `with-current-buffer' but with more configuration.
+Execute BODY in a buffer."
   `(let ((buffer (get-buffer-create "*docker result*")))
      (with-current-buffer buffer
        (setq buffer-read-only nil)
@@ -70,11 +73,11 @@
        (setq buffer-read-only t))
      (display-buffer buffer)))
 
-(defun docker-utils-run-command-on-selection-print (cmd &optional post-process)
+(defun docker-utils-run-command-on-selection-print (command &optional post-process)
   "Run COMMAND on the selections and show the result in BUFFER-NAME.
 Optionally run POST-PROCESS in BUFFER-NAME."
   (let* ((id-list (docker-utils-get-marked-items-ids))
-         (results (mapcar cmd id-list)))
+         (results (mapcar command id-list)))
     (docker-utils-with-result-buffer
      (mapc 'insert results)
      (when post-process
