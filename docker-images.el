@@ -1,4 +1,4 @@
-;;; docker-images.el --- Emacs interface to docker-images
+;;; docker-images.el --- Emacs interface to docker-images  -*- lexical-binding: t -*-
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 
