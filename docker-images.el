@@ -113,9 +113,13 @@ Do not delete untagged parents when NO-PRUNE is set."
   (let* ((popup-args (docker-images-run-arguments))
          (last-item (-last-item popup-args))
          (has-command (s-contains? "--command" last-item))
-         (docker-args (if has-command (-slice popup-args 0 -1) popup-args)))
+         (docker-args (if has-command (-slice popup-args 0 -1) popup-args))
+         (default-directory (if (and docker-run-as-root
+                                     (not (file-remote-p default-directory)))
+                                "/sudo::"
+                              default-directory)))
     (--each (docker-utils-get-marked-items-ids)
-      (let ((command-args `("docker" "run" ,@docker-args ,it)))
+      (let ((command-args `(,docker-command "run" ,@docker-args ,it)))
         (when has-command
           (add-to-list 'command-args (s-chop-prefix "--command " last-item) t))
         (async-shell-command (s-join " " command-args) (format "*run %s*" it))))
