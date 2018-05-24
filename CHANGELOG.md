@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Improve documentation.
+- Use lexical binding.
+- Allow customization of tabulated list sort key.
+- Support eshell to containers.
+- Add flag to toggle if docker command will run as root.
 - Customize which shell to use when entering containers.
 
 ## 0.5.3 (2017-11-21)

@@ -60,14 +60,13 @@ simplified by using https://github.com/purcell/exec-path-from-shell).
 ### docker-global-mode
 
 Running <kbd>M-x docker-global-mode</kbd> creates keybindings to the
-various docker api. The keymap prefix is `C-c d` by default and can be
-changed with <kbd>M-x customize-variable docker-keymap-prefix</kbd>.
+various docker api.
 
 ### API
 
 *WARNING* This keymap is likely to change or be removed soon.
 
-| command                      | keymap               | description                                                     |
+| Command                      | Keymap               | Description                                                     |
 |------------------------------|----------------------|-----------------------------------------------------------------|
 | docker-images                | <kbd>C-c d i i</kbd> | list images                                                     |
 | docker-rmi                   | <kbd>C-c d i d</kbd> | delete image                                                    |
@@ -144,6 +143,18 @@ After having selected some machines, you can do the following actions:
 * `O`: stop
 * `R`: restart
 * `D`: rm
+
+## Customizations
+
+| Variable                           | Description                           | Default          |
+|------------------------------------|---------------------------------------|------------------|
+| docker-command                     | The docker binary to use              | `docker`         |
+| docker-containers-default-sort-key | Sort key for docker containers        | `("Image")`      |
+| docker-containers-shell-file-name  | Shell to use when entering containers | `/bin/bash`      |
+| docker-containers-show-all         | Show non-running containers           | `t`              |
+| docker-images-default-sort-key     | Sort key for docker images            | `("Repository")` |
+| docker-keymap-prefix               | Prefix for `docker-mode`              | `C-c d`          |
+| docker-run-as-root                 | Run docker as root                    | `nil`            |
 
 ## Contributions welcome!
 

@@ -31,7 +31,7 @@
 (require 'json)
 
 (defcustom docker-containers-show-all t
-  "When nil, `docker-containers' will only show running containers."
+  "Show non-running containers."
   :group 'docker
   :type 'boolean)
 
@@ -42,7 +42,7 @@ For more information see the variable `shell-file-name'."
   :type 'string)
 
 (defcustom docker-containers-default-sort-key '("Image" . nil)
-  "Sort key for the docker containers list.
+  "Sort key for docker containers.
 
 This should be a cons cell (NAME . FLIP) where
 NAME is a string matching one of the column names

@@ -29,7 +29,7 @@
 (require 'tablist)
 
 (defcustom docker-images-default-sort-key '("Repository" . nil)
-  "Sort key for the docker images list.
+  "Sort key for docker images.
 
 This should be a cons cell (NAME . FLIP) where
 NAME is a string matching one of the column names

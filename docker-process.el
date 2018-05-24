@@ -27,12 +27,12 @@
 (require 'dash)
 
 (defcustom docker-run-as-root nil
-  "Controls wether docker runs as root or not."
+  "Run docker as root."
   :type 'boolean
   :group 'docker)
 
 (defcustom docker-command "docker"
-  "The command for \\[docker] package."
+  "The docker binary."
   :type 'string
   :group 'docker)
 
