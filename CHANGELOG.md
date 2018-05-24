@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.6.0 (2018-05-24)
 
 - Improve documentation.
 - Use lexical binding.
