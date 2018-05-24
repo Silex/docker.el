@@ -3,6 +3,23 @@
 
 # docker.el
 
+* [Installation](#installation)
+* [Quickstart](#quickstart)
+* [Configuration](#configuration)
+   * [OSX / docker-machine](#osx--docker-machine)
+* [Screenshots](#screenshots)
+   * [images](#images)
+* [Commands](#commands)
+   * [docker-global-mode](#docker-global-mode)
+   * [API](#api)
+   * [docker-images](#docker-images)
+   * [docker-containers](#docker-containers)
+   * [docker-volumes](#docker-volumes)
+   * [docker-networks](#docker-networks)
+   * [docker-machines](#docker-machines)
+* [Customizations](#customizations)
+* [Contributions welcome!](#contributions-welcome)
+
 ## Installation
 
 The recommended way to install docker.el is through [MELPA](https://github.com/milkypostman/melpa).
