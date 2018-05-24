@@ -143,17 +143,33 @@
     (docker-machine command arguments it))
   (tablist-revert))
 
-(defmacro docker-machine-create-selection-functions (&rest names)
-  "Create selection functions using NAMES."
-  `(progn ,@(--map
-             `(defun ,(intern (format "docker-machine-%s-selection" it)) ()
-                ,(format "Run `docker-machine-%s' on the machines selection." it)
-                (interactive)
-                (docker-machine-run-command-on-selection ,(symbol-name it)
-                                                         (s-join " " ,(list (intern (format "docker-machine-%s-arguments" it))))))
-             names)))
+(defun docker-machine-start-selection ()
+  "Run `docker-machine-start' on the machines selection."
+  (interactive)
+  (docker-machine-run-command-on-selection
+   "start"
+   (s-join " " (docker-machine-start-arguments))))
 
-(docker-machine-create-selection-functions start stop restart rm)
+(defun docker-machine-stop-selection ()
+  "Run `docker-machine-stop' on the machines selection."
+  (interactive)
+  (docker-machine-run-command-on-selection
+   "stop"
+   (s-join " " (docker-machine-stop-arguments))))
+
+(defun docker-machine-restart-selection ()
+  "Run `docker-machine-restart' on the machines selection."
+  (interactive)
+  (docker-machine-run-command-on-selection
+   "restart"
+   (s-join " " (docker-machine-restart-arguments))))
+
+(defun docker-machine-rm-selection ()
+  "Run `docker-machine-rm' on the machines selection."
+  (interactive)
+  (docker-machine-run-command-on-selection
+   "rm"
+   (s-join " " (docker-machine-rm-arguments))))
 
 (defun docker-machine-env-selection ()
   "Run \"docker-machine env\" on selected machine."

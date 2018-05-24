@@ -213,17 +213,6 @@ Remove the volumes associated with the container when VOLUMES is set."
   (docker-utils-run-command-on-selection-print
    (lambda (id) (docker command arguments id))))
 
-(defmacro docker-containers-create-selection-functions (&rest names)
-  "Create selection functions using NAMES."
-  (declare (indent defun) (doc-string 2))
-  `(progn ,@(--map
-             `(defun ,(intern (format "docker-containers-%s-selection" it)) ()
-                ,(format "Run `docker-%s' on the containers selection." it)
-                (interactive)
-                (docker-containers-run-command-on-selection ,(symbol-name it)
-                                                            (s-join " " ,(list (intern (format "docker-containers-%s-arguments" it))))))
-             names)))
-
 ;;;###autoload
 (defun docker-containers-rename ()
   "Rename a container."
@@ -277,16 +266,6 @@ Remove the volumes associated with the container when VOLUMES is set."
          (--each commands
            (insert (combine-and-quote-strings it))))))))
 
-(defmacro docker-containers-create-selection-print-functions (&rest names)
-  "Generate print functions from NAMES."
-  `(progn ,@(--map
-             `(defun ,(intern (format "docker-containers-%s-selection" it)) ()
-                ,(format "Run `docker-%s' on the containers selection." it)
-                (interactive)
-                (docker-containers-run-command-on-selection-print ,(symbol-name it)
-                                                                  (s-join " " ,(list (intern (format "docker-containers-%s-arguments" it))))))
-             names)))
-
 (defun docker-containers-logs-selection ()
   "Run \"docker logs\" on the containers selection.
 If the follow flag is enabled, run them using `async-shell-command'."
@@ -300,16 +279,68 @@ If the follow flag is enabled, run them using `async-shell-command'."
           (async-shell-command docker-logs-command docker-logs-buffer)))
       (docker-containers-run-command-on-selection-print "logs" args))))
 
-(docker-containers-create-selection-functions
-  start
-  stop
-  restart
-  pause
-  unpause
-  rm
-  kill)
+(defun docker-containers-start-selection ()
+  "Run `docker-start' on the containers selection."
+  (interactive)
+  (docker-containers-run-command-on-selection
+   "start"
+   (s-join " " (docker-containers-start-arguments))))
 
-(docker-containers-create-selection-print-functions inspect diff)
+(defun docker-containers-stop-selection ()
+  "Run `docker-stop' on the containers selection."
+  (interactive)
+  (docker-containers-run-command-on-selection
+   "stop"
+   (s-join " " (docker-containers-stop-arguments))))
+
+(defun docker-containers-restart-selection ()
+  "Run `docker-restart' on the containers selection."
+  (interactive)
+  (docker-containers-run-command-on-selection
+   "restart"
+   (s-join " " (docker-containers-restart-arguments))))
+
+(defun docker-containers-pause-selection ()
+  "Run `docker-pause' on the containers selection."
+  (interactive)
+  (docker-containers-run-command-on-selection
+   "pause"
+   (s-join " " (docker-containers-pause-arguments))))
+
+(defun docker-containers-unpause-selection ()
+  "Run `docker-unpause' on the containers selection."
+  (interactive)
+  (docker-containers-run-command-on-selection
+   "unpause"
+   (s-join " " (docker-containers-pause-arguments))))
+
+(defun docker-containers-rm-selection ()
+  "Run `docker-rm' on the containers selection."
+  (interactive)
+  (docker-containers-run-command-on-selection
+   "rm"
+   (s-join " " (docker-containers-rm-arguments))))
+
+(defun docker-containers-kill-selection ()
+  "Run `docker-kill' on the containers selection."
+  (interactive)
+  (docker-containers-run-command-on-selection
+   "kill"
+   (s-join " " (docker-containers-kill-arguments))))
+
+(defun docker-containers-inspect-selection ()
+  "Run `docker-inspect' on the containers selection."
+  (interactive)
+  (docker-containers-run-command-on-selection-print
+   "inspect"
+   (s-join " " (docker-containers-inspect-arguments))))
+
+(defun docker-containers-diff-selection ()
+  "Run `docker-diff' on the containers selection."
+  (interactive)
+  (docker-containers-run-command-on-selection-print
+   "diff"
+   (s-join " " (docker-containers-diff-arguments))))
 
 (docker-utils-define-popup docker-containers-diff-popup
   "Popup for showing containers diffs."
