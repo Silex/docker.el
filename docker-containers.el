@@ -68,7 +68,7 @@ and FLIP is a boolean to specify the sort order."
 (defun docker-container-parse (line)
   "Convert a LINE from \"docker ps\" to a `tabulated-list-entries' entry."
   (let (data)
-    (condition-case err
+    (condition-case nil
         (setq data (json-read-from-string line))
       (json-readtable-error
        (error "Could not read following string as json:\n%s" line)))

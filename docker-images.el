@@ -121,7 +121,7 @@ Do not delete untagged parents when NO-PRUNE is set."
     (--each (docker-utils-get-marked-items-ids)
       (let ((command-args `(,docker-command "run" ,@docker-args ,it)))
         (when has-command
-          (add-to-list 'command-args (s-chop-prefix "--command " last-item) t))
+          (setq command-args (-snoc command-args (s-chop-prefix "--command " last-item))))
         (async-shell-command (s-join " " command-args) (format "*run %s*" it))))
     (tablist-revert)))
 

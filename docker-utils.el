@@ -32,7 +32,7 @@
     (let ((selection ()))
       (while (not (eobp))
         (when (not (null (tablist-get-mark-state)))
-          (add-to-list 'selection (cons (tabulated-list-get-id) (tabulated-list-get-entry)) t))
+          (setq selection (-snoc selection (cons (tabulated-list-get-id) (tabulated-list-get-entry)))))
         (forward-line))
       selection)))
 
@@ -46,7 +46,7 @@
      (magit-define-popup ,name ,doc ,@args)
      (add-function :before (symbol-function ',name) #'docker-utils-select-if-empty)))
 
-(defun docker-utils-select-if-empty (&optional ARG)
+(defun docker-utils-select-if-empty (&optional arg)
   "Select current row is selection is empty.
 ARG is unused here, but is required by `add-function'."
   (save-excursion
