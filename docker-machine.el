@@ -44,7 +44,7 @@
   "Read a machine name using PROMPT."
   (completing-read prompt (-map #'car (docker-machines-entries))))
 
-(defun docker-machine (action &rest args)
+(defun docker-machine-run (action &rest args)
   "Execute \"docker-machine ACTION\" passing arguments ARGS."
   (let ((command (format "docker-machine %s %s" action (s-join " " (-non-nil args)))))
     (message command)
@@ -52,55 +52,55 @@
 
 (defun docker-machine-active ()
   "Print which machine is active."
-  (docker-machine "active"))
+  (docker-machine-run "active"))
 
 ;;;###autoload
 (defun docker-machine-config (name)
   "Print the connection config for the machine NAME."
   (interactive (list (docker-read-machine-name "Config for machine: ")))
-  (docker-machine "config" name))
+  (docker-machine-run "config" name))
 
 ;;;###autoload
 (defun docker-machine-inspect (name)
   "Inspect information about the machine NAME."
   (interactive (list (docker-read-machine-name "Inspect machine: ")))
-  (docker-machine "inspect" name))
+  (docker-machine-run "inspect" name))
 
 ;;;###autoload
 (defun docker-machine-ip (name)
   "Get the IP address of the machine NAME."
   (interactive (list (docker-read-machine-name "IP for machine: ")))
-  (docker-machine "ip" name))
+  (docker-machine-run "ip" name))
 
 ;;;###autoload
 (defun docker-machine-status (name)
   "Get the status of the machine NAME."
   (interactive (list (docker-read-machine-name "Status of machine: ")))
-  (docker-machine "status" name))
+  (docker-machine-run "status" name))
 
 ;;;###autoload
 (defun docker-machine-upgrade (name)
   "Upgrade the machine NAME to the latest version of Docker."
   (interactive (list (docker-read-machine-name "Upgrade machine: ")))
-  (docker-machine "upgrade" name))
+  (docker-machine-run "upgrade" name))
 
 ;;;###autoload
 (defun docker-machine-kill (name)
   "Kill the machine NAME."
   (interactive (list (docker-read-machine-name "Kill machine: ")))
-  (docker-machine "kill" name))
+  (docker-machine-run "kill" name))
 
 ;;;###autoload
 (defun docker-machine-create (name driver)
   "Create a machine NAME using DRIVER."
   (interactive "sName: \nsDriver: ")
-  (docker-machine "create" name "-d" driver))
+  (docker-machine-run "create" name "-d" driver))
 
 ;;;###autoload
 (defun docker-machine-start (name)
   "Start the machine NAME."
   (interactive (list (docker-read-machine-name "Start machine: ")))
-  (docker-machine "start" name))
+  (docker-machine-run "start" name))
 
 (defun docker-machine-env-export (line)
   "Export the env for LINE."
@@ -114,7 +114,7 @@
   "Parse and set environment variables from \"docker-machine env NAME\" output."
   (interactive (list (docker-read-machine-name "Set up environment for machine: ")))
   (--each-while
-      (s-lines (docker-machine "env" name))
+      (s-lines (docker-machine-run "env" name))
       (s-prefix? "export" it)
     (docker-machine-env-export it)))
 
@@ -122,25 +122,25 @@
 (defun docker-machine-stop (name)
   "Stop the machine NAME."
   (interactive (list (docker-read-machine-name "Stop machine: ") current-prefix-arg))
-  (docker-machine "stop" name))
+  (docker-machine-run "stop" name))
 
 ;;;###autoload
 (defun docker-machine-restart (name)
   "Restart the machine NAME."
   (interactive (list (docker-read-machine-name "Restart machine: ") current-prefix-arg))
-  (docker-machine "restart" name))
+  (docker-machine-run "restart" name))
 
 ;;;###autoload
 (defun docker-machine-rm (name &optional force)
   "Destroy or uncommand the machine NAME.  If FORCE is set, use \"--force\"."
   (interactive (list (docker-read-machine-name "Delete machine: ") current-prefix-arg))
-  (docker-machine "rm" (when force "--force") name))
+  (docker-machine-run "rm" (when force "--force") name))
 
 (defun docker-machine-run-command-on-selection (command arguments)
   "Run a docker COMMAND on the machines selection with ARGUMENTS."
   (interactive "sCommand: \nsArguments: ")
   (--each (docker-utils-get-marked-items-ids)
-    (docker-machine command arguments it))
+    (docker-machine-run command arguments it))
   (tablist-revert))
 
 (defun docker-machine-start-selection ()
@@ -221,14 +221,30 @@
   "Refresh the machines list."
   (setq tabulated-list-entries (docker-machines-entries)))
 
+(magit-define-popup docker-machine-help-popup
+  "Help popup for docker machine."
+  :actions '("Docker images help"
+             (?C "Create"     docker-machine-create)
+             (?D "Remove"     docker-machine-rm-popup)
+             (?S "Start"      docker-machine-start-popup)
+             (?O "Stop"       docker-machine-stop-popup)
+             (?R "Restart"    docker-machine-restart-popup)
+             (?E "Env"        docker-machine-env-popup)
+             "Switch to other parts"
+             (?c "Containers" docker-containers)
+             (?i "Images"     docker-images)
+             (?n "Networks"   docker-networks)
+             (?v "Volumes"    docker-volumes)))
+
 (defvar docker-machine-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "C" 'docker-machine-create)
+    (define-key map "D" 'docker-machine-rm-popup)
     (define-key map "S" 'docker-machine-start-popup)
-    (define-key map "E" 'docker-machine-env-popup)
     (define-key map "O" 'docker-machine-stop-popup)
     (define-key map "R" 'docker-machine-restart-popup)
-    (define-key map "D" 'docker-machine-rm-popup)
+    (define-key map "E" 'docker-machine-env-popup)
+    (define-key map "?" 'docker-machine-help-popup)
     map)
   "Keymap for `docker-machine-mode'.")
 

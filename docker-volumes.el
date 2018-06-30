@@ -30,7 +30,7 @@
 
 (defun docker-volumes-entries ()
   "Return the docker volumes data for `tabulated-list-entries'."
-  (let* ((data (docker "volume" "ls"))
+  (let* ((data (docker-run "volume" "ls"))
          (lines (cdr (s-split "\n" data t))))
     (-map #'docker-volume-parse lines)))
 
@@ -47,13 +47,13 @@
 (defun docker-volume-rm (name)
   "Destroy the volume named NAME."
   (interactive (list (docker-read-volume-name "Delete volume: ")))
-  (docker "volume rm" name))
+  (docker-run "volume rm" name))
 
 (defun docker-volumes-rm-selection ()
   "Run \"docker volume rm\" on the volumes selection."
   (interactive)
   (--each (docker-utils-get-marked-items-ids)
-    (docker "volume rm" it))
+    (docker-run "volume rm" it))
   (tablist-revert))
 
 (magit-define-popup docker-volumes-rm-popup
@@ -67,9 +67,20 @@
   "Refresh the volumes list."
   (setq tabulated-list-entries (docker-volumes-entries)))
 
+(magit-define-popup docker-networks-help-popup
+  "Help popup for docker networks."
+  :actions '("Docker networks help"
+             (?D "Remove"     docker-volumes-rm-popup)
+             "Switch to other parts"
+             (?c "Containers" docker-containers)
+             (?i "Images"     docker-images)
+             (?m "Machines"   docker-machines)
+             (?n "Networks"   docker-networks)))
+
 (defvar docker-volumes-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "D" 'docker-volumes-rm-popup)
+    (define-key map "?" 'docker-volumes-help-popup)
     map)
   "Keymap for `docker-volumes-mode'.")
 

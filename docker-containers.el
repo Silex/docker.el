@@ -61,7 +61,7 @@ and FLIP is a boolean to specify the sort order."
 (defun docker-containers-entries ()
   "Return the docker containers data for `tabulated-list-entries'."
   (let* ((fmt "[{{json .ID}},{{json .Image}},{{json .Command}},{{json .RunningFor}},{{json .Status}},{{json .Ports}},{{json .Names}}]")
-         (data (docker "ps" (format "--format=\"%s\"" fmt) (when docker-containers-show-all "-a ")))
+         (data (docker-run "ps" (format "--format=\"%s\"" fmt) (when docker-containers-show-all "-a ")))
          (lines (s-split "\n" data t)))
     (-map #'docker-container-parse lines)))
 
@@ -82,7 +82,7 @@ and FLIP is a boolean to specify the sort order."
 (defun docker-start (name)
   "Start the container named NAME."
   (interactive (list (docker-read-container-name "Start container: ")))
-  (docker "start" name))
+  (docker-run "start" name))
 
 ;;;###autoload
 (defun docker-stop (name &optional timeout)
@@ -90,7 +90,7 @@ and FLIP is a boolean to specify the sort order."
 
 TIMEOUT is the number of seconds to wait for the container to stop before killing it."
   (interactive (list (docker-read-container-name "Stop container: ") current-prefix-arg))
-  (docker "stop" (when timeout (format "-t %d" timeout)) name))
+  (docker-run "stop" (when timeout (format "-t %d" timeout)) name))
 
 ;;;###autoload
 (defun docker-restart (name &optional timeout)
@@ -98,19 +98,19 @@ TIMEOUT is the number of seconds to wait for the container to stop before killin
 
 TIMEOUT is the number of seconds to wait for the container to stop before killing it."
   (interactive (list (docker-read-container-name "Restart container: ") current-prefix-arg))
-  (docker "restart" (when timeout (format "-t %d" timeout)) name))
+  (docker-run "restart" (when timeout (format "-t %d" timeout)) name))
 
 ;;;###autoload
 (defun docker-pause (name)
   "Pause the container named NAME."
   (interactive (list (docker-read-container-name "Pause container: ")))
-  (docker "pause" name))
+  (docker-run "pause" name))
 
 ;;;###autoload
 (defun docker-unpause (name)
   "Unpause the container named NAME."
   (interactive (list (docker-read-container-name "Unpause container: ")))
-  (docker "unpause" name))
+  (docker-run "unpause" name))
 
 ;;;###autoload
 (defun docker-rm (name &optional force link volumes)
@@ -122,19 +122,19 @@ Force the removal even if the container is running when FORCE is set.
 Remove the specified link and not the underlying container when LINK is set.
 Remove the volumes associated with the container when VOLUMES is set."
   (interactive (list (docker-read-container-name "Delete container: ") current-prefix-arg))
-  (docker "rm" (when force "-f") (when link "-l") (when volumes "-v") name))
+  (docker-run "rm" (when force "-f") (when link "-l") (when volumes "-v") name))
 
 ;;;###autoload
 (defun docker-kill (name &optional signal)
   "Kill the container named NAME using SIGNAL."
   (interactive (list (docker-read-container-name "Kill container: ")))
-  (docker "kill" (when signal (format "-s %s" signal)) name))
+  (docker-run "kill" (when signal (format "-s %s" signal)) name))
 
 ;;;###autoload
 (defun docker-inspect (name)
   "Inspect the container named NAME."
   (interactive (list (docker-read-container-name "Inspect container: ")))
-  (docker "inspect" name))
+  (docker-run "inspect" name))
 
 ;;;###autoload
 (defun docker-container-find-file (container file)
@@ -204,14 +204,14 @@ Remove the volumes associated with the container when VOLUMES is set."
   "Run a docker COMMAND on the containers selection with ARGUMENTS."
   (interactive "sCommand: \nsArguments: ")
   (--each (docker-utils-get-marked-items-ids)
-    (docker command arguments it))
+    (docker-run command arguments it))
   (tablist-revert))
 
 (defun docker-containers-run-command-on-selection-print (command arguments)
   "Run a docker COMMAND on the containers selection with ARGUMENTS and print the result."
   (interactive "sCommand: \nsArguments: ")
   (docker-utils-run-command-on-selection-print
-   (lambda (id) (docker command arguments id))))
+   (lambda (id) (docker-run command arguments id))))
 
 ;;;###autoload
 (defun docker-containers-rename ()
@@ -222,21 +222,19 @@ Remove the volumes associated with the container when VOLUMES is set."
     (if (/= 1 (length ids))
         (error "Multiple containers cannot be selected")
       (let ((new-name (read-string "New Name: ")))
-        (docker "rename" (nth 0 ids) new-name)
+        (docker-run "rename" (nth 0 ids) new-name)
         (tablist-revert)))))
-
-(defalias 'docker-rename-entry 'docker-containers-rename)
 
 (defun docker-containers-cp-from (container-path host-path)
   "Run \"docker cp\" from CONTAINER-PATH to HOST-PATH for selected container."
   (interactive "sContainerPath: \nFHostFile: ")
-  (docker "cp" (concat (tabulated-list-get-id) ":" container-path) host-path))
+  (docker-run "cp" (concat (tabulated-list-get-id) ":" container-path) host-path))
 
 (defun docker-containers-cp-to-selection (host-path container-path)
   "Run \"docker cp\" from HOST-PATH to CONTAINER-PATH for selected containers."
   (interactive "fHostFile: \nsContainerPath: ")
   (--each (docker-utils-get-marked-items-ids)
-    (docker "cp" host-path (concat it ":" container-path))))
+    (docker-run "cp" host-path (concat it ":" container-path))))
 
 (defun docker-containers-convert-container-info-to-command (container-info)
   "Convert CONTAINER-INFO to a docker command."
@@ -258,7 +256,7 @@ Remove the volumes associated with the container when VOLUMES is set."
   (interactive)
   (-each (docker-utils-get-marked-items-ids)
     (lambda (id)
-      (let* ((json (docker "inspect" id))
+      (let* ((json (docker-run "inspect" id))
              (parsed (json-read-from-string json))
              (commands
               (docker-containers-convert-container-info-to-command parsed)))
@@ -438,6 +436,28 @@ If the follow flag is enabled, run them using `async-shell-command'."
   "Refresh the containers list."
   (setq tabulated-list-entries (docker-containers-entries)))
 
+(magit-define-popup docker-containers-help-popup
+  "Help popup for docker containers."
+  :actions '("Docker images help"
+             (?D "Delete"     docker-containers-rm-popup)
+             (?C "Copy"       docker-containers-cp-popup)
+             (?I "Inspect"    docker-containers-inspect-popup)
+             (?K "Kill"       docker-containers-kill-popup)
+             (?L "Logs"       docker-containers-logs-popup)
+             (?S "Start"      docker-containers-start-popup)
+             (?O "Stop"       docker-containers-stop-popup)
+             (?R "Restart"    docker-containers-restart-popup)
+             (?P "Pause"      docker-containers-pause-popup)
+             (?f "Find file"  docker-containers-find-file-popup)
+             (?b "Shell"      docker-containers-shell-popup)
+             (?r "Rename"     docker-containers-rename)
+             (?d "Diff"       docker-containers-diff-popup)
+             "Switch to other parts"
+             (?i "Images"     docker-images)
+             (?m "Machines"   docker-machines)
+             (?n "Networks"   docker-networks)
+             (?v "Volumes"    docker-volumes)))
+
 (defvar docker-containers-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "d" 'docker-containers-diff-popup)
@@ -453,6 +473,7 @@ If the follow flag is enabled, run them using `async-shell-command'."
     (define-key map "P" 'docker-containers-pause-popup)
     (define-key map "D" 'docker-containers-rm-popup)
     (define-key map "r" 'docker-containers-rename)
+    (define-key map "?" 'docker-containers-help-popup)
     map)
   "Keymap for `docker-containers-mode'.")
 

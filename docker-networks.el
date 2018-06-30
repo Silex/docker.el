@@ -30,7 +30,7 @@
 
 (defun docker-networks-entries ()
   "Return the docker networks data for `tabulated-list-entries'."
-  (let* ((data (docker "network" "ls"))
+  (let* ((data (docker-run "network" "ls"))
          (lines (cdr (s-split "\n" data t))))
     (-map #'docker-network-parse lines)))
 
@@ -47,13 +47,13 @@
 (defun docker-network-rm (name)
   "Destroy the network named NAME."
   (interactive (list (docker-read-network-name "Delete network: ")))
-  (docker "network rm" name))
+  (docker-run "network rm" name))
 
 (defun docker-networks-rm-selection ()
   "Run \"docker network rm\" on the networks selection."
   (interactive)
   (--each (docker-utils-get-marked-items-ids)
-    (docker "network rm" it))
+    (docker-run "network rm" it))
   (tablist-revert))
 
 (magit-define-popup docker-networks-rm-popup
@@ -67,9 +67,20 @@
   "Refresh the networks list."
   (setq tabulated-list-entries (docker-networks-entries)))
 
+(magit-define-popup docker-networks-help-popup
+  "Help popup for docker networks."
+  :actions '("Docker images help"
+             (?D "Remove"     docker-networks-rm-popup)
+             "Switch to other parts"
+             (?c "Containers" docker-containers)
+             (?i "Images"     docker-images)
+             (?m "Machines"   docker-machines)
+             (?v "Volumes"    docker-volumes)))
+
 (defvar docker-networks-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "D" 'docker-networks-rm-popup)
+    (define-key map "?" 'docker-networks-help-popup)
     map)
   "Keymap for `docker-networks-mode'.")
 
