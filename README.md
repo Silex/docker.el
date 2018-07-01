@@ -5,31 +5,34 @@
 
 * [Installation](#installation)
 * [Quickstart](#quickstart)
-* [Configuration](#configuration)
-   * [OSX / docker-machine](#osx--docker-machine)
 * [Screenshots](#screenshots)
-   * [images](#images)
+  * [images](#images)
 * [Commands](#commands)
-   * [docker-global-mode](#docker-global-mode)
-   * [API](#api)
-   * [docker-images](#docker-images)
-   * [docker-containers](#docker-containers)
-   * [docker-volumes](#docker-volumes)
-   * [docker-networks](#docker-networks)
-   * [docker-machines](#docker-machines)
+  * [docker-images](#docker-images)
+  * [docker-containers](#docker-containers)
+  * [docker-volumes](#docker-volumes)
+  * [docker-networks](#docker-networks)
+  * [docker-machines](#docker-machines)
 * [Customizations](#customizations)
-* [Contributions welcome!](#contributions-welcome)
+* [FAQ](#faq)
+  * [How to use docker-machine under OSX?](#how-to-use-docker-machine-under-osx)
+* [Contributions](#contributions)
 
 ## Installation
 
 The recommended way to install docker.el is through [MELPA](https://github.com/milkypostman/melpa).
 
+Here is a example [use-package](https://github.com/jwiegley/use-package) configuration:
+
+``` elisp
+(use-package docker
+  :ensure t
+  :bind ("C-c d" . docker))
+```
+
 ## Quickstart
 
-Use <kbd>M-x docker-images</kbd>, <kbd>M-x docker-containers</kbd>,
-<kbd>M-x docker-volumes</kbd>, <kbd>M-x docker-networks</kbd> or
-<kbd>M-x docker-machines</kbd> then mark/unmark items using the
-following keybindings:
+Use <kbd>M-x docker</kbd>, select a resource then then mark/unmark items using the following keybindings:
 
 | Keymap             | Description          |
 |--------------------|----------------------|
@@ -43,28 +46,8 @@ following keybindings:
 | <kbd>C-c C-e</kbd> | Export to csv        |
 | <kbd>* r</kbd>     | Mark items by regexp |
 
-Press `?` to known about available keybindings in order to run actions
-on these items. Also check out https://github.com/politza/tablist to find more
-about the marking possibilities.
-
-You can also call the [API](#api) directly.
-
-## Configuration
-
-### OSX / docker-machine
-
-The following configuration is required (some of it can probably be
-simplified by using https://github.com/purcell/exec-path-from-shell).
-
-``` elisp
-(setenv "PATH" (concat (getenv "PATH") ":/usr/local/bin"))
-(setq exec-path (append exec-path '("/usr/local/bin")))
-;; Use "docker-machine env box" command to find out your environment variables
-(setenv "DOCKER_TLS_VERIFY" "1")
-(setenv "DOCKER_HOST" "tcp://10.11.12.13:2376")
-(setenv "DOCKER_CERT_PATH" "/Users/foo/.docker/machine/machines/box")
-(setenv "DOCKER_MACHINE_NAME" "box")
-```
+You can press `?` on all the listing to see the available actions. Also check out https://github.com/politza/tablist
+to find more about the marking possibilities.
 
 ## Screenshots
 
@@ -73,36 +56,6 @@ simplified by using https://github.com/purcell/exec-path-from-shell).
 ![docker.el screenshot](screenshots/images.png)
 
 ## Commands
-
-### docker-global-mode
-
-Running <kbd>M-x docker-global-mode</kbd> creates keybindings to the
-various docker api.
-
-### API
-
-*WARNING* This keymap is likely to change or be removed soon.
-
-| Command                      | Keymap               | Description                                                     |
-|------------------------------|----------------------|-----------------------------------------------------------------|
-| docker-images                | <kbd>C-c d i i</kbd> | list images                                                     |
-| docker-rmi                   | <kbd>C-c d i d</kbd> | delete image                                                    |
-| docker-pull                  | <kbd>C-c d i f</kbd> | pull image                                                      |
-| docker-push                  | <kbd>C-c d i p</kbd> | push image                                                      |
-| docker-run                   | <kbd>C-c d i r</kbd> | run image                                                       |
-| docker-containers            | <kbd>C-c d c c</kbd> | list containers                                                 |
-| docker-rm                    | <kbd>C-c d c d</kbd> | delete container                                                |
-| docker-stop                  | <kbd>C-c d c o</kbd> | stop container                                                  |
-| docker-pause                 | <kbd>C-c d c p</kbd> | pause container                                                 |
-| docker-kill                  | <kbd>C-c d c k</kbd> | kill container                                                  |
-| docker-restart               | <kbd>C-c d c r</kbd> | restart container                                               |
-| docker-start                 | <kbd>C-c d c s</kbd> | start container                                                 |
-| docker-unpause               | <kbd>C-c d c u</kbd> | unpause container                                               |
-| docker-volumes               | <kbd>C-c d v v</kbd> | list volumes                                                    |
-| docker-volume-rm             | <kbd>C-c d v d</kbd> | delete volume                                                   |
-| docker-networks              | <kbd>C-c d n n</kbd> | list networks                                                   |
-| docker-network-rm            | <kbd>C-c d n d</kbd> | delete network                                                  |
-| dockerfile-build-buffer      | <kbd>C-c d B</kbd>   | Build [Dockerfile](https://github.com/spotify/dockerfile-mode)  |
 
 ### docker-images
 
@@ -173,7 +126,24 @@ After having selected some machines, you can do the following actions:
 | docker-keymap-prefix               | Prefix for `docker-mode`              | `C-c d`          |
 | docker-run-as-root                 | Run docker as root                    | `nil`            |
 
-## Contributions welcome!
+## FAQ
 
-Either as suggestions or as pull requests by opening tickets on the
-[issue tracker](https://github.com/Silex/docker.el/issues).
+### How to use docker-machine under OSX?
+
+The following configuration is required (some of it can probably be simplified by using
+https://github.com/purcell/exec-path-from-shell).
+
+``` elisp
+(setenv "PATH" (concat (getenv "PATH") ":/usr/local/bin"))
+(setq exec-path (append exec-path '("/usr/local/bin")))
+;; Use "docker-machine env box" command to find out your environment variables
+(setenv "DOCKER_TLS_VERIFY" "1")
+(setenv "DOCKER_HOST" "tcp://10.11.12.13:2376")
+(setenv "DOCKER_CERT_PATH" "/Users/foo/.docker/machine/machines/box")
+(setenv "DOCKER_MACHINE_NAME" "box")
+```
+
+## Contributions
+
+They are very welcome, either as suggestions or as pull requests by opening tickets
+on the [issue tracker](https://github.com/Silex/docker.el/issues).
