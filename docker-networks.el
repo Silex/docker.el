@@ -1,4 +1,4 @@
-;;; docker-networks.el --- Emacs interface to docker-network  -*- lexical-binding: t -*-
+;;; docker-network.el --- Emacs interface to docker-network  -*- lexical-binding: t -*-
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 
@@ -28,7 +28,7 @@
 (require 'magit-popup)
 (require 'tablist)
 
-(defun docker-networks-entries ()
+(defun docker-network-entries ()
   "Return the docker networks data for `tabulated-list-entries'."
   (let* ((data (docker-run "network" "ls"))
          (lines (cdr (s-split "\n" data t))))
@@ -39,68 +39,68 @@
   (let ((data (s-split " \\{3,\\}" line t)))
     (list (nth 1 data) (apply #'vector data))))
 
-(defun docker-read-network-name (prompt)
-  "Read a network name using PROMPT."
-  (completing-read prompt (-map #'car (docker-networks-entries))))
+(defun docker-network-read-name ()
+  "Read a network name."
+  (completing-read "Network: " (-map #'car (docker-network-entries))))
 
 ;;;###autoload
 (defun docker-network-rm (name)
   "Destroy the network named NAME."
-  (interactive (list (docker-read-network-name "Delete network: ")))
+  (interactive (list (docker-network-read-name)))
   (docker-run "network rm" name))
 
-(defun docker-networks-rm-selection ()
-  "Run \"docker network rm\" on the networks selection."
+(defun docker-network-rm-selection ()
+  "Run \"docker network rm\" on the selection."
   (interactive)
   (--each (docker-utils-get-marked-items-ids)
     (docker-run "network rm" it))
   (tablist-revert))
 
-(magit-define-popup docker-networks-rm-popup
+(magit-define-popup docker-network-rm-popup
   "Popup for removing networks."
-  'docker-networks-popups
+  'docker-network-popups
   :man-page "docker-network-rm"
-  :actions  '((?D "Remove" docker-networks-rm-selection))
+  :actions  '((?D "Remove" docker-network-rm-selection))
   :setup-function #'docker-utils-popup-setup)
 
-(defun docker-networks-refresh ()
+(defun docker-network-refresh ()
   "Refresh the networks list."
-  (setq tabulated-list-entries (docker-networks-entries)))
+  (setq tabulated-list-entries (docker-network-entries)))
 
-(magit-define-popup docker-networks-help-popup
+(magit-define-popup docker-network-help-popup
   "Help popup for docker networks."
   :actions '("Docker images help"
-             (?D "Remove"     docker-networks-rm-popup)
+             (?D "Remove"     docker-network-rm-popup)
              "Switch to other parts"
              (?c "Containers" docker-containers)
              (?i "Images"     docker-images)
              (?m "Machines"   docker-machines)
              (?v "Volumes"    docker-volumes)))
 
-(defvar docker-networks-mode-map
+(defvar docker-network-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "D" 'docker-networks-rm-popup)
-    (define-key map "?" 'docker-networks-help-popup)
+    (define-key map "D" 'docker-network-rm-popup)
+    (define-key map "?" 'docker-network-help-popup)
     map)
-  "Keymap for `docker-networks-mode'.")
+  "Keymap for `docker-network-mode'.")
 
 ;;;###autoload
 (defun docker-networks ()
   "List docker networks."
   (interactive)
   (docker-utils-pop-to-buffer "*docker-networks*")
-  (docker-networks-mode)
+  (docker-network-mode)
   (tablist-revert))
 
-(define-derived-mode docker-networks-mode tabulated-list-mode "Networks Menu"
+(define-derived-mode docker-network-mode tabulated-list-mode "Networks Menu"
   "Major mode for handling a list of docker networks."
   (setq tabulated-list-format [("Network ID" 20 t)("Name" 50 t)("Driver" 10 t)])
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key (cons "Name" nil))
-  (add-hook 'tabulated-list-revert-hook 'docker-networks-refresh nil t)
+  (add-hook 'tabulated-list-revert-hook 'docker-network-refresh nil t)
   (tabulated-list-init-header)
   (tablist-minor-mode))
 
-(provide 'docker-networks)
+(provide 'docker-network)
 
-;;; docker-networks.el ends here
+;;; docker-network.el ends here

@@ -56,26 +56,17 @@ ARG is unused here, but is required by `add-function'."
        (with-parsed-tramp-file-name default-directory nil (concat name " - " host))
      name)))
 
-(defmacro docker-utils-with-result-buffer (&rest body)
-  "Like `with-current-buffer' but with more configuration.
+(defmacro docker-utils-with-buffer (name &rest body)
+  "Wrapper around `with-current-buffer'.
 Execute BODY in a buffer."
-  `(let ((buffer (get-buffer-create "*docker result*")))
-     (with-current-buffer buffer
-       (setq buffer-read-only nil)
-       (erase-buffer)
-       ,@body
-       (setq buffer-read-only t))
-     (display-buffer buffer)))
-
-(defun docker-utils-run-command-on-selection-print (command &optional post-process)
-  "Run COMMAND on the selections and show the result in BUFFER-NAME.
-Optionally run POST-PROCESS in BUFFER-NAME."
-  (let* ((id-list (docker-utils-get-marked-items-ids))
-         (results (mapcar command id-list)))
-    (docker-utils-with-result-buffer
-     (mapc 'insert results)
-     (when post-process
-       (funcall post-process)))))
+  (declare (indent defun))
+  `(with-current-buffer (generate-new-buffer (format "* docker - %s *" ,name))
+     (setq buffer-read-only nil)
+     (erase-buffer)
+     ,@body
+     (setq buffer-read-only t)
+     (goto-char (point-min))
+     (pop-to-buffer (current-buffer))))
 
 (provide 'docker-utils)
 
