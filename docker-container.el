@@ -58,13 +58,6 @@ and FLIP is a boolean to specify the sort order."
                (choice (const :tag "Ascending" nil)
                        (const :tag "Descending" t))))
 
-(defun docker-container-entries ()
-  "Return the docker containers data for `tabulated-list-entries'."
-  (let* ((fmt "[{{json .ID}},{{json .Image}},{{json .Command}},{{json .RunningFor}},{{json .Status}},{{json .Ports}},{{json .Names}}]")
-         (data (docker-run "ps" (format "--format=\"%s\"" fmt) (when docker-container-show-all "-a ")))
-         (lines (s-split "\n" data t)))
-    (-map #'docker-container-parse lines)))
-
 (defun docker-container-parse (line)
   "Convert a LINE from \"docker ps\" to a `tabulated-list-entries' entry."
   (let (data)
@@ -73,6 +66,17 @@ and FLIP is a boolean to specify the sort order."
       (json-readtable-error
        (error "Could not read following string as json:\n%s" line)))
     (list (aref data 6) data)))
+
+(defun docker-container-entries ()
+  "Return the docker containers data for `tabulated-list-entries'."
+  (let* ((fmt "[{{json .ID}},{{json .Image}},{{json .Command}},{{json .RunningFor}},{{json .Status}},{{json .Ports}},{{json .Names}}]")
+         (data (docker-run "ps" (format "--format=\"%s\"" fmt) (when docker-container-show-all "-a ")))
+         (lines (s-split "\n" data t)))
+    (-map #'docker-container-parse lines)))
+
+(defun docker-container-refresh ()
+  "Refresh the containers list."
+  (setq tabulated-list-entries (docker-container-entries)))
 
 (defun docker-container-read-name ()
   "Read an container name."
@@ -139,6 +143,30 @@ Remove the volumes associated with the container when VOLUMES is set."
     (json-mode)))
 
 ;;;###autoload
+(defun docker-diff (name)
+  "Diff the container named NAME."
+  (interactive (list (docker-container-read-name)))
+  (docker-utils-with-buffer (format "diff %s" name)
+   (insert (docker-run "diff" name))))
+
+;;;###autoload
+(defun docker-rename (container name)
+  "Rename CONTAINER using NAME."
+  (interactive (list (docker-container-read-name) (read-string "Name: ")))
+  (docker-run "rename" container name))
+
+;;;###autoload
+(defun docker-logs (name &optional follow)
+  "Show the logs from container NAME.
+
+If FOLLOW is set, run in `async-shell-command'."
+  (interactive (list (docker-container-read-name)))
+  (if follow
+      (async-shell-command (format "%s logs -f %s" docker-command name) (format "* docker logs %s *" name))
+    (docker-utils-with-buffer (format "logs %s" name)
+      (insert (docker-run "logs" name)))))
+
+;;;###autoload
 (defun docker-container-find-file (container file)
   "Inside CONTAINER open FILE."
   (interactive
@@ -161,19 +189,6 @@ Remove the volumes associated with the container when VOLUMES is set."
 (defalias 'docker-container-dired 'docker-container-find-directory)
 
 ;;;###autoload
-(defun docker-container-eshell (container)
-  "Open `eshell' in CONTAINER."
-  (interactive (list (docker-container-read-name)))
-  (let* ((container-address (format "docker:%s:/" container))
-         (file-prefix (if (file-remote-p default-directory)
-                          (with-parsed-tramp-file-name default-directory nil
-                            (format "/%s:%s|" method host))
-                        "/"))
-         (default-directory (format "%s%s" file-prefix container-address))
-         (eshell-buffer-name (format "*eshell %s*" default-directory)))
-    (eshell)))
-
-;;;###autoload
 (defun docker-container-shell (container)
   "Open `shell' in CONTAINER."
   (interactive (list (docker-container-read-name)))
@@ -187,74 +202,17 @@ Remove the volumes associated with the container when VOLUMES is set."
     (shell (format "*shell %s*" default-directory))))
 
 ;;;###autoload
-(defun docker-diff (name)
-  "Diff the container named NAME."
+(defun docker-container-eshell (container)
+  "Open `eshell' in CONTAINER."
   (interactive (list (docker-container-read-name)))
-  (docker-utils-with-buffer (format "diff %s" name)
-   (insert (docker-run "diff" name))))
-
-(defun docker-container-find-file-selection (path)
-  "Run `docker-container-find-file' on the containers selection."
-  (interactive "sPath: ")
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-container-find-file it path)))
-
-(defun docker-container-shell-selection ()
-  "Run `docker-container-shell' on the containers selection."
-  (interactive)
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-container-shell it)))
-
-(defun docker-container-eshell-selection ()
-  "Run `docker-container-eshell' on the containers selection."
-  (interactive)
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-container-eshell it)))
-
-;;;###autoload
-(defun docker-rename (container name)
-  "Rename CONTAINER using NAME."
-  (interactive (list (docker-container-read-name) (read-string "Name: ")))
-  (docker-run "rename" container name))
-
-(defun docker-container-rename-selection ()
-  "Rename containers."
-  (interactive)
-  (docker-utils-select-if-empty)
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-rename it (read-string (format "New name for %s: " it))))
-  (tablist-revert))
-
-(defun docker-container-cp-from-selection (container-path host-path)
-  "Run \"docker cp\" from CONTAINER-PATH to HOST-PATH for selected container."
-  (interactive "sContainer path: \nFHost path: ")
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-run "cp" (concat it ":" container-path) host-path)))
-
-(defun docker-container-cp-to-selection (host-path container-path)
-  "Run \"docker cp\" from HOST-PATH to CONTAINER-PATH for selected containers."
-  (interactive "fHost path: \nsContainer path: ")
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-run "cp" host-path (concat it ":" container-path))))
-
-;;;###autoload
-(defun docker-logs (name &optional follow)
-  "Show the logs from container NAME.
-
-If FOLLOW is set, run in `async-shell-command'."
-  (interactive (list (docker-container-read-name)))
-  (if follow
-      (async-shell-command (format "%s logs -f %s" docker-command name) (format "* docker logs %s *" name))
-    (docker-utils-with-buffer (format "logs %s" name)
-      (insert (docker-run "logs" name)))))
-
-(defun docker-container-logs-selection ()
-  "Run \"docker logs\" on the containers selection."
-  (interactive)
-  (--each (docker-utils-get-marked-items-ids)
-    (async-shell-command
-     (format "%s logs %s %s" docker-command (s-join " " (docker-container-logs-arguments)) it)
-     (format "* docker logs %s *" it))))
+  (let* ((container-address (format "docker:%s:/" container))
+         (file-prefix (if (file-remote-p default-directory)
+                          (with-parsed-tramp-file-name default-directory nil
+                            (format "/%s:%s|" method host))
+                        "/"))
+         (default-directory (format "%s%s" file-prefix container-address))
+         (eshell-buffer-name (format "*eshell %s*" default-directory)))
+    (eshell)))
 
 (defun docker-container-start-selection ()
   "Run `docker-start' on the containers selection."
@@ -276,7 +234,6 @@ If FOLLOW is set, run in `async-shell-command'."
   (--each (docker-utils-get-marked-items-ids)
     (docker-run "restart" (docker-container-restart-arguments) it))
   (tablist-revert))
-
 
 (defun docker-container-pause-selection ()
   "Run `docker-pause' on the containers selection."
@@ -321,40 +278,51 @@ If FOLLOW is set, run in `async-shell-command'."
     (docker-utils-with-buffer (format "diff %s" it)
       (insert (docker-run "diff" (docker-container-diff-arguments) it)))))
 
-(magit-define-popup docker-container-diff-popup
-  "Popup for showing containers diffs."
-  'docker-container-popups
-  :man-page "docker-diff"
-  :actions  '((?d "Diff" docker-container-diff-selection))
-  :setup-function #'docker-utils-setup-popup)
+(defun docker-container-rename-selection ()
+  "Rename containers."
+  (interactive)
+  (docker-utils-select-if-empty)
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-rename it (read-string (format "New name for %s: " it))))
+  (tablist-revert))
 
-(magit-define-popup docker-container-find-file-popup
-  "Popup for opening containers files."
-  'docker-container-popups
-  :actions  '((?f "Open file" docker-container-find-file-selection))
-  :setup-function #'docker-utils-setup-popup)
+(defun docker-container-logs-selection ()
+  "Run \"docker logs\" on the containers selection."
+  (interactive)
+  (--each (docker-utils-get-marked-items-ids)
+    (async-shell-command
+     (format "%s logs %s %s" docker-command (s-join " " (docker-container-logs-arguments)) it)
+     (format "* docker logs %s *" it))))
 
-(magit-define-popup docker-container-shell-popup
-  "Popup for doing M-x `shell'/`eshell' to containers."
-  'docker-container-popups
-  :actions  '((?b "Shell" docker-container-shell-selection)
-              (?e "Eshell" docker-container-eshell-selection))
-  :setup-function #'docker-utils-setup-popup)
+(defun docker-container-find-file-selection (path)
+  "Run `docker-container-find-file' on the containers selection."
+  (interactive "sPath: ")
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-container-find-file it path)))
 
-(magit-define-popup docker-container-inspect-popup
-  "Popup for inspecting containers."
-  'docker-container-popups
-  :man-page "docker-inspect"
-  :actions  '((?I "Inspect" docker-container-inspect-selection))
-  :setup-function #'docker-utils-setup-popup)
+(defun docker-container-shell-selection ()
+  "Run `docker-container-shell' on the containers selection."
+  (interactive)
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-container-shell it)))
 
-(magit-define-popup docker-container-logs-popup
-  "Popup for showing containers logs."
-  'docker-container-popups
-  :man-page "docker-logs"
-  :switches '((?f "Follow" "-f"))
-  :actions  '((?L "Logs" docker-container-logs-selection))
-  :setup-function #'docker-utils-setup-popup)
+(defun docker-container-eshell-selection ()
+  "Run `docker-container-eshell' on the containers selection."
+  (interactive)
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-container-eshell it)))
+
+(defun docker-container-cp-from-selection (container-path host-path)
+  "Run \"docker cp\" from CONTAINER-PATH to HOST-PATH for selected container."
+  (interactive "sContainer path: \nFHost path: ")
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-run "cp" (concat it ":" container-path) host-path)))
+
+(defun docker-container-cp-to-selection (host-path container-path)
+  "Run \"docker cp\" from HOST-PATH to CONTAINER-PATH for selected containers."
+  (interactive "fHost path: \nsContainer path: ")
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-run "cp" host-path (concat it ":" container-path))))
 
 (magit-define-popup docker-container-start-popup
   "Popup for starting containers."
@@ -404,6 +372,41 @@ If FOLLOW is set, run in `async-shell-command'."
   :actions  '((?K "Kill" docker-container-kill-selection))
   :setup-function #'docker-utils-setup-popup)
 
+(magit-define-popup docker-container-inspect-popup
+  "Popup for inspecting containers."
+  'docker-container-popups
+  :man-page "docker-inspect"
+  :actions  '((?I "Inspect" docker-container-inspect-selection))
+  :setup-function #'docker-utils-setup-popup)
+
+(magit-define-popup docker-container-diff-popup
+  "Popup for showing containers diffs."
+  'docker-container-popups
+  :man-page "docker-diff"
+  :actions  '((?d "Diff" docker-container-diff-selection))
+  :setup-function #'docker-utils-setup-popup)
+
+(magit-define-popup docker-container-logs-popup
+  "Popup for showing containers logs."
+  'docker-container-popups
+  :man-page "docker-logs"
+  :switches '((?f "Follow" "-f"))
+  :actions  '((?L "Logs" docker-container-logs-selection))
+  :setup-function #'docker-utils-setup-popup)
+
+(magit-define-popup docker-container-find-file-popup
+  "Popup for opening containers files."
+  'docker-container-popups
+  :actions  '((?f "Open file" docker-container-find-file-selection))
+  :setup-function #'docker-utils-setup-popup)
+
+(magit-define-popup docker-container-shell-popup
+  "Popup for doing M-x `shell'/`eshell' to containers."
+  'docker-container-popups
+  :actions  '((?b "Shell" docker-container-shell-selection)
+              (?e "Eshell" docker-container-eshell-selection))
+  :setup-function #'docker-utils-setup-popup)
+
 (magit-define-popup docker-container-cp-popup
   "Popup for copying files from/to containers."
   'docker-container-popups
@@ -412,26 +415,22 @@ If FOLLOW is set, run in `async-shell-command'."
               (?T "Copy To" docker-container-cp-to-selection))
   :setup-function #'docker-utils-setup-popup)
 
-(defun docker-container-refresh ()
-  "Refresh the containers list."
-  (setq tabulated-list-entries (docker-container-entries)))
-
 (magit-define-popup docker-container-help-popup
   "Help popup for docker containers."
-  :actions '("Docker images help"
-             (?D "Delete"     docker-container-rm-popup)
+  :actions '("Docker containers help"
              (?C "Copy"       docker-container-cp-popup)
+             (?D "Delete"     docker-container-rm-popup)
              (?I "Inspect"    docker-container-inspect-popup)
              (?K "Kill"       docker-container-kill-popup)
              (?L "Logs"       docker-container-logs-popup)
-             (?S "Start"      docker-container-start-popup)
              (?O "Stop"       docker-container-stop-popup)
-             (?R "Restart"    docker-container-restart-popup)
              (?P "Pause"      docker-container-pause-popup)
-             (?f "Find file"  docker-container-find-file-popup)
+             (?R "Restart"    docker-container-restart-popup)
+             (?S "Start"      docker-container-start-popup)
              (?b "Shell"      docker-container-shell-popup)
-             (?r "Rename"     docker-container-rename-selection)
              (?d "Diff"       docker-container-diff-popup)
+             (?f "Find file"  docker-container-find-file-popup)
+             (?r "Rename"     docker-container-rename-selection)
              "Switch to other parts"
              (?i "Images"     docker-images)
              (?m "Machines"   docker-machines)
@@ -440,20 +439,20 @@ If FOLLOW is set, run in `async-shell-command'."
 
 (defvar docker-container-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "d" 'docker-container-diff-popup)
-    (define-key map "f" 'docker-container-find-file-popup)
-    (define-key map "b" 'docker-container-shell-popup)
+    (define-key map "?" 'docker-container-help-popup)
     (define-key map "C" 'docker-container-cp-popup)
+    (define-key map "D" 'docker-container-rm-popup)
     (define-key map "I" 'docker-container-inspect-popup)
     (define-key map "K" 'docker-container-kill-popup)
     (define-key map "L" 'docker-container-logs-popup)
-    (define-key map "S" 'docker-container-start-popup)
     (define-key map "O" 'docker-container-stop-popup)
-    (define-key map "R" 'docker-container-restart-popup)
     (define-key map "P" 'docker-container-pause-popup)
-    (define-key map "D" 'docker-container-rm-popup)
+    (define-key map "R" 'docker-container-restart-popup)
+    (define-key map "S" 'docker-container-start-popup)
+    (define-key map "b" 'docker-container-shell-popup)
+    (define-key map "d" 'docker-container-diff-popup)
+    (define-key map "f" 'docker-container-find-file-popup)
     (define-key map "r" 'docker-container-rename-selection)
-    (define-key map "?" 'docker-container-help-popup)
     map)
   "Keymap for `docker-container-mode'.")
 

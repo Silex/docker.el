@@ -28,16 +28,20 @@
 (require 'magit-popup)
 (require 'tablist)
 
+(defun docker-network-parse (line)
+  "Convert a LINE from \"docker network ls\" to a `tabulated-list-entries' entry."
+  (let ((data (s-split " \\{3,\\}" line t)))
+    (list (nth 1 data) (apply #'vector data))))
+
 (defun docker-network-entries ()
   "Return the docker networks data for `tabulated-list-entries'."
   (let* ((data (docker-run "network" "ls"))
          (lines (cdr (s-split "\n" data t))))
     (-map #'docker-network-parse lines)))
 
-(defun docker-network-parse (line)
-  "Convert a LINE from \"docker network ls\" to a `tabulated-list-entries' entry."
-  (let ((data (s-split " \\{3,\\}" line t)))
-    (list (nth 1 data) (apply #'vector data))))
+(defun docker-network-refresh ()
+  "Refresh the networks list."
+  (setq tabulated-list-entries (docker-network-entries)))
 
 (defun docker-network-read-name ()
   "Read a network name."
@@ -63,13 +67,9 @@
   :actions  '((?D "Remove" docker-network-rm-selection))
   :setup-function #'docker-utils-popup-setup)
 
-(defun docker-network-refresh ()
-  "Refresh the networks list."
-  (setq tabulated-list-entries (docker-network-entries)))
-
 (magit-define-popup docker-network-help-popup
   "Help popup for docker networks."
-  :actions '("Docker images help"
+  :actions '("Docker networks help"
              (?D "Remove"     docker-network-rm-popup)
              "Switch to other parts"
              (?c "Containers" docker-containers)
@@ -79,8 +79,8 @@
 
 (defvar docker-network-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "D" 'docker-network-rm-popup)
     (define-key map "?" 'docker-network-help-popup)
+    (define-key map "D" 'docker-network-rm-popup)
     map)
   "Keymap for `docker-network-mode'.")
 

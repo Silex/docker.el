@@ -28,16 +28,20 @@
 (require 'magit-popup)
 (require 'tablist)
 
+(defun docker-volume-parse (line)
+  "Convert a LINE from \"docker volume ls\" to a `tabulated-list-entries' entry."
+  (let ((data (s-split " \\{3,15\\}" line t)))
+    (list (nth 1 data) (apply #'vector data))))
+
 (defun docker-volume-entries ()
   "Return the docker volumes data for `tabulated-list-entries'."
   (let* ((data (docker-run "volume" "ls"))
          (lines (cdr (s-split "\n" data t))))
     (-map #'docker-volume-parse lines)))
 
-(defun docker-volume-parse (line)
-  "Convert a LINE from \"docker volume ls\" to a `tabulated-list-entries' entry."
-  (let ((data (s-split " \\{3,15\\}" line t)))
-    (list (nth 1 data) (apply #'vector data))))
+(defun docker-volume-refresh ()
+  "Refresh the volumes list."
+  (setq tabulated-list-entries (docker-volume-entries)))
 
 (defun docker-volume-read-name ()
   "Read a volume name."
@@ -63,10 +67,6 @@
   :actions  '((?D "Remove" docker-volume-rm-selection))
   :setup-function #'docker-utils-setup-popup)
 
-(defun docker-volume-refresh ()
-  "Refresh the volumes list."
-  (setq tabulated-list-entries (docker-volume-entries)))
-
 (magit-define-popup docker-volume-help-popup
   "Help popup for docker volumes."
   :actions '("Docker volumes help"
@@ -79,8 +79,8 @@
 
 (defvar docker-volume-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "D" 'docker-volume-rm-popup)
     (define-key map "?" 'docker-volume-help-popup)
+    (define-key map "D" 'docker-volume-rm-popup)
     map)
   "Keymap for `docker-volume-mode'.")
 

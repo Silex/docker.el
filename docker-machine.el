@@ -28,6 +28,11 @@
 (require 'magit-popup)
 (require 'tablist)
 
+(defun docker-machine-parse (line)
+  "Convert a LINE from \"docker machine ls\" to a `tabulated-list-entries' entry."
+  (let ((data (s-split "\t" line)))
+    (list (car data) (apply #'vector data))))
+
 (defun docker-machine-entries ()
   "Return the docker machines data for `tabulated-list-entries'."
   (let* ((fmt "{{.Name}}\\t{{.Active}}\\t{{.DriverName}}\\t{{.State}}\\t{{.URL}}\\t{{.Swarm}}\\t{{.DockerVersion}}\\t{{.Error}}")
@@ -35,10 +40,9 @@
          (lines (s-split "\n" data t)))
     (-map #'docker-machine-parse lines)))
 
-(defun docker-machine-parse (line)
-  "Convert a LINE from \"docker machine ls\" to a `tabulated-list-entries' entry."
-  (let ((data (s-split "\t" line)))
-    (list (car data) (apply #'vector data))))
+(defun docker-machine-refresh ()
+  "Refresh the machines list."
+  (setq tabulated-list-entries (docker-machine-entries)))
 
 (defun docker-machine-read-name ()
   "Read a machine name."
@@ -49,10 +53,6 @@
   (let ((command (format "docker-machine %s %s" action (s-join " " (-non-nil args)))))
     (message command)
     (shell-command-to-string command)))
-
-(defun docker-machine-active ()
-  "Print which machine is active."
-  (docker-machine-run "active"))
 
 ;;;###autoload
 (defun docker-machine-config (name)
@@ -211,19 +211,15 @@
   :default-arguments '("-y")
   :setup-function #'docker-utils-setup-popup)
 
-(defun docker-machine-refresh ()
-  "Refresh the machines list."
-  (setq tabulated-list-entries (docker-machine-entries)))
-
 (magit-define-popup docker-machine-help-popup
   "Help popup for docker machine."
-  :actions '("Docker images help"
+  :actions '("Docker machines help"
              (?C "Create"     docker-machine-create)
              (?D "Remove"     docker-machine-rm-popup)
-             (?S "Start"      docker-machine-start-popup)
+             (?E "Env"        docker-machine-env-popup)
              (?O "Stop"       docker-machine-stop-popup)
              (?R "Restart"    docker-machine-restart-popup)
-             (?E "Env"        docker-machine-env-popup)
+             (?S "Start"      docker-machine-start-popup)
              "Switch to other parts"
              (?c "Containers" docker-containers)
              (?i "Images"     docker-images)
@@ -232,13 +228,13 @@
 
 (defvar docker-machine-mode-map
   (let ((map (make-sparse-keymap)))
+    (define-key map "?" 'docker-machine-help-popup)
     (define-key map "C" 'docker-machine-create)
     (define-key map "D" 'docker-machine-rm-popup)
-    (define-key map "S" 'docker-machine-start-popup)
+    (define-key map "E" 'docker-machine-env-popup)
     (define-key map "O" 'docker-machine-stop-popup)
     (define-key map "R" 'docker-machine-restart-popup)
-    (define-key map "E" 'docker-machine-env-popup)
-    (define-key map "?" 'docker-machine-help-popup)
+    (define-key map "S" 'docker-machine-start-popup)
     map)
   "Keymap for `docker-machine-mode'.")
 

@@ -43,13 +43,6 @@ and FLIP is a boolean to specify the sort order."
                (choice (const :tag "Ascending" nil)
                        (const :tag "Descending" t))))
 
-(defun docker-image-entries ()
-  "Return the docker images data for `tabulated-list-entries'."
-  (let* ((fmt "{{.Repository}}\\t{{.Tag}}\\t{{.ID}}\\t{{.CreatedSince}}\\t{{.Size}}")
-         (data (docker-run "images" (format "--format=\"%s\"" fmt)))
-         (lines (s-split "\n" data t)))
-    (-map #'docker-image-parse lines)))
-
 (defun docker-image-parse (line)
   "Convert a LINE from \"docker images\" to a `tabulated-list-entries' entry."
   (let* ((data (s-split "\t" line))
@@ -57,6 +50,17 @@ and FLIP is a boolean to specify the sort order."
     (list
      (if (s-contains? "<none>" name) (nth 2 data) name)
      (apply #'vector data))))
+
+(defun docker-image-entries ()
+  "Return the docker images data for `tabulated-list-entries'."
+  (let* ((fmt "{{.Repository}}\\t{{.Tag}}\\t{{.ID}}\\t{{.CreatedSince}}\\t{{.Size}}")
+         (data (docker-run "images" (format "--format=\"%s\"" fmt)))
+         (lines (s-split "\n" data t)))
+    (-map #'docker-image-parse lines)))
+
+(defun docker-image-refresh ()
+  "Refresh the images list."
+  (setq tabulated-list-entries (docker-image-entries)))
 
 (defun docker-image-read-name ()
   "Read an image name."
@@ -82,6 +86,12 @@ Force removal of the image when FORCE is set.
 Do not delete untagged parents when NO-PRUNE is set."
   (interactive (list (docker-image-read-name) current-prefix-arg))
   (docker-run "rmi" (when force "-f") (when no-prune "--no-prune") name))
+
+;;;###autoload
+(defun docker-tag (image name)
+  "Tag IMAGE using NAME."
+  (interactive (list (docker-image-read-name) (read-string "Name: ")))
+  (docker-run "tag" image name))
 
 (defun docker-image-rm-selection ()
   "Run \"docker rmi\" on the images selection."
@@ -122,12 +132,6 @@ Do not delete untagged parents when NO-PRUNE is set."
     (docker-utils-with-buffer (format "inspect %s" it)
       (insert (docker-run "inspect" (docker-image-inspect-arguments) it))
       (json-mode))))
-
-;;;###autoload
-(defun docker-tag (image name)
-  "Tag IMAGE using NAME."
-  (interactive (list (docker-image-read-name) (read-string "Name: ")))
-  (docker-run "tag" image name))
 
 (defun docker-image-tag-selection ()
   "Tag images."
@@ -192,18 +196,14 @@ Do not delete untagged parents when NO-PRUNE is set."
   :default-arguments '("-i" "-t" "--rm")
   :setup-function #'docker-utils-setup-popup)
 
-(defun docker-image-refresh ()
-  "Refresh the images list."
-  (setq tabulated-list-entries (docker-image-entries)))
-
 (magit-define-popup docker-image-help-popup
   "Help popup for docker images."
   :actions '("Docker images help"
              (?D "Delete"  docker-image-rm-popup)
              (?F "Pull"    docker-image-pull-popup)
+             (?I "Inspect" docker-image-inspect-popup)
              (?P "Push"    docker-image-push-popup)
              (?R "Run"     docker-image-run-popup)
-             (?I "Inspect" docker-image-inspect-popup)
              (?T "Tag"     docker-image-tag-selection)
              "Switch to other parts"
              (?c "Containers" docker-containers)
@@ -213,13 +213,13 @@ Do not delete untagged parents when NO-PRUNE is set."
 
 (defvar docker-image-mode-map
   (let ((map (make-sparse-keymap)))
+    (define-key map "?" 'docker-image-help-popup)
     (define-key map "D" 'docker-image-rm-popup)
     (define-key map "F" 'docker-image-pull-popup)
+    (define-key map "I" 'docker-image-inspect-popup)
     (define-key map "P" 'docker-image-push-popup)
     (define-key map "R" 'docker-image-run-popup)
-    (define-key map "I" 'docker-image-inspect-popup)
     (define-key map "T" 'docker-image-tag-selection)
-    (define-key map "?" 'docker-image-help-popup)
     map)
   "Keymap for `docker-image-mode'.")
 
