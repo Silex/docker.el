@@ -36,15 +36,15 @@ Use <kbd>M-x docker</kbd>, select a resource then then mark/unmark items using t
 
 | Keymap             | Description          |
 |--------------------|----------------------|
-| <kbd>m</kbd>       | Mark item            |
-| <kbd>U</kbd>       | Unmark all           |
-| <kbd>u</kbd>       | Unmark item          |
-| <kbd>t</kbd>       | Toggle marks         |
-| <kbd>s</kbd>       | Sort                 |
+| <kbd>* r</kbd>     | Mark items by regexp |
 | <kbd><</kbd>       | Shrink column        |
 | <kbd>></kbd>       | Enlarge column       |
 | <kbd>C-c C-e</kbd> | Export to csv        |
-| <kbd>* r</kbd>     | Mark items by regexp |
+| <kbd>U</kbd>       | Unmark all           |
+| <kbd>m</kbd>       | Mark item            |
+| <kbd>s</kbd>       | Sort                 |
+| <kbd>t</kbd>       | Toggle marks         |
+| <kbd>u</kbd>       | Unmark item          |
 
 You can press `?` on all the listing to see the available actions. Also check out https://github.com/politza/tablist
 to find more about the marking possibilities.
@@ -62,11 +62,11 @@ to find more about the marking possibilities.
 <kbd>M-x docker-images</kbd> lists the docker images.
 After having selected some images, you can do the following actions:
 
-- `F`: pull
-- `P`: push
 - `D`: rmi
-- `R`: run
+- `F`: pull
 - `I`: inspect
+- `P`: push
+- `R`: run
 - `T`: tag
 
 ### docker-containers
@@ -74,18 +74,18 @@ After having selected some images, you can do the following actions:
 Running <kbd>M-x docker-containers</kbd> lists the docker containers.
 After having selected some containers, you can do the following actions:
 
-* `S`: start
-* `O`: stop
-* `R`: restart
-* `P`: pause/unpause
-* `I`: inspect
-* `L`: logs
 * `C`: cp
 * `D`: rm
+* `I`: inspect
 * `K`: kill
+* `L`: logs
+* `O`: stop
+* `P`: pause/unpause
+* `R`: restart
+* `S`: start
+* `b`: shell
 * `d`: diff
 * `f`: find-file
-* `b`: shell
 * `r`: rename
 
 ### docker-volumes
@@ -108,11 +108,11 @@ Running <kbd>M-x docker-machines</kbd> lists the docker machines.
 After having selected some machines, you can do the following actions:
 
 * `C`: create
-* `S`: start
+* `D`: rm
 * `E`: env
 * `O`: stop
 * `R`: restart
-* `D`: rm
+* `S`: start
 
 ## Customizations
 
