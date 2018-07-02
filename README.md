@@ -119,11 +119,10 @@ After having selected some machines, you can do the following actions:
 | Variable                           | Description                           | Default          |
 |------------------------------------|---------------------------------------|------------------|
 | docker-command                     | The docker binary to use              | `docker`         |
-| docker-containers-default-sort-key | Sort key for docker containers        | `("Image")`      |
-| docker-containers-shell-file-name  | Shell to use when entering containers | `/bin/bash`      |
-| docker-containers-show-all         | Show non-running containers           | `t`              |
-| docker-images-default-sort-key     | Sort key for docker images            | `("Repository")` |
-| docker-keymap-prefix               | Prefix for `docker-mode`              | `C-c d`          |
+| docker-container-default-sort-key  | Sort key for docker containers        | `("Image")`      |
+| docker-container-shell-file-name   | Shell to use when entering containers | `/bin/bash`      |
+| docker-container-show-all          | Show non-running containers           | `t`              |
+| docker-image-default-sort-key      | Sort key for docker images            | `("Repository")` |
 | docker-run-as-root                 | Run docker as root                    | `nil`            |
 
 ## FAQ
