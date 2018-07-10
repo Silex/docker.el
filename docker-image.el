@@ -199,7 +199,7 @@ Do not delete untagged parents when NO-PRUNE is set."
 (magit-define-popup docker-image-help-popup
   "Help popup for docker images."
   :actions '("Docker images help"
-             (?D "Delete"  docker-image-rm-popup)
+             (?D "Remove"  docker-image-rm-popup)
              (?F "Pull"    docker-image-pull-popup)
              (?I "Inspect" docker-image-inspect-popup)
              (?P "Push"    docker-image-push-popup)

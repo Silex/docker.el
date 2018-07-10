@@ -419,7 +419,7 @@ If FOLLOW is set, run in `async-shell-command'."
   "Help popup for docker containers."
   :actions '("Docker containers help"
              (?C "Copy"       docker-container-cp-popup)
-             (?D "Delete"     docker-container-rm-popup)
+             (?D "Remove"     docker-container-rm-popup)
              (?I "Inspect"    docker-container-inspect-popup)
              (?K "Kill"       docker-container-kill-popup)
              (?L "Logs"       docker-container-logs-popup)
