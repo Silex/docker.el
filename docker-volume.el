@@ -53,12 +53,25 @@
   (interactive (list (docker-volume-read-name)))
   (docker-run "volume rm" name))
 
+;;;###autoload
+(defun docker-volume-dired (name)
+  (interactive (list (docker-volume-read-name)))
+  (let ((path (docker-run "inspect" "-f" "\"{{ .Mountpoint }}\"" name)))
+    (dired (format "/sudo::%s" path))))
+
 (defun docker-volume-rm-selection ()
   "Run \"docker volume rm\" on the volumes selection."
   (interactive)
   (--each (docker-utils-get-marked-items-ids)
     (docker-run "volume rm" it))
   (tablist-revert))
+
+(defun docker-volume-dired-selection ()
+  "Run `docker-volume-dired' on the volumes selection."
+  (interactive)
+  (docker-utils-select-if-empty)
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-volume-dired it)))
 
 (magit-define-popup docker-volume-rm-popup
   "Popup for removing volumes."
@@ -71,6 +84,7 @@
   "Help popup for docker volumes."
   :actions '("Docker volumes help"
              (?D "Remove"     docker-volume-rm-popup)
+             (?d "dired"      docker-volume-dired-selection)
              "Switch to other parts"
              (?c "Containers" docker-containers)
              (?i "Images"     docker-images)
@@ -81,6 +95,7 @@
   (let ((map (make-sparse-keymap)))
     (define-key map "?" 'docker-volume-help-popup)
     (define-key map "D" 'docker-volume-rm-popup)
+    (define-key map "d" 'docker-volume-dired-selection)
     map)
   "Keymap for `docker-volume-mode'.")
 

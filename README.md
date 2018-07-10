@@ -94,6 +94,7 @@ Running <kbd>M-x docker-volumes</kbd> lists the docker volumes.
 After having selected some volumes, you can do the following actions:
 
 * `D`: rm
+* `d`: dired
 
 ### docker-networks
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Browse volumes with dired.
+
 ## 0.7.0 (2018-07-02)
 
 - Improve navigation.
