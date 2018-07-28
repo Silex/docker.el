@@ -75,6 +75,21 @@ and FLIP is a boolean to specify the sort order."
   "Read an image name."
   (completing-read "Image: " (-map #'car (docker-image-entries))))
 
+(defun docker-image-sort-size (a-line b-line)
+  "Sort A-LINE and B-LINE by size."
+  (let* ((sizes `("B" 1 "KB" 1024 "MB" ,(expt 1024 2) "GB" ,(expt 1024 3) "TB" ,(expt 1024 4)))
+         (a-size (elt (cadr a-line) 4))
+         (b-size (elt (cadr b-line) 4))
+         (a-parts (s-match "^\\([0-9\\.]+\\)\\([A-Z]+\\)$" a-size))
+         (b-parts (s-match "^\\([0-9\\.]+\\)\\([A-Z]+\\)$" b-size))
+         (a-value (string-to-number (-second-item a-parts)))
+         (b-value (string-to-number (-second-item b-parts)))
+         (a-multiplier (lax-plist-get sizes (-third-item a-parts)))
+         (b-multiplier (lax-plist-get sizes (-third-item b-parts)))
+         (a-bytes (* a-value a-multiplier))
+         (b-bytes (* b-value b-multiplier)))
+    (< a-bytes b-bytes)))
+
 ;;;###autoload
 (defun docker-pull (name &optional all)
   "Pull the image named NAME.  If ALL is set, use \"-a\"."
@@ -237,7 +252,7 @@ Do not delete untagged parents when NO-PRUNE is set."
 
 (define-derived-mode docker-image-mode tabulated-list-mode "Images Menu"
   "Major mode for handling a list of docker images."
-  (setq tabulated-list-format [("Repository" 30 t)("Tag" 20 t)("Id" 16 t)("Created" 25 t)("Size" 10 t)])
+  (setq tabulated-list-format [("Repository" 30 t)("Tag" 20 t)("Id" 16 t)("Created" 25 t)("Size" 10 docker-image-sort-size)])
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key docker-image-default-sort-key)
   (add-hook 'tabulated-list-revert-hook 'docker-image-refresh nil t)
