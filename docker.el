@@ -35,11 +35,6 @@
 (require 'dash)
 (require 'magit-popup)
 (require 'docker-utils)
-(require 'docker-container)
-(require 'docker-image)
-(require 'docker-machine)
-(require 'docker-network)
-(require 'docker-volume)
 
 (defgroup docker nil
   "Docker customization group."
@@ -81,5 +76,11 @@
               (?M "Machines"   docker-machines)))
 
 (provide 'docker)
+
+(require 'docker-container)
+(require 'docker-image)
+(require 'docker-machine)
+(require 'docker-network)
+(require 'docker-volume)
 
 ;;; docker.el ends here
