@@ -47,6 +47,11 @@ and FLIP is a boolean to specify the sort order."
                (choice (const :tag "Ascending" nil)
                        (const :tag "Descending" t))))
 
+(defcustom docker-image-run-arguments '("-i" "-t" "--rm")
+  "Default arguments for `docker-image-run-popup'."
+  :group 'docker-image
+  :type 'list)
+
 (defun docker-image-parse (line)
   "Convert a LINE from \"docker images\" to a `tabulated-list-entries' entry."
   (let* ((data (s-split "\t" line))
@@ -197,7 +202,6 @@ Do not delete untagged parents when NO-PRUNE is set."
               (?u "user" "-u ")
               (?n "entrypoint" "--entrypoint "))
   :actions  '((?R "Run images" docker-image-run-selection))
-  :default-arguments '("-i" "-t" "--rm")
   :setup-function #'docker-utils-setup-popup)
 
 (magit-define-popup docker-image-help-popup
