@@ -58,18 +58,27 @@
 (defun docker-run (action &rest args)
   "Execute \"docker ACTION\" using ARGS."
   (let ((default-directory (if (and docker-run-as-root (not (file-remote-p default-directory))) "/sudo::" default-directory)))
-    (let ((command (format "%s %s %s" docker-command action (s-join " " (-flatten (-non-nil args))))))
+    (let ((command (format "%s %s %s %s"
+                           docker-command
+                           (s-join " " docker-arguments)
+                           action
+                           (s-join " " (-flatten (-non-nil args))))))
       (message command)
       (shell-command-to-string command))))
 
+;;;###autoload
 (magit-define-popup docker
-  "Popup console for dispatching other popups."
-  :actions '("Docker"
-             (?c "Containers" docker-containers)
-             (?i "Images"     docker-images)
-             (?m "Machines"   docker-machines)
-             (?n "Networks"   docker-networks)
-             (?v "Volumes"    docker-volumes)))
+  "Popup for docker."
+  'docker
+  :man-page "docker"
+  :options  '((?H "Host" "--host "))
+  :actions  `("Docker"
+              (?c "Containers" ,(docker-utils-set-then-call 'docker-arguments 'docker-containers))
+              (?i "Images"     ,(docker-utils-set-then-call 'docker-arguments 'docker-images))
+              (?n "Networks"   ,(docker-utils-set-then-call 'docker-arguments 'docker-networks))
+              (?v "Volumes"    ,(docker-utils-set-then-call 'docker-arguments 'docker-volumes))
+              "Other"
+              (?M "Machines"   docker-machines)))
 
 (provide 'docker)
 

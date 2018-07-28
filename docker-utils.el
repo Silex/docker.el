@@ -53,6 +53,13 @@ ARG is unused here, but is required by `add-function'."
     (when (null (docker-utils-get-marked-items))
       (tablist-put-mark))))
 
+(defun docker-utils-set-then-call (variable func)
+  "Return a lambda settings VARIABLE before calling FUNC."
+  (lambda ()
+    (interactive)
+    (set variable (funcall variable))
+    (call-interactively func)))
+
 (defun docker-utils-pop-to-buffer (name)
   "Like `pop-to-buffer', but suffix NAME with the host if on a remote host."
   (pop-to-buffer
