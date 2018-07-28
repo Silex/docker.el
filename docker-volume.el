@@ -28,6 +28,10 @@
 (require 'magit-popup)
 (require 'tablist)
 
+(defgroup docker-volume nil
+  "Docker volume customization group."
+  :group 'docker)
+
 (defun docker-volume-parse (line)
   "Convert a LINE from \"docker volume ls\" to a `tabulated-list-entries' entry."
   (let ((data (s-split " \\{3,15\\}" line t)))
@@ -75,13 +79,14 @@
 
 (magit-define-popup docker-volume-rm-popup
   "Popup for removing volumes."
-  'docker-volume-popups
+  'docker-volume
   :man-page "docker-volume-rm"
   :actions  '((?D "Remove" docker-volume-rm-selection))
   :setup-function #'docker-utils-setup-popup)
 
 (magit-define-popup docker-volume-help-popup
   "Help popup for docker volumes."
+  'docker-volume
   :actions '("Docker volumes help"
              (?D "Remove"     docker-volume-rm-popup)
              (?d "dired"      docker-volume-dired-selection)

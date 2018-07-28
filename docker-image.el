@@ -28,13 +28,17 @@
 (require 'magit-popup)
 (require 'tablist)
 
+(defgroup docker-image nil
+  "Docker images customization group."
+  :group 'docker)
+
 (defcustom docker-image-default-sort-key '("Repository" . nil)
   "Sort key for docker images.
 
 This should be a cons cell (NAME . FLIP) where
 NAME is a string matching one of the column names
 and FLIP is a boolean to specify the sort order."
-  :group 'docker
+  :group 'docker-image
   :type '(cons (choice (const "Repository")
                        (const "Tag")
                        (const "Id")
@@ -143,7 +147,7 @@ Do not delete untagged parents when NO-PRUNE is set."
 
 (magit-define-popup docker-image-rm-popup
   "Popup for removing images."
-  'docker-image-popups
+  'docker-image
   :man-page "docker-rmi"
   :switches '((?f "Force" "-f")
               (?n "Don't prune" "--no-prune"))
@@ -152,7 +156,7 @@ Do not delete untagged parents when NO-PRUNE is set."
 
 (magit-define-popup docker-image-pull-popup
   "Popup for pulling images."
-  'docker-image-popups
+  'docker-image
   :man-page "docker-pull"
   :switches '((?a "All" "-a"))
   :actions  '((?F "Pull" docker-image-pull-selection))
@@ -160,21 +164,21 @@ Do not delete untagged parents when NO-PRUNE is set."
 
 (magit-define-popup docker-image-push-popup
   "Popup for pushing images."
-  'docker-image-popups
+  'docker-image
   :man-page "docker-push"
   :actions  '((?P "Push" docker-image-push-selection))
   :setup-function #'docker-utils-setup-popup)
 
 (magit-define-popup docker-image-inspect-popup
   "Popup for inspecting images."
-  'docker-image-popups
+  'docker-image
   :man-page "docker-inspect"
   :actions  '((?I "Inspect" docker-image-inspect-selection))
   :setup-function #'docker-utils-setup-popup)
 
 (magit-define-popup docker-image-run-popup
   "Popup for running images."
-  'docker-image-popups
+  'docker-image
   :man-page "docker-run"
   :switches '((?d "Daemonize" "-d")
               (?i "Interactive" "-i")
@@ -198,6 +202,7 @@ Do not delete untagged parents when NO-PRUNE is set."
 
 (magit-define-popup docker-image-help-popup
   "Help popup for docker images."
+  'docker-image
   :actions '("Docker images help"
              (?D "Remove"  docker-image-rm-popup)
              (?F "Pull"    docker-image-pull-popup)

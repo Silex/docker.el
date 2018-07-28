@@ -30,6 +30,10 @@
 (require 'tablist)
 (require 'json)
 
+(defgroup docker-container nil
+  "Docker container customization group."
+  :group 'docker)
+
 (defcustom docker-container-show-all t
   "Show non-running containers."
   :group 'docker
@@ -38,7 +42,7 @@
 (defcustom docker-container-shell-file-name shell-file-name
   "Shell to use when entering containers.
 For more information see the variable `shell-file-name'."
-  :group 'docker
+  :group 'docker-container
   :type 'string)
 
 (defcustom docker-container-default-sort-key '("Image" . nil)
@@ -47,7 +51,7 @@ For more information see the variable `shell-file-name'."
 This should be a cons cell (NAME . FLIP) where
 NAME is a string matching one of the column names
 and FLIP is a boolean to specify the sort order."
-  :group 'docker
+  :group 'docker-container
   :type '(cons (choice (const "Id")
                        (const "Image")
                        (const "Command")
@@ -326,14 +330,14 @@ If FOLLOW is set, run in `async-shell-command'."
 
 (magit-define-popup docker-container-start-popup
   "Popup for starting containers."
-  'docker-container-popups
+  'docker-container
   :man-page "docker-start"
   :actions  '((?S "Start" docker-container-start-selection))
   :setup-function #'docker-utils-setup-popup)
 
 (magit-define-popup docker-container-stop-popup
   "Popup for stoping containers."
-  'docker-container-popups
+  'docker-container
   :man-page "docker-stop"
   :options '((?t "Timeout" "-t "))
   :actions '((?O "Stop" docker-container-stop-selection))
@@ -341,7 +345,7 @@ If FOLLOW is set, run in `async-shell-command'."
 
 (magit-define-popup docker-container-restart-popup
   "Popup for restarting containers."
-  'docker-container-popups
+  'docker-container
   :man-page "docker-restart"
   :options '((?t "Timeout" "-t "))
   :actions '((?R "Restart" docker-container-restart-selection))
@@ -349,7 +353,7 @@ If FOLLOW is set, run in `async-shell-command'."
 
 (magit-define-popup docker-container-pause-popup
   "Popup for pauseing containers."
-  'docker-container-popups
+  'docker-container
   :man-page "docker-pause"
   :actions  '((?P "Pause" docker-container-pause-selection)
               (?U "Unpause" docker-container-unpause-selection))
@@ -357,7 +361,7 @@ If FOLLOW is set, run in `async-shell-command'."
 
 (magit-define-popup docker-container-rm-popup
   "Popup for removing containers."
-  'docker-container-popups
+  'docker-container
   :man-page "docker-rm"
   :switches '((?f "Force" "-f")
               (?v "Volumes" "-v"))
@@ -366,7 +370,7 @@ If FOLLOW is set, run in `async-shell-command'."
 
 (magit-define-popup docker-container-kill-popup
   "Popup for kill signaling containers"
-  'docker-container-popups
+  'docker-container
   :man-page "docker-kill"
   :options  '((?s "Signal" "-s "))
   :actions  '((?K "Kill" docker-container-kill-selection))
@@ -374,21 +378,21 @@ If FOLLOW is set, run in `async-shell-command'."
 
 (magit-define-popup docker-container-inspect-popup
   "Popup for inspecting containers."
-  'docker-container-popups
+  'docker-container
   :man-page "docker-inspect"
   :actions  '((?I "Inspect" docker-container-inspect-selection))
   :setup-function #'docker-utils-setup-popup)
 
 (magit-define-popup docker-container-diff-popup
   "Popup for showing containers diffs."
-  'docker-container-popups
+  'docker-container
   :man-page "docker-diff"
   :actions  '((?d "Diff" docker-container-diff-selection))
   :setup-function #'docker-utils-setup-popup)
 
 (magit-define-popup docker-container-logs-popup
   "Popup for showing containers logs."
-  'docker-container-popups
+  'docker-container
   :man-page "docker-logs"
   :switches '((?f "Follow" "-f"))
   :actions  '((?L "Logs" docker-container-logs-selection))
@@ -396,20 +400,20 @@ If FOLLOW is set, run in `async-shell-command'."
 
 (magit-define-popup docker-container-find-file-popup
   "Popup for opening containers files."
-  'docker-container-popups
+  'docker-container
   :actions  '((?f "Open file" docker-container-find-file-selection))
   :setup-function #'docker-utils-setup-popup)
 
 (magit-define-popup docker-container-shell-popup
   "Popup for doing M-x `shell'/`eshell' to containers."
-  'docker-container-popups
+  'docker-container
   :actions  '((?b "Shell" docker-container-shell-selection)
               (?e "Eshell" docker-container-eshell-selection))
   :setup-function #'docker-utils-setup-popup)
 
 (magit-define-popup docker-container-cp-popup
   "Popup for copying files from/to containers."
-  'docker-container-popups
+  'docker-container
   :man-page "docker-cp"
   :actions  '((?F "Copy From" docker-container-cp-from-selection)
               (?T "Copy To" docker-container-cp-to-selection))
@@ -417,6 +421,7 @@ If FOLLOW is set, run in `async-shell-command'."
 
 (magit-define-popup docker-container-help-popup
   "Help popup for docker containers."
+  'docker-container
   :actions '("Docker containers help"
              (?C "Copy"       docker-container-cp-popup)
              (?D "Remove"     docker-container-rm-popup)

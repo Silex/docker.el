@@ -28,6 +28,10 @@
 (require 'magit-popup)
 (require 'tablist)
 
+(defgroup docker-network nil
+  "Docker network customization group."
+  :group 'docker)
+
 (defun docker-network-parse (line)
   "Convert a LINE from \"docker network ls\" to a `tabulated-list-entries' entry."
   (let ((data (s-split " \\{3,\\}" line t)))
@@ -62,13 +66,14 @@
 
 (magit-define-popup docker-network-rm-popup
   "Popup for removing networks."
-  'docker-network-popups
+  'docker-network
   :man-page "docker-network-rm"
   :actions  '((?D "Remove" docker-network-rm-selection))
   :setup-function #'docker-utils-popup-setup)
 
 (magit-define-popup docker-network-help-popup
   "Help popup for docker networks."
+  'docker-network
   :actions '("Docker networks help"
              (?D "Remove"     docker-network-rm-popup)
              "Switch to other parts"
