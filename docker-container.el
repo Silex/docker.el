@@ -24,7 +24,7 @@
 
 ;;; Code:
 
-(require 'docker-process)
+(require 'docker)
 (require 'docker-utils)
 (require 'magit-popup)
 (require 'tablist)

@@ -23,6 +23,10 @@
 
 ;;; Code:
 
+(require 'dash)
+(require 'tablist)
+(require 'magit-popup)
+
 (defun docker-utils-get-marked-items ()
   "Get the marked items data from `tabulated-list-entries'."
   (save-excursion

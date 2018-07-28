@@ -31,11 +31,36 @@
 
 ;;; Code:
 
+(require 's)
+(require 'dash)
 (require 'magit-popup)
+(require 'docker-utils)
+(require 'docker-container)
+(require 'docker-image)
+(require 'docker-machine)
+(require 'docker-network)
+(require 'docker-volume)
 
 (defgroup docker nil
   "Docker customization group."
   :group 'convenience)
+
+(defcustom docker-run-as-root nil
+  "Run docker as root."
+  :type 'boolean
+  :group 'docker)
+
+(defcustom docker-command "docker"
+  "The docker binary."
+  :type 'string
+  :group 'docker)
+
+(defun docker-run (action &rest args)
+  "Execute \"docker ACTION\" using ARGS."
+  (let ((default-directory (if (and docker-run-as-root (not (file-remote-p default-directory))) "/sudo::" default-directory)))
+    (let ((command (format "%s %s %s" docker-command action (s-join " " (-flatten (-non-nil args))))))
+      (message command)
+      (shell-command-to-string command))))
 
 (magit-define-popup docker
   "Popup console for dispatching other popups."
