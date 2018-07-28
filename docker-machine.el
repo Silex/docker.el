@@ -224,12 +224,7 @@
              (?E "Env"        docker-machine-env-popup)
              (?O "Stop"       docker-machine-stop-popup)
              (?R "Restart"    docker-machine-restart-popup)
-             (?S "Start"      docker-machine-start-popup)
-             "Switch to other parts"
-             (?c "Containers" docker-containers)
-             (?i "Images"     docker-images)
-             (?n "Networks"   docker-networks)
-             (?v "Volumes"    docker-volumes)))
+             (?S "Start"      docker-machine-start-popup)))
 
 (defvar docker-machine-mode-map
   (let ((map (make-sparse-keymap)))

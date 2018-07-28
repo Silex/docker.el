@@ -213,12 +213,7 @@ Do not delete untagged parents when NO-PRUNE is set."
              (?I "Inspect" docker-image-inspect-popup)
              (?P "Push"    docker-image-push-popup)
              (?R "Run"     docker-image-run-popup)
-             (?T "Tag"     docker-image-tag-selection)
-             "Switch to other parts"
-             (?c "Containers" docker-containers)
-             (?m "Machines"   docker-machines)
-             (?n "Networks"   docker-networks)
-             (?v "Volumes"    docker-volumes)))
+             (?T "Tag"     docker-image-tag-selection)))
 
 (defvar docker-image-mode-map
   (let ((map (make-sparse-keymap)))

@@ -75,12 +75,7 @@
   "Help popup for docker networks."
   'docker-network
   :actions '("Docker networks help"
-             (?D "Remove"     docker-network-rm-popup)
-             "Switch to other parts"
-             (?c "Containers" docker-containers)
-             (?i "Images"     docker-images)
-             (?m "Machines"   docker-machines)
-             (?v "Volumes"    docker-volumes)))
+             (?D "Remove"     docker-network-rm-popup)))
 
 (defvar docker-network-mode-map
   (let ((map (make-sparse-keymap)))

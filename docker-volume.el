@@ -89,12 +89,7 @@
   'docker-volume
   :actions '("Docker volumes help"
              (?D "Remove"     docker-volume-rm-popup)
-             (?d "dired"      docker-volume-dired-selection)
-             "Switch to other parts"
-             (?c "Containers" docker-containers)
-             (?i "Images"     docker-images)
-             (?m "Machines"   docker-machines)
-             (?n "Networks"   docker-networks)))
+             (?d "dired"      docker-volume-dired-selection)))
 
 (defvar docker-volume-mode-map
   (let ((map (make-sparse-keymap)))

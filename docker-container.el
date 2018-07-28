@@ -435,12 +435,7 @@ If FOLLOW is set, run in `async-shell-command'."
              (?b "Shell"      docker-container-shell-popup)
              (?d "Diff"       docker-container-diff-popup)
              (?f "Find file"  docker-container-find-file-popup)
-             (?r "Rename"     docker-container-rename-selection)
-             "Switch to other parts"
-             (?i "Images"     docker-images)
-             (?m "Machines"   docker-machines)
-             (?n "Networks"   docker-networks)
-             (?v "Volumes"    docker-volumes)))
+             (?r "Rename"     docker-container-rename-selection)))
 
 (defvar docker-container-mode-map
   (let ((map (make-sparse-keymap)))
