@@ -68,6 +68,7 @@ After having selected some images, you can do the following actions:
 - `P`: push
 - `R`: run
 - `T`: tag
+* `l`: Configure listing
 
 ### docker-containers
 
@@ -86,6 +87,7 @@ After having selected some containers, you can do the following actions:
 * `b`: shell
 * `d`: diff
 * `f`: find-file
+* `l`: Configure listing
 * `r`: rename
 
 ### docker-volumes
@@ -95,6 +97,7 @@ After having selected some volumes, you can do the following actions:
 
 * `D`: rm
 * `d`: dired
+* `l`: Configure listing
 
 ### docker-networks
 
@@ -102,6 +105,7 @@ Running <kbd>M-x docker-networks</kbd> lists the docker networks.
 After having selected some networks, you can do the following actions:
 
 * `D`: rm
+* `l`: Configure listing
 
 ### docker-machines
 
@@ -114,6 +118,7 @@ After having selected some machines, you can do the following actions:
 * `O`: stop
 * `R`: restart
 * `S`: start
+* `l`: Configure listing
 
 ## Customizations
 
@@ -122,7 +127,6 @@ After having selected some machines, you can do the following actions:
 | docker-command                     | The docker binary to use              | `docker`         |
 | docker-container-default-sort-key  | Sort key for docker containers        | `("Image")`      |
 | docker-container-shell-file-name   | Shell to use when entering containers | `/bin/bash`      |
-| docker-container-show-all          | Show non-running containers           | `t`              |
 | docker-image-default-sort-key      | Sort key for docker images            | `("Repository")` |
 | docker-run-as-root                 | Run docker as root                    | `nil`            |
 

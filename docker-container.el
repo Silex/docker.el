@@ -38,10 +38,10 @@
   "Docker container customization group."
   :group 'docker)
 
-(defcustom docker-container-show-all t
-  "Show non-running containers."
-  :group 'docker
-  :type 'boolean)
+(defcustom docker-container-ls-arguments '("--all")
+  "Default arguments for `docker-container-ls-popup'."
+  :group 'docker-container
+  :type 'list)
 
 (defcustom docker-container-shell-file-name shell-file-name
   "Shell to use when entering containers.
@@ -79,7 +79,7 @@ and FLIP is a boolean to specify the sort order."
 (defun docker-container-entries ()
   "Return the docker containers data for `tabulated-list-entries'."
   (let* ((fmt "[{{json .ID}},{{json .Image}},{{json .Command}},{{json .CreatedAt}},{{json .Status}},{{json .Ports}},{{json .Names}}]")
-         (data (docker-run "ps" (format "--format=\"%s\"" fmt) (when docker-container-show-all "-a ")))
+         (data (docker-run "container ls" docker-container-ls-arguments (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
     (-map #'docker-container-parse lines)))
 
@@ -424,6 +424,17 @@ If FOLLOW is set, run in `async-shell-command'."
               (?T "Copy To" docker-container-cp-to-selection))
   :setup-function #'docker-utils-setup-popup)
 
+(magit-define-popup docker-container-ls-popup
+  "Popup for listing containers."
+  'docker-container
+  :man-page "docker-container-ls"
+  :switches  '((?a "All" "--all")
+               (?e "Exited containers" "--filter status=exited")
+               (?n "Don't truncate" "--no-trunc"))
+  :options   '((?f "Filter" "--filter ")
+               (?n "Last" "--last "))
+  :actions   `((?l "List" ,(docker-utils-set-then-call 'docker-container-ls-arguments 'tablist-revert))))
+
 (magit-define-popup docker-container-help-popup
   "Help popup for docker containers."
   'docker-container
@@ -440,6 +451,7 @@ If FOLLOW is set, run in `async-shell-command'."
              (?b "Shell"      docker-container-shell-popup)
              (?d "Diff"       docker-container-diff-popup)
              (?f "Find file"  docker-container-find-file-popup)
+             (?l "List"       docker-container-ls-popup)
              (?r "Rename"     docker-container-rename-selection)))
 
 (defvar docker-container-mode-map
@@ -457,6 +469,7 @@ If FOLLOW is set, run in `async-shell-command'."
     (define-key map "b" 'docker-container-shell-popup)
     (define-key map "d" 'docker-container-diff-popup)
     (define-key map "f" 'docker-container-find-file-popup)
+    (define-key map "l" 'docker-container-ls-popup)
     (define-key map "r" 'docker-container-rename-selection)
     map)
   "Keymap for `docker-container-mode'.")

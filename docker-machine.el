@@ -43,7 +43,7 @@
 (defun docker-machine-entries ()
   "Return the docker machines data for `tabulated-list-entries'."
   (let* ((fmt "{{.Name}}\\t{{.Active}}\\t{{.DriverName}}\\t{{.State}}\\t{{.URL}}\\t{{.Swarm}}\\t{{.DockerVersion}}\\t{{.Error}}")
-         (data (shell-command-to-string (format "docker-machine ls %s" (format "--format=\"%s\"" fmt))))
+         (data (docker-machine-run "ls" docker-machine-ls-arguments (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
     (-map #'docker-machine-parse lines)))
 
@@ -218,6 +218,14 @@
   :default-arguments '("-y")
   :setup-function #'docker-utils-setup-popup)
 
+(magit-define-popup docker-machine-ls-popup
+  "Popup for listing machines."
+  'docker-machine
+  :man-page "docker-machine-ls"
+  :options   '((?f "Filter" "--filter ")
+               (?t "Timeout" "--timeout "))
+  :actions   `((?l "List" ,(docker-utils-set-then-call 'docker-machine-ls-arguments 'tablist-revert))))
+
 (magit-define-popup docker-machine-help-popup
   "Help popup for docker machine."
   'docker-machine
@@ -227,7 +235,8 @@
              (?E "Env"        docker-machine-env-popup)
              (?O "Stop"       docker-machine-stop-popup)
              (?R "Restart"    docker-machine-restart-popup)
-             (?S "Start"      docker-machine-start-popup)))
+             (?S "Start"      docker-machine-start-popup)
+             (?l "List"       docker-machine-ls-popup)))
 
 (defvar docker-machine-mode-map
   (let ((map (make-sparse-keymap)))
@@ -238,6 +247,7 @@
     (define-key map "O" 'docker-machine-stop-popup)
     (define-key map "R" 'docker-machine-restart-popup)
     (define-key map "S" 'docker-machine-start-popup)
+    (define-key map "l" 'docker-machine-ls-popup)
     map)
   "Keymap for `docker-machine-mode'.")
 

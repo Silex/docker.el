@@ -43,7 +43,7 @@
 
 (defun docker-volume-entries ()
   "Return the docker volumes data for `tabulated-list-entries'."
-  (let* ((data (docker-run "volume" "ls"))
+  (let* ((data (docker-run "volume" "ls" docker-volume-ls-arguments))
          (lines (cdr (s-split "\n" data t))))
     (-map #'docker-volume-parse lines)))
 
@@ -88,18 +88,27 @@
   :actions  '((?D "Remove" docker-volume-rm-selection))
   :setup-function #'docker-utils-setup-popup)
 
+(magit-define-popup docker-volume-ls-popup
+  "Popup for listing volumes."
+  'docker-volume
+  :man-page "docker-volume-ls"
+  :options   '((?f "Filter" "--filter "))
+  :actions   `((?l "List" ,(docker-utils-set-then-call 'docker-volume-ls-arguments 'tablist-revert))))
+
 (magit-define-popup docker-volume-help-popup
   "Help popup for docker volumes."
   'docker-volume
   :actions '("Docker volumes help"
              (?D "Remove"     docker-volume-rm-popup)
-             (?d "dired"      docker-volume-dired-selection)))
+             (?d "Dired"      docker-volume-dired-selection)
+             (?l "List"       docker-volume-ls-popup)))
 
 (defvar docker-volume-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "?" 'docker-volume-help-popup)
     (define-key map "D" 'docker-volume-rm-popup)
     (define-key map "d" 'docker-volume-dired-selection)
+    (define-key map "l" 'docker-volume-ls-popup)
     map)
   "Keymap for `docker-volume-mode'.")
 

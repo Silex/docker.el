@@ -43,7 +43,7 @@
 
 (defun docker-network-entries ()
   "Return the docker networks data for `tabulated-list-entries'."
-  (let* ((data (docker-run "network" "ls"))
+  (let* ((data (docker-run "network" "ls" docker-network-ls-arguments))
          (lines (cdr (s-split "\n" data t))))
     (-map #'docker-network-parse lines)))
 
@@ -75,16 +75,26 @@
   :actions  '((?D "Remove" docker-network-rm-selection))
   :setup-function #'docker-utils-popup-setup)
 
+(magit-define-popup docker-network-ls-popup
+  "Popup for listing networks."
+  'docker-network
+  :man-page "docker-network-ls"
+  :switches  '((?n "Don't truncate" "--no-trunc"))
+  :options   '((?f "Filter" "--filter "))
+  :actions   `((?l "List" ,(docker-utils-set-then-call 'docker-network-ls-arguments 'tablist-revert))))
+
 (magit-define-popup docker-network-help-popup
   "Help popup for docker networks."
   'docker-network
   :actions '("Docker networks help"
-             (?D "Remove"     docker-network-rm-popup)))
+             (?D "Remove"     docker-network-rm-popup)
+             (?l "List"       docker-network-ls-popup)))
 
 (defvar docker-network-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "?" 'docker-network-help-popup)
     (define-key map "D" 'docker-network-rm-popup)
+    (define-key map "l" 'docker-network-ls-popup)
     map)
   "Keymap for `docker-network-mode'.")
 

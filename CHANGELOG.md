@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Configurable listings.
 - Add options to the docker popup.
 - Browse volumes with dired.
 

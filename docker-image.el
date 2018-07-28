@@ -69,7 +69,7 @@ and FLIP is a boolean to specify the sort order."
 (defun docker-image-entries ()
   "Return the docker images data for `tabulated-list-entries'."
   (let* ((fmt "{{.Repository}}\\t{{.Tag}}\\t{{.ID}}\\t{{.CreatedAt}}\\t{{.Size}}")
-         (data (docker-run "images" (format "--format=\"%s\"" fmt)))
+         (data (docker-run "image ls" docker-image-ls-arguments (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
     (-map #'docker-image-parse lines)))
 
@@ -225,6 +225,16 @@ Do not delete untagged parents when NO-PRUNE is set."
   :actions  '((?R "Run images" docker-image-run-selection))
   :setup-function #'docker-utils-setup-popup)
 
+(magit-define-popup docker-image-ls-popup
+  "Popup for listing images."
+  'docker-image
+  :man-page "docker-image-ls"
+  :switches  '((?a "All" "--all")
+               (?d "Dangling" "-f dangling=true")
+               (?n "Don't truncate" "--no-trunc"))
+  :options   '((?f "Filter" "--filter "))
+  :actions   `((?l "List" ,(docker-utils-set-then-call 'docker-image-ls-arguments 'tablist-revert))))
+
 (magit-define-popup docker-image-help-popup
   "Help popup for docker images."
   'docker-image
@@ -234,7 +244,8 @@ Do not delete untagged parents when NO-PRUNE is set."
              (?I "Inspect" docker-image-inspect-popup)
              (?P "Push"    docker-image-push-popup)
              (?R "Run"     docker-image-run-popup)
-             (?T "Tag"     docker-image-tag-selection)))
+             (?T "Tag"     docker-image-tag-selection)
+             (?l "List"    docker-image-ls-popup)))
 
 (defvar docker-image-mode-map
   (let ((map (make-sparse-keymap)))
@@ -245,6 +256,7 @@ Do not delete untagged parents when NO-PRUNE is set."
     (define-key map "P" 'docker-image-push-popup)
     (define-key map "R" 'docker-image-run-popup)
     (define-key map "T" 'docker-image-tag-selection)
+    (define-key map "l" 'docker-image-ls-popup)
     map)
   "Keymap for `docker-image-mode'.")
 
