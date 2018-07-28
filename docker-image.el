@@ -56,13 +56,14 @@ and FLIP is a boolean to specify the sort order."
   "Convert a LINE from \"docker images\" to a `tabulated-list-entries' entry."
   (let* ((data (s-split "\t" line))
          (name (format "%s:%s" (nth 0 data) (nth 1 data))))
+    (setf (nth 3 data) (format-time-string "%F %T" (date-to-time (nth 3 data))))
     (list
      (if (s-contains? "<none>" name) (nth 2 data) name)
      (apply #'vector data))))
 
 (defun docker-image-entries ()
   "Return the docker images data for `tabulated-list-entries'."
-  (let* ((fmt "{{.Repository}}\\t{{.Tag}}\\t{{.ID}}\\t{{.CreatedSince}}\\t{{.Size}}")
+  (let* ((fmt "{{.Repository}}\\t{{.Tag}}\\t{{.ID}}\\t{{.CreatedAt}}\\t{{.Size}}")
          (data (docker-run "images" (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
     (-map #'docker-image-parse lines)))
@@ -252,7 +253,7 @@ Do not delete untagged parents when NO-PRUNE is set."
 
 (define-derived-mode docker-image-mode tabulated-list-mode "Images Menu"
   "Major mode for handling a list of docker images."
-  (setq tabulated-list-format [("Repository" 30 t)("Tag" 20 t)("Id" 16 t)("Created" 25 t)("Size" 10 docker-image-sort-size)])
+  (setq tabulated-list-format [("Repository" 30 t)("Tag" 20 t)("Id" 16 t)("Created" 23 t)("Size" 10 docker-image-sort-size)])
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key docker-image-default-sort-key)
   (add-hook 'tabulated-list-revert-hook 'docker-image-refresh nil t)

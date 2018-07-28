@@ -69,11 +69,12 @@ and FLIP is a boolean to specify the sort order."
         (setq data (json-read-from-string line))
       (json-readtable-error
        (error "Could not read following string as json:\n%s" line)))
+    (setf (aref data 3) (format-time-string "%F %T" (date-to-time (aref data 3))))
     (list (aref data 6) data)))
 
 (defun docker-container-entries ()
   "Return the docker containers data for `tabulated-list-entries'."
-  (let* ((fmt "[{{json .ID}},{{json .Image}},{{json .Command}},{{json .RunningFor}},{{json .Status}},{{json .Ports}},{{json .Names}}]")
+  (let* ((fmt "[{{json .ID}},{{json .Image}},{{json .Command}},{{json .CreatedAt}},{{json .Status}},{{json .Ports}},{{json .Names}}]")
          (data (docker-run "ps" (format "--format=\"%s\"" fmt) (when docker-container-show-all "-a ")))
          (lines (s-split "\n" data t)))
     (-map #'docker-container-parse lines)))
@@ -466,7 +467,7 @@ If FOLLOW is set, run in `async-shell-command'."
 
 (define-derived-mode docker-container-mode tabulated-list-mode "Containers Menu"
   "Major mode for handling a list of docker containers."
-  (setq tabulated-list-format [("Id" 16 t)("Image" 15 t)("Command" 30 t)("Created" 15 t)("Status" 20 t)("Ports" 10 t)("Names" 10 t)])
+  (setq tabulated-list-format [("Id" 16 t)("Image" 15 t)("Command" 30 t)("Created" 23 t)("Status" 20 t)("Ports" 10 t)("Names" 10 t)])
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key docker-container-default-sort-key)
   (add-hook 'tabulated-list-revert-hook 'docker-container-refresh nil t)
