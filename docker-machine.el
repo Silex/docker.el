@@ -53,8 +53,8 @@
   (completing-read "Machine: " (-map #'car (docker-machine-entries))))
 
 (defun docker-machine-run (action &rest args)
-  "Execute \"docker-machine ACTION\" passing arguments ARGS."
-  (let ((command (format "docker-machine %s %s" action (s-join " " (-non-nil args)))))
+  "Execute \"docker-machine ACTION\" using ARGS."
+  (let ((command (format "docker-machine %s %s" action (s-join " " (-flatten (-non-nil args))))))
     (message command)
     (shell-command-to-string command)))
 
