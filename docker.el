@@ -41,7 +41,7 @@
 (require 'docker-network)
 (require 'docker-volume)
 
-;;;###autoload
+;;;###autoload (autoload 'docker "docker" nil t)
 (magit-define-popup docker
   "Popup for docker."
   'docker
