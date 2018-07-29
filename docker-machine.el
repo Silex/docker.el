@@ -147,28 +147,28 @@
   "Run `docker-machine-start' on the machines selection."
   (interactive)
   (--each (docker-utils-get-marked-items-ids)
-    (docker-machine-run "start" (docker-machine-start-arguments)))
+    (docker-machine-run "start" (docker-machine-start-arguments) it))
   (tablist-revert))
 
 (defun docker-machine-stop-selection ()
   "Run `docker-machine-stop' on the machines selection."
   (interactive)
   (--each (docker-utils-get-marked-items-ids)
-    (docker-machine-run "stop" (docker-machine-stop-arguments)))
+    (docker-machine-run "stop" (docker-machine-stop-arguments) it))
   (tablist-revert))
 
 (defun docker-machine-restart-selection ()
   "Run `docker-machine-restart' on the machines selection."
   (interactive)
   (--each (docker-utils-get-marked-items-ids)
-    (docker-machine-run "restart" (docker-machine-restart-arguments)))
+    (docker-machine-run "restart" (docker-machine-restart-arguments) it))
   (tablist-revert))
 
 (defun docker-machine-rm-selection ()
   "Run `docker-machine-rm' on the machines selection."
   (interactive)
   (--each (docker-utils-get-marked-items-ids)
-    (docker-machine-run "rm" (docker-machine-rm-arguments)))
+    (docker-machine-run "rm" (docker-machine-rm-arguments) it))
   (tablist-revert))
 
 (defun docker-machine-env-selection ()
