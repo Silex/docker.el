@@ -24,11 +24,15 @@
 
 ;;; Code:
 
-(require 'docker)
-(require 'docker-utils)
-(require 'magit-popup)
-(require 'tablist)
+(require 's)
+(require 'dash)
 (require 'json)
+(require 'tablist)
+(require 'magit-popup)
+
+(require 'docker-group)
+(require 'docker-process)
+(require 'docker-utils)
 
 (defgroup docker-container nil
   "Docker container customization group."

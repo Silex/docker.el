@@ -23,10 +23,15 @@
 
 ;;; Code:
 
-(require 'docker)
-(require 'docker-utils)
-(require 'magit-popup)
+(require 's)
+(require 'dash)
+(require 'json)
 (require 'tablist)
+(require 'magit-popup)
+
+(require 'docker-group)
+(require 'docker-process)
+(require 'docker-utils)
 
 (defgroup docker-image nil
   "Docker images customization group."

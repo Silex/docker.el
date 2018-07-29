@@ -31,35 +31,15 @@
 
 ;;; Code:
 
-(require 's)
-(require 'dash)
 (require 'magit-popup)
+
+(require 'docker-group)
 (require 'docker-utils)
-
-(defgroup docker nil
-  "Docker customization group."
-  :group 'convenience)
-
-(defcustom docker-run-as-root nil
-  "Run docker as root."
-  :type 'boolean
-  :group 'docker)
-
-(defcustom docker-command "docker"
-  "The docker binary."
-  :type 'string
-  :group 'docker)
-
-(defun docker-run (action &rest args)
-  "Execute \"docker ACTION\" using ARGS."
-  (let ((default-directory (if (and docker-run-as-root (not (file-remote-p default-directory))) "/sudo::" default-directory)))
-    (let ((command (format "%s %s %s %s"
-                           docker-command
-                           (s-join " " docker-arguments)
-                           action
-                           (s-join " " (-flatten (-non-nil args))))))
-      (message command)
-      (shell-command-to-string command))))
+(require 'docker-container)
+(require 'docker-image)
+(require 'docker-machine)
+(require 'docker-network)
+(require 'docker-volume)
 
 ;;;###autoload
 (magit-define-popup docker
@@ -76,11 +56,5 @@
               (?M "Machines"   docker-machines)))
 
 (provide 'docker)
-
-(require 'docker-container)
-(require 'docker-image)
-(require 'docker-machine)
-(require 'docker-network)
-(require 'docker-volume)
 
 ;;; docker.el ends here

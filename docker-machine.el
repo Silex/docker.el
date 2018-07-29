@@ -23,10 +23,13 @@
 
 ;;; Code:
 
-(require 'docker)
-(require 'docker-utils)
-(require 'magit-popup)
+(require 's)
+(require 'dash)
 (require 'tablist)
+(require 'magit-popup)
+
+(require 'docker-group)
+(require 'docker-utils)
 
 (defgroup docker-machine nil
   "Docker machine customization group."

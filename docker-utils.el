@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 'dash)
+(require 'tramp)
 (require 'tablist)
 (require 'magit-popup)
 
