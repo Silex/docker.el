@@ -35,7 +35,7 @@
 (defcustom docker-arguments '()
   "Default arguments for `docker'."
   :group 'docker
-  :type 'list)
+  :type '(repeat (string :tag "Argument")))
 
 (defcustom docker-run-as-root nil
   "Run docker as root."

@@ -41,7 +41,7 @@
 (defcustom docker-container-ls-arguments '("--all")
   "Default arguments for `docker-container-ls-popup'."
   :group 'docker-container
-  :type 'list)
+  :type '(repeat (string :tag "Argument")))
 
 (defcustom docker-container-shell-file-name shell-file-name
   "Shell to use when entering containers.

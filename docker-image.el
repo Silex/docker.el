@@ -55,7 +55,7 @@ and FLIP is a boolean to specify the sort order."
 (defcustom docker-image-run-arguments '("-i" "-t" "--rm")
   "Default arguments for `docker-image-run-popup'."
   :group 'docker-image
-  :type 'list)
+  :type '(repeat (string :tag "Argument")))
 
 (defun docker-image-parse (line)
   "Convert a LINE from \"docker images\" to a `tabulated-list-entries' entry."
