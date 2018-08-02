@@ -27,15 +27,20 @@
 (require 'dash)
 (require 'docker-group)
 
-(defcustom docker-run-as-root nil
-  "Run docker as root."
-  :type 'boolean
-  :group 'docker)
-
 (defcustom docker-command "docker"
   "The docker binary."
-  :type 'string
-  :group 'docker)
+  :group 'docker
+  :type 'string)
+
+(defcustom docker-arguments '()
+  "Default arguments for `docker'."
+  :group 'docker
+  :type 'list)
+
+(defcustom docker-run-as-root nil
+  "Run docker as root."
+  :group 'docker
+  :type 'boolean)
 
 (defun docker-run (action &rest args)
   "Execute \"docker ACTION\" using ARGS."
