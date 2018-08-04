@@ -68,13 +68,6 @@
     (docker-run "network rm" it))
   (tablist-revert))
 
-(magit-define-popup docker-network-rm-popup
-  "Popup for removing networks."
-  'docker-network
-  :man-page "docker-network-rm"
-  :actions  '((?D "Remove" docker-network-rm-selection))
-  :setup-function #'docker-utils-popup-setup)
-
 (magit-define-popup docker-network-ls-popup
   "Popup for listing networks."
   'docker-network
@@ -82,6 +75,13 @@
   :switches  '((?n "Don't truncate" "--no-trunc"))
   :options   '((?f "Filter" "--filter "))
   :actions   `((?l "List" ,(docker-utils-set-then-call 'docker-network-ls-arguments 'tablist-revert))))
+
+(magit-define-popup docker-network-rm-popup
+  "Popup for removing networks."
+  'docker-network
+  :man-page "docker-network-rm"
+  :actions  '((?D "Remove" docker-network-rm-selection))
+  :setup-function #'docker-utils-popup-setup)
 
 (magit-define-popup docker-network-help-popup
   "Help popup for docker networks."

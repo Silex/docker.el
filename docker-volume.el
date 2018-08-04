@@ -56,23 +56,16 @@
   (completing-read "Volume: " (-map #'car (docker-volume-entries))))
 
 ;;;###autoload
-(defun docker-volume-rm (name)
-  "Destroy the volume named NAME."
-  (interactive (list (docker-volume-read-name)))
-  (docker-run "volume rm" name))
-
-;;;###autoload
 (defun docker-volume-dired (name)
   (interactive (list (docker-volume-read-name)))
   (let ((path (docker-run "inspect" "-f" "\"{{ .Mountpoint }}\"" name)))
     (dired (format "/sudo::%s" path))))
 
-(defun docker-volume-rm-selection ()
-  "Run \"docker volume rm\" on the volumes selection."
-  (interactive)
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-run "volume rm" it))
-  (tablist-revert))
+;;;###autoload
+(defun docker-volume-rm (name)
+  "Destroy the volume named NAME."
+  (interactive (list (docker-volume-read-name)))
+  (docker-run "volume rm" name))
 
 (defun docker-volume-dired-selection ()
   "Run `docker-volume-dired' on the volumes selection."
@@ -81,12 +74,12 @@
   (--each (docker-utils-get-marked-items-ids)
     (docker-volume-dired it)))
 
-(magit-define-popup docker-volume-rm-popup
-  "Popup for removing volumes."
-  'docker-volume
-  :man-page "docker-volume-rm"
-  :actions  '((?D "Remove" docker-volume-rm-selection))
-  :setup-function #'docker-utils-setup-popup)
+(defun docker-volume-rm-selection ()
+  "Run \"docker volume rm\" on the volumes selection."
+  (interactive)
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-run "volume rm" it))
+  (tablist-revert))
 
 (magit-define-popup docker-volume-ls-popup
   "Popup for listing volumes."
@@ -94,6 +87,13 @@
   :man-page "docker-volume-ls"
   :options   '((?f "Filter" "--filter "))
   :actions   `((?l "List" ,(docker-utils-set-then-call 'docker-volume-ls-arguments 'tablist-revert))))
+
+(magit-define-popup docker-volume-rm-popup
+  "Popup for removing volumes."
+  'docker-volume
+  :man-page "docker-volume-rm"
+  :actions  '((?D "Remove" docker-volume-rm-selection))
+  :setup-function #'docker-utils-setup-popup)
 
 (magit-define-popup docker-volume-help-popup
   "Help popup for docker volumes."

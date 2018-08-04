@@ -68,6 +68,28 @@
   (docker-machine-run "config" name))
 
 ;;;###autoload
+(defun docker-machine-create (name driver)
+  "Create a machine NAME using DRIVER."
+  (interactive "sName: \nsDriver: ")
+  (docker-machine-run "create" name "-d" driver))
+
+;;;###autoload
+(defun docker-machine-env (name)
+  "Parse and set environment variables from \"docker-machine env NAME\" output."
+  (interactive (list (docker-machine-read-name)))
+  (--each-while
+      (s-lines (docker-machine-run "env" name))
+      (s-prefix? "export" it)
+    (docker-machine-env-export it)))
+
+(defun docker-machine-env-export (line)
+  "Export the env for LINE."
+  (let ((index (s-index-of "=" line)))
+    (unless index
+      (error (format "Cannot find separator in %s" line)))
+    (setenv (substring line (length "export ") index) (substring line (+ 2 index) -1))))
+
+;;;###autoload
 (defun docker-machine-inspect (name)
   "Inspect information about the machine NAME."
   (interactive (list (docker-machine-read-name)))
@@ -80,56 +102,10 @@
   (docker-machine-run "ip" name))
 
 ;;;###autoload
-(defun docker-machine-status (name)
-  "Get the status of the machine NAME."
-  (interactive (list (docker-machine-read-name)))
-  (docker-machine-run "status" name))
-
-;;;###autoload
-(defun docker-machine-upgrade (name)
-  "Upgrade the machine NAME to the latest version of Docker."
-  (interactive (list (docker-machine-read-name)))
-  (docker-machine-run "upgrade" name))
-
-;;;###autoload
 (defun docker-machine-kill (name)
   "Kill the machine NAME."
   (interactive (list (docker-machine-read-name)))
   (docker-machine-run "kill" name))
-
-;;;###autoload
-(defun docker-machine-create (name driver)
-  "Create a machine NAME using DRIVER."
-  (interactive "sName: \nsDriver: ")
-  (docker-machine-run "create" name "-d" driver))
-
-;;;###autoload
-(defun docker-machine-start (name)
-  "Start the machine NAME."
-  (interactive (list (docker-machine-read-name)))
-  (docker-machine-run "start" name))
-
-(defun docker-machine-env-export (line)
-  "Export the env for LINE."
-  (let ((index (s-index-of "=" line)))
-    (unless index
-      (error (format "Cannot find separator in %s" line)))
-    (setenv (substring line (length "export ") index) (substring line (+ 2 index) -1))))
-
-;;;###autoload
-(defun docker-machine-env (name)
-  "Parse and set environment variables from \"docker-machine env NAME\" output."
-  (interactive (list (docker-machine-read-name)))
-  (--each-while
-      (s-lines (docker-machine-run "env" name))
-      (s-prefix? "export" it)
-    (docker-machine-env-export it)))
-
-;;;###autoload
-(defun docker-machine-stop (name)
-  "Stop the machine NAME."
-  (interactive (list (docker-machine-read-name) current-prefix-arg))
-  (docker-machine-run "stop" name))
 
 ;;;###autoload
 (defun docker-machine-restart (name)
@@ -143,19 +119,38 @@
   (interactive (list (docker-machine-read-name) current-prefix-arg))
   (docker-machine-run "rm" (when force "--force") name))
 
-(defun docker-machine-start-selection ()
-  "Run `docker-machine-start' on the machines selection."
-  (interactive)
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-machine-run "start" (docker-machine-start-arguments) it))
-  (tablist-revert))
+;;;###autoload
+(defun docker-machine-start (name)
+  "Start the machine NAME."
+  (interactive (list (docker-machine-read-name)))
+  (docker-machine-run "start" name))
 
-(defun docker-machine-stop-selection ()
-  "Run `docker-machine-stop' on the machines selection."
+;;;###autoload
+(defun docker-machine-status (name)
+  "Get the status of the machine NAME."
+  (interactive (list (docker-machine-read-name)))
+  (docker-machine-run "status" name))
+
+;;;###autoload
+(defun docker-machine-stop (name)
+  "Stop the machine NAME."
+  (interactive (list (docker-machine-read-name) current-prefix-arg))
+  (docker-machine-run "stop" name))
+
+;;;###autoload
+(defun docker-machine-upgrade (name)
+  "Upgrade the machine NAME to the latest version of Docker."
+  (interactive (list (docker-machine-read-name)))
+  (docker-machine-run "upgrade" name))
+
+(defun docker-machine-env-selection ()
+  "Run \"docker-machine env\" on selected machine."
   (interactive)
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-machine-run "stop" (docker-machine-stop-arguments) it))
-  (tablist-revert))
+  (let ((marked (docker-utils-get-marked-items-ids)))
+    (when (/= (length marked) 1)
+      (error "Can only set environment vars for one machine at a time"))
+    (docker-machine-env (car marked))
+    (tablist-revert)))
 
 (defun docker-machine-restart-selection ()
   "Run `docker-machine-restart' on the machines selection."
@@ -171,21 +166,19 @@
     (docker-machine-run "rm" (docker-machine-rm-arguments) it))
   (tablist-revert))
 
-(defun docker-machine-env-selection ()
-  "Run \"docker-machine env\" on selected machine."
+(defun docker-machine-start-selection ()
+  "Run `docker-machine-start' on the machines selection."
   (interactive)
-  (let ((marked (docker-utils-get-marked-items-ids)))
-    (when (/= (length marked) 1)
-      (error "Can only set environment vars for one machine at a time"))
-    (docker-machine-env (car marked))
-    (tablist-revert)))
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-machine-run "start" (docker-machine-start-arguments) it))
+  (tablist-revert))
 
-(magit-define-popup docker-machine-start-popup
-  "Popup for starting machines."
-  'docker-machine
-  :man-page "docker-machine-start"
-  :actions  '((?S "Start" docker-machine-start-selection))
-  :setup-function #'docker-utils-setup-popup)
+(defun docker-machine-stop-selection ()
+  "Run `docker-machine-stop' on the machines selection."
+  (interactive)
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-machine-run "stop" (docker-machine-stop-arguments) it))
+  (tablist-revert))
 
 (magit-define-popup docker-machine-env-popup
   "Popup for setting up environment variables."
@@ -194,12 +187,13 @@
   :actions '((?E "Env" docker-machine-env-selection))
   :setup-function #'docker-utils-setup-popup)
 
-(magit-define-popup docker-machine-stop-popup
-  "Popup for stoping machines."
+(magit-define-popup docker-machine-ls-popup
+  "Popup for listing machines."
   'docker-machine
-  :man-page "docker-machine-stop"
-  :actions '((?O "Stop" docker-machine-stop-selection))
-  :setup-function #'docker-utils-setup-popup)
+  :man-page "docker-machine-ls"
+  :options   '((?f "Filter" "--filter ")
+               (?t "Timeout" "--timeout "))
+  :actions   `((?l "List" ,(docker-utils-set-then-call 'docker-machine-ls-arguments 'tablist-revert))))
 
 (magit-define-popup docker-machine-restart-popup
   "Popup for restarting machines."
@@ -218,13 +212,19 @@
   :default-arguments '("-y")
   :setup-function #'docker-utils-setup-popup)
 
-(magit-define-popup docker-machine-ls-popup
-  "Popup for listing machines."
+(magit-define-popup docker-machine-start-popup
+  "Popup for starting machines."
   'docker-machine
-  :man-page "docker-machine-ls"
-  :options   '((?f "Filter" "--filter ")
-               (?t "Timeout" "--timeout "))
-  :actions   `((?l "List" ,(docker-utils-set-then-call 'docker-machine-ls-arguments 'tablist-revert))))
+  :man-page "docker-machine-start"
+  :actions  '((?S "Start" docker-machine-start-selection))
+  :setup-function #'docker-utils-setup-popup)
+
+(magit-define-popup docker-machine-stop-popup
+  "Popup for stoping machines."
+  'docker-machine
+  :man-page "docker-machine-stop"
+  :actions '((?O "Stop" docker-machine-stop-selection))
+  :setup-function #'docker-utils-setup-popup)
 
 (magit-define-popup docker-machine-help-popup
   "Help popup for docker machine."

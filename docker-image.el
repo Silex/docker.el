@@ -123,12 +123,13 @@ Do not delete untagged parents when NO-PRUNE is set."
   (interactive (list (docker-image-read-name) (read-string "Name: ")))
   (docker-run "tag" image name))
 
-(defun docker-image-rm-selection ()
-  "Run \"docker rmi\" on the images selection."
+(defun docker-image-inspect-selection ()
+  "Run \"docker inspect\" on the images selection."
   (interactive)
   (--each (docker-utils-get-marked-items-ids)
-    (docker-run "rmi" (docker-image-rm-arguments) it))
-  (tablist-revert))
+    (docker-utils-with-buffer (format "inspect %s" it)
+      (insert (docker-run "inspect" (docker-image-inspect-arguments) it))
+      (json-mode))))
 
 (defun docker-image-pull-selection ()
   "Run \"docker pull\" on the images selection."
@@ -143,6 +144,13 @@ Do not delete untagged parents when NO-PRUNE is set."
   (--each (docker-utils-get-marked-items-ids)
     (docker-run "push" (docker-image-push-arguments) it)))
 
+(defun docker-image-rm-selection ()
+  "Run \"docker rmi\" on the images selection."
+  (interactive)
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-run "rmi" (docker-image-rm-arguments) it))
+  (tablist-revert))
+
 (defun docker-image-run-selection (command)
   "Run \"docker run\" on the images selection."
   (interactive "sCommand: ")
@@ -155,14 +163,6 @@ Do not delete untagged parents when NO-PRUNE is set."
        (format "%s run %s %s %s" docker-command (s-join " " (docker-image-run-arguments)) it command)
        (format "*run %s*" it)))))
 
-(defun docker-image-inspect-selection ()
-  "Run \"docker inspect\" on the images selection."
-  (interactive)
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-utils-with-buffer (format "inspect %s" it)
-      (insert (docker-run "inspect" (docker-image-inspect-arguments) it))
-      (json-mode))))
-
 (defun docker-image-tag-selection ()
   "Tag images."
   (interactive)
@@ -171,14 +171,22 @@ Do not delete untagged parents when NO-PRUNE is set."
     (docker-tag it (read-string (format "Tag for %s: " it))))
   (tablist-revert))
 
-(magit-define-popup docker-image-rm-popup
-  "Popup for removing images."
+(magit-define-popup docker-image-inspect-popup
+  "Popup for inspecting images."
   'docker-image
-  :man-page "docker-rmi"
-  :switches '((?f "Force" "-f")
-              (?n "Don't prune" "--no-prune"))
-  :actions  '((?D "Remove" docker-image-rm-selection))
+  :man-page "docker-inspect"
+  :actions  '((?I "Inspect" docker-image-inspect-selection))
   :setup-function #'docker-utils-setup-popup)
+
+(magit-define-popup docker-image-ls-popup
+  "Popup for listing images."
+  'docker-image
+  :man-page "docker-image-ls"
+  :switches  '((?a "All" "--all")
+               (?d "Dangling" "-f dangling=true")
+               (?n "Don't truncate" "--no-trunc"))
+  :options   '((?f "Filter" "--filter "))
+  :actions   `((?l "List" ,(docker-utils-set-then-call 'docker-image-ls-arguments 'tablist-revert))))
 
 (magit-define-popup docker-image-pull-popup
   "Popup for pulling images."
@@ -195,11 +203,13 @@ Do not delete untagged parents when NO-PRUNE is set."
   :actions  '((?P "Push" docker-image-push-selection))
   :setup-function #'docker-utils-setup-popup)
 
-(magit-define-popup docker-image-inspect-popup
-  "Popup for inspecting images."
+(magit-define-popup docker-image-rm-popup
+  "Popup for removing images."
   'docker-image
-  :man-page "docker-inspect"
-  :actions  '((?I "Inspect" docker-image-inspect-selection))
+  :man-page "docker-rmi"
+  :switches '((?f "Force" "-f")
+              (?n "Don't prune" "--no-prune"))
+  :actions  '((?D "Remove" docker-image-rm-selection))
   :setup-function #'docker-utils-setup-popup)
 
 (magit-define-popup docker-image-run-popup
@@ -224,16 +234,6 @@ Do not delete untagged parents when NO-PRUNE is set."
               (?n "entrypoint" "--entrypoint "))
   :actions  '((?R "Run images" docker-image-run-selection))
   :setup-function #'docker-utils-setup-popup)
-
-(magit-define-popup docker-image-ls-popup
-  "Popup for listing images."
-  'docker-image
-  :man-page "docker-image-ls"
-  :switches  '((?a "All" "--all")
-               (?d "Dangling" "-f dangling=true")
-               (?n "Don't truncate" "--no-trunc"))
-  :options   '((?f "Filter" "--filter "))
-  :actions   `((?l "List" ,(docker-utils-set-then-call 'docker-image-ls-arguments 'tablist-revert))))
 
 (magit-define-popup docker-image-help-popup
   "Help popup for docker images."
