@@ -206,8 +206,8 @@
   "Popup for removing machines."
   'docker-machine
   :man-page "docker-machine-rm"
-  :switches '((?y "Automatic yes" "-y")
-              (?f "Force" "-f"))
+  :switches '((?f "Force" "-f")
+              (?y "Automatic yes" "-y"))
   :actions  '((?D "Remove" docker-machine-rm-selection))
   :default-arguments '("-y")
   :setup-function #'docker-utils-setup-popup)
