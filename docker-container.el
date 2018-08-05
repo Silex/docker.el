@@ -337,8 +337,8 @@ TIMEOUT is the number of seconds to wait for the container to stop before killin
   "Popup for copying files from/to containers."
   'docker-container
   :man-page "docker-cp"
-  :actions  '((?F "Copy From" docker-container-cp-from-selection)
-              (?T "Copy To" docker-container-cp-to-selection))
+  :actions  '((?f "Copy From" docker-container-cp-from-selection)
+              (?t "Copy To" docker-container-cp-to-selection))
   :setup-function #'docker-utils-setup-popup)
 
 (magit-define-popup docker-container-diff-popup
