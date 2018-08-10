@@ -223,7 +223,7 @@ Do not delete untagged parents when NO-PRUNE is set."
               (?i "Interactive" "-i")
               (?o "Read only" "--read-only")
               (?p "Privileged" "--privileged")
-              (?r "Remove" "--rm")
+              (?r "Remove container when it exits" "--rm")
               (?t "TTY" "-t"))
   :options  '((?e "environment" "-e ")
               (?m "name" "--name ")
