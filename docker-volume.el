@@ -36,6 +36,18 @@
   "Docker volume customization group."
   :group 'docker)
 
+(defcustom docker-volume-default-sort-key '("Driver" . nil)
+  "Sort key for docker volumes.
+
+This should be a cons cell (NAME . FLIP) where
+NAME is a string matching one of the column names
+and FLIP is a boolean to specify the sort order."
+  :group 'docker-volume
+  :type '(cons (choice (const "Driver")
+                       (const "Name"))
+               (choice (const :tag "Ascending" nil)
+                       (const :tag "Descending" t))))
+
 (defun docker-volume-parse (line)
   "Convert a LINE from \"docker volume ls\" to a `tabulated-list-entries' entry."
   (let ((data (s-split " \\{3,15\\}" line t)))
@@ -124,7 +136,7 @@
   "Major mode for handling a list of docker volumes."
   (setq tabulated-list-format [("Driver" 10 t)("Name" 10 t)])
   (setq tabulated-list-padding 2)
-  (setq tabulated-list-sort-key (cons "Driver" nil))
+  (setq tabulated-list-sort-key docker-volume-default-sort-key)
   (add-hook 'tabulated-list-revert-hook 'docker-volume-refresh nil t)
   (tabulated-list-init-header)
   (tablist-minor-mode))

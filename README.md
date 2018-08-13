@@ -122,13 +122,16 @@ After having selected some machines, you can do the following actions:
 
 ## Customizations
 
-| Variable                           | Description                           | Default          |
-|------------------------------------|---------------------------------------|------------------|
-| docker-command                     | The docker binary to use              | `docker`         |
-| docker-container-default-sort-key  | Sort key for docker containers        | `("Image")`      |
-| docker-container-shell-file-name   | Shell to use when entering containers | `/bin/bash`      |
-| docker-image-default-sort-key      | Sort key for docker images            | `("Repository")` |
-| docker-run-as-root                 | Run docker as root                    | `nil`            |
+| Variable                          | Description                           | Default          |
+|-----------------------------------|---------------------------------------|------------------|
+| docker-command                    | The docker binary to use              | `docker`         |
+| docker-container-default-sort-key | Sort key for docker containers        | `("Image")`      |
+| docker-container-shell-file-name  | Shell to use when entering containers | `/bin/bash`      |
+| docker-image-default-sort-key     | Sort key for docker images            | `("Repository")` |
+| docker-machine-default-sort-key   | Sort key for docker machines          | `("Name")`       |
+| docker-network-default-sort-key   | Sort key for docker networks          | `("Name")`       |
+| docker-run-as-root                | Run docker as root                    | `nil`            |
+| docker-volume-default-sort-key    | Sort key for docker volumes           | `("Driver")`     |
 
 ## FAQ
 

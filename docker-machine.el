@@ -35,6 +35,24 @@
   "Docker machine customization group."
   :group 'docker)
 
+(defcustom docker-machine-default-sort-key '("Name" . nil)
+  "Sort key for docker machines.
+
+This should be a cons cell (NAME . FLIP) where
+NAME is a string matching one of the column names
+and FLIP is a boolean to specify the sort order."
+  :group 'docker-machine
+  :type '(cons (choice (const "Name")
+                       (const "Active")
+                       (const "Driver")
+                       (const "State")
+                       (const "URL")
+                       (const "Swarm")
+                       (const "Docker")
+                       (const "Errors"))
+               (choice (const :tag "Ascending" nil)
+                       (const :tag "Descending" t))))
+
 (defun docker-machine-parse (line)
   "Convert a LINE from \"docker machine ls\" to a `tabulated-list-entries' entry."
   (let ((data (s-split "\t" line)))
@@ -263,7 +281,7 @@
   "Major mode for handling a list of docker machines."
   (setq tabulated-list-format [("Name" 16 t)("Active" 7 t)("Driver" 12 t)("State" 12 t)("URL" 30 t)("Swarm" 10 t)("Docker" 10 t)("Errors" 10 t)])
   (setq tabulated-list-padding 2)
-  (setq tabulated-list-sort-key (cons "Name" nil))
+  (setq tabulated-list-sort-key docker-machine-default-sort-key)
   (add-hook 'tabulated-list-revert-hook 'docker-machine-refresh nil t)
   (tabulated-list-init-header)
   (tablist-minor-mode))

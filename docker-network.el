@@ -36,6 +36,19 @@
   "Docker network customization group."
   :group 'docker)
 
+(defcustom docker-network-default-sort-key '("Name" . nil)
+  "Sort key for docker networks.
+
+This should be a cons cell (NAME . FLIP) where
+NAME is a string matching one of the column names
+and FLIP is a boolean to specify the sort order."
+  :group 'docker-network
+  :type '(cons (choice (const "Network ID")
+                       (const "Name")
+                       (const "Driver"))
+               (choice (const :tag "Ascending" nil)
+                       (const :tag "Descending" t))))
+
 (defun docker-network-parse (line)
   "Convert a LINE from \"docker network ls\" to a `tabulated-list-entries' entry."
   (let ((data (s-split " \\{3,\\}" line t)))
@@ -110,7 +123,7 @@
   "Major mode for handling a list of docker networks."
   (setq tabulated-list-format [("Network ID" 20 t)("Name" 50 t)("Driver" 10 t)])
   (setq tabulated-list-padding 2)
-  (setq tabulated-list-sort-key (cons "Name" nil))
+  (setq tabulated-list-sort-key docker-network-default-sort-key)
   (add-hook 'tabulated-list-revert-hook 'docker-network-refresh nil t)
   (tabulated-list-init-header)
   (tablist-minor-mode))
