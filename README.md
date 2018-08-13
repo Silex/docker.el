@@ -3,20 +3,19 @@
 
 # docker.el
 
-* [Installation](#installation)
-* [Quickstart](#quickstart)
-* [Screenshots](#screenshots)
-  * [images](#images)
-* [Commands](#commands)
-  * [docker-images](#docker-images)
-  * [docker-containers](#docker-containers)
-  * [docker-volumes](#docker-volumes)
-  * [docker-networks](#docker-networks)
-  * [docker-machines](#docker-machines)
-* [Customizations](#customizations)
-* [FAQ](#faq)
-  * [How to use docker-machine under OSX?](#how-to-use-docker-machine-under-osx)
-* [Contributions](#contributions)
+Emacs integration for [Docker](https://www.docker.com)!
+
+Supports docker containers, images, volumes, networks, docker-machine and docker-compose.
+
+## Screenshots
+
+### List images
+
+![Images list](screenshots/image-ls.png)
+
+### Image run popup
+
+![Image run popup](screenshots/image-run.png)
 
 ## Installation
 
@@ -32,95 +31,57 @@ Here is a example [use-package](https://github.com/jwiegley/use-package) configu
 
 ## Quickstart
 
-Use <kbd>M-x docker</kbd>, select a resource then then mark/unmark items using the following keybindings:
+Use <kbd>M-x docker</kbd>, select a resource then then mark or unmark items using the following keybindings (for more
+marking possibilities, check out https://github.com/politza/tablist):
 
-| Keymap             | Description          |
+| Binding            | Description          |
 |--------------------|----------------------|
+| <kbd>?</kbd>       | List actions         |
+| <kbd>l</kbd>       | Configure listing    |
+| <kbd>m</kbd>       | Mark item            |
+| <kbd>u</kbd>       | Unmark item          |
+| <kbd>t</kbd>       | Toggle marks         |
+| <kbd>U</kbd>       | Unmark all           |
+| <kbd>s</kbd>       | Sort                 |
 | <kbd>* r</kbd>     | Mark items by regexp |
 | <kbd><</kbd>       | Shrink column        |
 | <kbd>></kbd>       | Enlarge column       |
 | <kbd>C-c C-e</kbd> | Export to csv        |
-| <kbd>U</kbd>       | Unmark all           |
-| <kbd>m</kbd>       | Mark item            |
-| <kbd>s</kbd>       | Sort                 |
-| <kbd>t</kbd>       | Toggle marks         |
-| <kbd>u</kbd>       | Unmark item          |
 
-You can press `?` on all the listing to see the available actions. Also check out https://github.com/politza/tablist
-to find more about the marking possibilities.
+Then select an action and follow the popup instructions.
 
-## Screenshots
+## Supported commands
 
-### images
-
-![docker.el screenshot](screenshots/images.png)
-
-## Commands
-
-### docker-images
-
-<kbd>M-x docker-images</kbd> lists the docker images.
-After having selected some images, you can do the following actions:
-
-- `D`: rmi
-- `F`: pull
-- `I`: inspect
-- `P`: push
-- `R`: run
-- `T`: tag
-* `l`: Configure listing
-
-### docker-containers
-
-Running <kbd>M-x docker-containers</kbd> lists the docker containers.
-After having selected some containers, you can do the following actions:
-
-* `C`: cp
-* `D`: rm
-* `I`: inspect
-* `K`: kill
-* `L`: logs
-* `O`: stop
-* `P`: pause/unpause
-* `R`: restart
-* `S`: start
-* `b`: shell
-* `d`: diff
-* `f`: find-file
-* `l`: Configure listing
-* `r`: rename
-
-### docker-volumes
-
-Running <kbd>M-x docker-volumes</kbd> lists the docker volumes.
-After having selected some volumes, you can do the following actions:
-
-* `D`: rm
-* `d`: dired
-* `l`: Configure listing
-
-### docker-networks
-
-Running <kbd>M-x docker-networks</kbd> lists the docker networks.
-After having selected some networks, you can do the following actions:
-
-* `D`: rm
-* `l`: Configure listing
-
-### docker-machines
-
-Running <kbd>M-x docker-machines</kbd> lists the docker machines.
-After having selected some machines, you can do the following actions:
-
-* `C`: create
-* `D`: rm
-* `E`: env
-* `O`: stop
-* `R`: restart
-* `S`: start
-* `l`: Configure listing
+- docker container: cp, diff, inspect, kill, logs, pause, rename, restart, rm, start, stop, unpause
+- docker image: inspect, pull, push, rm, tag
+- docker network: rm
+- docker volume: rm
+- docker-machine: create, env, restart, rm, start, stop
+- docker-compose: build, create, logs, pull, push, remove, restart, run, start, stop, up
 
 ## Customizations
+
+### Popups
+
+Thanks to [magit-popup](https://github.com/magit/magit-popup), all the popups default arguments can be customized. For
+example, here is how to customize the arguments for `docker-image-run-popup`:
+
+``` elisp
+(setq docker-image-run-arguments '("-i" "-t" "--rm"))
+```
+
+or inside a use-package declaration:
+
+``` elisp
+(use-package docker
+  :ensure t
+  :bind ("C-c d" . docker)
+  :custom (docker-image-run-arguments '("-i" "-t" "--rm")))
+```
+
+You can also customize these using <kbd>M-x customize-variable</kbd>.
+
+### Others
 
 | Variable                          | Description                           | Default          |
 |-----------------------------------|---------------------------------------|------------------|
