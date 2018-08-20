@@ -152,7 +152,7 @@ Do not delete untagged parents when NO-PRUNE is set."
     (--each (docker-utils-get-marked-items-ids)
       (async-shell-command
        (format "%s run %s %s %s" docker-command (s-join " " (docker-image-run-arguments)) it command)
-       (format "*run %s*" it)))))
+       (generate-new-buffer (format "*run %s*" it))))))
 
 (defun docker-image-tag-selection ()
   "Tag images."

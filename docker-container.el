@@ -101,7 +101,7 @@ and FLIP is a boolean to specify the sort order."
                             (format "/%s:%s|" method host))
                         "/"))
          (default-directory (format "%s%s" file-prefix container-address))
-         (eshell-buffer-name (format "*eshell %s*" default-directory)))
+         (eshell-buffer-name (generate-new-buffer-name (format "*eshell %s*" default-directory))))
     (eshell)))
 
 ;;;###autoload
@@ -137,7 +137,7 @@ and FLIP is a boolean to specify the sort order."
                             (format "/%s:%s|" method host))
                         "/"))
          (default-directory (format "%s%s" file-prefix container-address)))
-    (shell (format "*shell %s*" default-directory))))
+    (shell (generate-new-buffer (format "*shell %s*" default-directory)))))
 
 ;;;###autoload
 (defun docker-diff (name)
@@ -167,7 +167,9 @@ and FLIP is a boolean to specify the sort order."
 If FOLLOW is set, run in `async-shell-command'."
   (interactive (list (docker-container-read-name)))
   (if follow
-      (async-shell-command (format "%s logs -f %s" docker-command name) (format "* docker logs %s *" name))
+      (async-shell-command
+       (format "%s logs -f %s" docker-command name)
+       (generate-new-buffer (format "* docker logs %s *" name)))
     (docker-utils-with-buffer (format "logs %s" name)
       (insert (docker-run "logs" name)))))
 
@@ -275,7 +277,7 @@ TIMEOUT is the number of seconds to wait for the container to stop before killin
   (--each (docker-utils-get-marked-items-ids)
     (async-shell-command
      (format "%s logs %s %s" docker-command (s-join " " (docker-container-logs-arguments)) it)
-     (format "* docker logs %s *" it))))
+     (generate-new-buffer (format "* docker logs %s *" it)))))
 
 (defun docker-container-pause-selection ()
   "Run `docker-pause' on the containers selection."
