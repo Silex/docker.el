@@ -1,10 +1,13 @@
 # Changelog
 
-## Unreleased
+## 1.0.0 (2018-09-14)
 
+- Support docker-compose.
 - Configurable listings.
 - Add options to the docker popup.
 - Browse volumes with dired.
+- Add default sort key for machine, networks and volumes.
+- Various improvements.
 
 ## 0.7.0 (2018-07-02)
 
