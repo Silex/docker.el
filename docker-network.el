@@ -25,6 +25,7 @@
 
 (require 's)
 (require 'dash)
+(require 'json)
 (require 'tablist)
 (require 'magit-popup)
 
@@ -51,13 +52,17 @@ and FLIP is a boolean to specify the sort order."
 
 (defun docker-network-parse (line)
   "Convert a LINE from \"docker network ls\" to a `tabulated-list-entries' entry."
-  (let ((data (s-split " \\{3,\\}" line t)))
-    (list (nth 1 data) (apply #'vector data))))
+  (condition-case nil
+      (let ((data (json-read-from-string line)))
+        (list (aref data 1) data))
+    (json-readtable-error
+     (error "Could not read following string as json:\n%s" line))))
 
 (defun docker-network-entries ()
   "Return the docker networks data for `tabulated-list-entries'."
-  (let* ((data (docker-run "network" "ls" docker-network-ls-arguments))
-         (lines (cdr (s-split "\n" data t))))
+  (let* ((fmt "[{{json .ID}},{{json .Name}},{{json .Driver}},{{json .Scope}}]")
+         (data (docker-run "network ls" docker-network-ls-arguments (format "--format=\"%s\"" fmt)))
+         (lines (s-split "\n" data t)))
     (-map #'docker-network-parse lines)))
 
 (defun docker-network-refresh ()
@@ -121,7 +126,7 @@ and FLIP is a boolean to specify the sort order."
 
 (define-derived-mode docker-network-mode tabulated-list-mode "Networks Menu"
   "Major mode for handling a list of docker networks."
-  (setq tabulated-list-format [("Network ID" 20 t)("Name" 50 t)("Driver" 10 t)])
+  (setq tabulated-list-format [("Network ID" 20 t)("Name" 50 t)("Driver" 10 t)("Scope" 10 t)])
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key docker-network-default-sort-key)
   (add-hook 'tabulated-list-revert-hook 'docker-network-refresh nil t)

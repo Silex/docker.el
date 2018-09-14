@@ -58,17 +58,18 @@ and FLIP is a boolean to specify the sort order."
   :type '(repeat (string :tag "Argument")))
 
 (defun docker-image-parse (line)
-  "Convert a LINE from \"docker images\" to a `tabulated-list-entries' entry."
-  (let* ((data (s-split "\t" line))
-         (name (format "%s:%s" (nth 0 data) (nth 1 data))))
-    (setf (nth 3 data) (format-time-string "%F %T" (date-to-time (nth 3 data))))
-    (list
-     (if (s-contains? "<none>" name) (nth 2 data) name)
-     (apply #'vector data))))
+  "Convert a LINE from \"docker image ls\" to a `tabulated-list-entries' entry."
+  (condition-case nil
+      (let* ((data (json-read-from-string line))
+             (name (format "%s:%s" (aref data 0) (aref data 1))))
+        (setf (aref data 3) (format-time-string "%F %T" (date-to-time (aref data 3))))
+        (list (if (s-contains? "<none>" name) (aref data 2) name) data))
+    (json-readtable-error
+     (error "Could not read following string as json:\n%s" line))))
 
 (defun docker-image-entries ()
   "Return the docker images data for `tabulated-list-entries'."
-  (let* ((fmt "{{.Repository}}\\t{{.Tag}}\\t{{.ID}}\\t{{.CreatedAt}}\\t{{.Size}}")
+  (let* ((fmt "[{{json .Repository}},{{json .Tag}},{{json .ID}},{{json .CreatedAt}},{{json .Size}}]")
          (data (docker-run "image ls" docker-image-ls-arguments (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
     (-map #'docker-image-parse lines)))

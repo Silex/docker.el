@@ -67,14 +67,13 @@ and FLIP is a boolean to specify the sort order."
                        (const :tag "Descending" t))))
 
 (defun docker-container-parse (line)
-  "Convert a LINE from \"docker ps\" to a `tabulated-list-entries' entry."
-  (let (data)
-    (condition-case nil
-        (setq data (json-read-from-string line))
-      (json-readtable-error
-       (error "Could not read following string as json:\n%s" line)))
-    (setf (aref data 3) (format-time-string "%F %T" (date-to-time (aref data 3))))
-    (list (aref data 6) data)))
+  "Convert a LINE from \"docker container ls\" to a `tabulated-list-entries' entry."
+  (condition-case nil
+      (let ((data (json-read-from-string line)))
+        (setf (aref data 3) (format-time-string "%F %T" (date-to-time (aref data 3))))
+        (list (aref data 6) data))
+    (json-readtable-error
+     (error "Could not read following string as json:\n%s" line))))
 
 (defun docker-container-entries ()
   "Return the docker containers data for `tabulated-list-entries'."

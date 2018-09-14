@@ -25,6 +25,7 @@
 
 (require 's)
 (require 'dash)
+(require 'json)
 (require 'tablist)
 (require 'magit-popup)
 
@@ -50,13 +51,17 @@ and FLIP is a boolean to specify the sort order."
 
 (defun docker-volume-parse (line)
   "Convert a LINE from \"docker volume ls\" to a `tabulated-list-entries' entry."
-  (let ((data (s-split " \\{3,15\\}" line t)))
-    (list (nth 1 data) (apply #'vector data))))
+  (condition-case nil
+      (let ((data (json-read-from-string line)))
+        (list (aref data 1) data))
+    (json-readtable-error
+     (error "Could not read following string as json:\n%s" line))))
 
 (defun docker-volume-entries ()
   "Return the docker volumes data for `tabulated-list-entries'."
-  (let* ((data (docker-run "volume" "ls" docker-volume-ls-arguments))
-         (lines (cdr (s-split "\n" data t))))
+  (let* ((fmt "[{{json .Driver}},{{json .Name}}]")
+         (data (docker-run "volume ls" docker-volume-ls-arguments (format "--format=\"%s\"" fmt)))
+         (lines (s-split "\n" data t)))
     (-map #'docker-volume-parse lines)))
 
 (defun docker-volume-refresh ()
