@@ -160,6 +160,66 @@
   (interactive (list (docker-compose-read-services-names) (docker-compose-up-arguments)))
   (docker-compose--run-async "up" args services))
 
+;;;###autoload
+(defun docker-compose-build-all (args)
+  "Run \"docker-compose build\" using ARGS."
+  (interactive (list (docker-compose-build-arguments)))
+  (docker-compose--run-async "build" args))
+
+;;;###autoload
+(defun docker-compose-create-all (args)
+  "Run \"docker-compose create\" using ARGS."
+  (interactive (list (docker-compose-create-arguments)))
+  (docker-compose--run-async "create" args))
+
+;;;###autoload
+(defun docker-compose-logs-all (args)
+  "Run \"docker-compose logs\" using ARGS."
+  (interactive (list (docker-compose-logs-arguments)))
+  (docker-compose--run-async "logs" args))
+
+;;;###autoload
+(defun docker-compose-pull-all (args)
+  "Run \"docker-compose pull\" using ARGS."
+  (interactive (list (docker-compose-pull-arguments)))
+  (docker-compose--run "pull" args))
+
+;;;###autoload
+(defun docker-compose-push-all (args)
+  "Run \"docker-compose push\" using ARGS."
+  (interactive (list (docker-compose-push-arguments)))
+  (docker-compose--run "push" args))
+
+;;;###autoload
+(defun docker-compose-restart-all (args)
+  "Run \"docker-compose restart\" using ARGS."
+  (interactive (list (docker-compose-restart-arguments)))
+  (docker-compose--run "restart" args))
+
+;;;###autoload
+(defun docker-compose-rm-all (args)
+  "Run \"docker-compose rm\" using ARGS."
+  (interactive (list (docker-compose-rm-arguments)))
+  (docker-compose--run "rm" args))
+
+;;;###autoload
+(defun docker-compose-start-all (args)
+  "Run \"docker-compose start\" using ARGS."
+  (interactive (list (docker-compose-start-arguments)))
+  (docker-compose--run "start" args))
+
+;;;###autoload
+(defun docker-compose-stop-all (args)
+  "Run \"docker-compose stop\" using ARGS."
+  (interactive (list (docker-compose-stop-arguments)))
+  (docker-compose--run "stop" args))
+
+;;;###autoload
+(defun docker-compose-up-all (args)
+  "Run \"docker-compose up\" using ARGS."
+  (interactive (list (docker-compose-up-arguments)))
+  (docker-compose--run-async "up" args))
+
 (magit-define-popup docker-compose-build-popup
   "Popup for \"docker-compose build\"."
   'docker-compose
@@ -170,7 +230,8 @@
               (?p "Attempt to pull a newer version of the image" "--pull"))
   :options  '((?b "Build argument" "--build-arg ")
               (?m "Memory limit" "--memory "))
-  :actions  '((?B "Build" docker-compose-build)))
+  :actions  '((?B "Build" docker-compose-build)
+              (?A "Build All" docker-compose-build-all)))
 
 (magit-define-popup docker-compose-create-popup
   "Popup for \"docker-compose create\"."
@@ -179,7 +240,8 @@
   :switches '((?b "Build" "--build")
               (?f "Force recreate" "--force-recreate")
               (?n "No recreate" "--no-recreate"))
-  :actions  '((?C "Create" docker-compose-create)))
+  :actions  '((?C "Create" docker-compose-create)
+              (?A "Create All" docker-compose-create-all)))
 
 (magit-define-popup docker-compose-logs-popup
   "Popup for \"docker-compose logs\"."
@@ -189,7 +251,8 @@
               (?n "No color" "--no-color")
               (?t "Timestamps" "--timestamps"))
   :options  '((?T "Tail" "--tail="))
-  :actions  '((?L "Logs" docker-compose-logs)))
+  :actions  '((?L "Logs" docker-compose-logs)
+              (?A "Logs All" docker-compose-logs-all)))
 
 (magit-define-popup docker-compose-pull-popup
   "Popup for \"docker-compose pull\"."
@@ -198,21 +261,24 @@
   :switches '((?d "Include dependencies" "--include-deps")
               (?i "Ignore pull failures" "--ignore-pull-failures")
               (?n "No parallel" "--no-parallel"))
-  :actions  '((?F "Pull" docker-compose-pull)))
+  :actions  '((?F "Pull" docker-compose-pull)
+              (?A "Pull All" docker-compose-pull-all)))
 
 (magit-define-popup docker-compose-push-popup
   "Popup for \"docker-compose push\"."
   'docker-compose
   :man-page "docker-compose push"
   :switches '((?i "Ignore push failures" "--ignore-push-failures"))
-  :actions  '((?P "Push" docker-compose-push)))
+  :actions  '((?P "Push" docker-compose-push)
+              (?A "Push All" docker-compose-push-all)))
 
 (magit-define-popup docker-compose-restart-popup
   "Popup for \"docker-compose restart\"."
   'docker-compose
   :man-page "docker-compose restart"
   :options  '((?t "Timeout" "--timeout "))
-  :actions  '((?R "Restart" docker-compose-restart)))
+  :actions  '((?R "Restart" docker-compose-restart)
+              (?A "Restart All" docker-compose-restart-all)))
 
 (magit-define-popup docker-compose-rm-popup
   "Popup for \"docker-compose rm\"."
@@ -221,7 +287,8 @@
   :switches '((?f "Force" "--force")
               (?s "Stop" "--stop")
               (?v "Remove anonymous volumes" "-v"))
-  :actions  '((?D "Remove" docker-compose-rm)))
+  :actions  '((?D "Remove" docker-compose-rm)
+              (?A "Remove All" docker-compose-rm-all)))
 
 (magit-define-popup docker-compose-run-popup
   "Popup for \"docker-compose run\"."
@@ -244,14 +311,16 @@
   "Popup for \"docker-compose start\"."
   'docker-compose
   :man-page "docker-compose start"
-  :actions  '((?S "Start" docker-compose-start)))
+  :actions  '((?S "Start" docker-compose-start)
+              (?A "Start All" docker-compose-start-all)))
 
 (magit-define-popup docker-compose-stop-popup
   "Popup for \"docker-compose stop\"."
   'docker-compose
   :man-page "docker-compose stop"
   :options  '((?t "Timeout" "--timeout "))
-  :actions  '((?O "Stop" docker-compose-stop)))
+  :actions  '((?O "Stop" docker-compose-stop)
+              (?A "Stop All" docker-compose-stop-all)))
 
 (magit-define-popup docker-compose-up-popup
   "Popup for \"docker-compose up\"."
@@ -264,7 +333,8 @@
               (?r "Remove orphans" "--remove-orphans"))
   :options  '((?c "Scale" "--scale ")
               (?t "Timeout" "--timeout "))
-  :actions  '((?U "Up" docker-compose-up)))
+  :actions  '((?U "Up" docker-compose-up)
+              (?A "Up All" docker-compose-up-all)))
 
 ;;;###autoload (autoload 'docker-compose "docker-compose" nil t)
 (magit-define-popup docker-compose
