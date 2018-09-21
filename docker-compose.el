@@ -180,7 +180,8 @@
   :switches '((?f "Follow" "--follow")
               (?n "No color" "--no-color")
               (?t "Timestamps" "--timestamps"))
-  :options  '((?s "Services" ""))
+  :options  '((?T "Tail" "--tail=")
+              (?s "Services" ""))
   :actions  '((?L "Logs" docker-compose-logs)))
 
 (magit-define-popup docker-compose-pull-popup
