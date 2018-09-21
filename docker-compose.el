@@ -101,6 +101,12 @@
   (docker-compose--run-async "build" args services))
 
 ;;;###autoload
+(defun docker-compose-create (services args)
+  "Run \"docker-compose create SERVICES\" using ARGS."
+  (interactive (list (docker-compose-read-services-names) (docker-compose-create-arguments)))
+  (docker-compose--run-async "create" args services))
+
+;;;###autoload
 (defun docker-compose-logs (services args)
   "Run \"docker-compose logs\" using ARGS."
   (interactive (list (docker-compose-read-services-names) (docker-compose-logs-arguments)))
