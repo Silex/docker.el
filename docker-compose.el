@@ -96,7 +96,7 @@
 
 ;;;###autoload
 (defun docker-compose-build (services args)
-  "Run \"docker-compose build\" using ARGS."
+  "Run \"docker-compose build SERVICES\" using ARGS."
   (interactive (list (docker-compose-read-services-names) (docker-compose-build-arguments)))
   (docker-compose--run-async "build" args services))
 
@@ -108,55 +108,55 @@
 
 ;;;###autoload
 (defun docker-compose-logs (services args)
-  "Run \"docker-compose logs\" using ARGS."
+  "Run \"docker-compose logs SERVICES\" using ARGS."
   (interactive (list (docker-compose-read-services-names) (docker-compose-logs-arguments)))
   (docker-compose--run-async "logs" args services))
 
 ;;;###autoload
 (defun docker-compose-pull (services args)
-  "Run \"docker-compose pull\" using ARGS."
+  "Run \"docker-compose pull SERVICES\" using ARGS."
   (interactive (list (docker-compose-read-services-names) (docker-compose-pull-arguments)))
   (docker-compose--run "pull" args services))
 
 ;;;###autoload
 (defun docker-compose-push (services args)
-  "Run \"docker-compose push\" using ARGS."
+  "Run \"docker-compose push SERVICES\" using ARGS."
   (interactive (list (docker-compose-read-services-names) (docker-compose-push-arguments)))
   (docker-compose--run "push" args services))
 
 ;;;###autoload
 (defun docker-compose-restart (services args)
-  "Run \"docker-compose restart\" using ARGS."
+  "Run \"docker-compose restart SERVICES\" using ARGS."
   (interactive (list (docker-compose-read-services-names) (docker-compose-restart-arguments)))
   (docker-compose--run "restart" args services))
 
 ;;;###autoload
 (defun docker-compose-rm (services args)
-  "Run \"docker-compose rm\" using ARGS."
+  "Run \"docker-compose rm SERVICES\" using ARGS."
   (interactive (list (docker-compose-read-services-names) (docker-compose-rm-arguments)))
   (docker-compose--run "rm" args services))
 
 ;;;###autoload
 (defun docker-compose-run (service command args)
-  "Run \"docker-compose run\" using ARGS."
+  "Run \"docker-compose run SERVICE COMMAND\" using ARGS."
   (interactive (list (docker-compose-read-service-name) (read-string "Command: ") (docker-compose-run-arguments)))
   (docker-compose--run-async "run" args service command))
 
 ;;;###autoload
 (defun docker-compose-start (services args)
-  "Run \"docker-compose start\" using ARGS."
+  "Run \"docker-compose start SERVICES\" using ARGS."
   (interactive (list (docker-compose-read-services-names) (docker-compose-start-arguments)))
   (docker-compose--run "start" args services))
 
 ;;;###autoload
 (defun docker-compose-stop (services args)
-  "Run \"docker-compose stop\" using ARGS."
+  "Run \"docker-compose stop SERVICES\" using ARGS."
   (interactive (list (docker-compose-read-services-names) (docker-compose-stop-arguments)))
   (docker-compose--run "stop" args services))
 
 ;;;###autoload
 (defun docker-compose-up (services args)
-  "Run \"docker-compose up\" using ARGS."
+  "Run \"docker-compose up SERVICES\" using ARGS."
   (interactive (list (docker-compose-read-services-names) (docker-compose-up-arguments)))
   (docker-compose--run-async "up" args services))
 
