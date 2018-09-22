@@ -82,6 +82,10 @@
   "Return the list of services."
   (s-split "\n" (docker-compose--run "config" "--services") t))
 
+(defun docker-compose-read-services-names ()
+  "Read the services names."
+  (read-string (format "Services (%s or RET): " (s-join "," (docker-compose-services)))))
+
 (defun docker-compose-read-service-name ()
   "Read one service name."
   (completing-read "Service: " (docker-compose-services)))
@@ -91,62 +95,128 @@
   (completing-read "Level: " '(DEBUG INFO WARNING ERROR CRITICAL)))
 
 ;;;###autoload
-(defun docker-compose-build (args)
-  "Run \"docker-compose build\" using ARGS."
-  (interactive (list (docker-compose-build-arguments)))
-  (docker-compose--run-async "build" args))
+(defun docker-compose-build (services args)
+  "Run \"docker-compose build ARGS SERVICES\"."
+  (interactive (list (docker-compose-read-services-names) (docker-compose-build-arguments)))
+  (docker-compose--run-async "build" args services))
 
 ;;;###autoload
-(defun docker-compose-logs (args)
-  "Run \"docker-compose logs\" using ARGS."
-  (interactive (list (docker-compose-logs-arguments)))
-  (docker-compose--run-async "logs" args))
+(defun docker-compose-create (services args)
+  "Run \"docker-compose create ARGS SERVICES\"."
+  (interactive (list (docker-compose-read-services-names) (docker-compose-create-arguments)))
+  (docker-compose--run-async "create" args services))
 
 ;;;###autoload
-(defun docker-compose-pull (args)
-  "Run \"docker-compose pull\" using ARGS."
-  (interactive (list (docker-compose-pull-arguments)))
-  (docker-compose--run "pull" args))
+(defun docker-compose-logs (services args)
+  "Run \"docker-compose logs ARGS SERVICES\"."
+  (interactive (list (docker-compose-read-services-names) (docker-compose-logs-arguments)))
+  (docker-compose--run-async "logs" args services))
 
 ;;;###autoload
-(defun docker-compose-push (args)
-  "Run \"docker-compose push\" using ARGS."
-  (interactive (list (docker-compose-push-arguments)))
-  (docker-compose--run "push" args))
+(defun docker-compose-pull (services args)
+  "Run \"docker-compose pull ARGS SERVICES\"."
+  (interactive (list (docker-compose-read-services-names) (docker-compose-pull-arguments)))
+  (docker-compose--run "pull" args services))
 
 ;;;###autoload
-(defun docker-compose-restart (args)
-  "Run \"docker-compose restart\" using ARGS."
-  (interactive (list (docker-compose-restart-arguments)))
-  (docker-compose--run "restart" args))
+(defun docker-compose-push (services args)
+  "Run \"docker-compose push ARGS SERVICES\"."
+  (interactive (list (docker-compose-read-services-names) (docker-compose-push-arguments)))
+  (docker-compose--run "push" args services))
 
 ;;;###autoload
-(defun docker-compose-rm (args)
-  "Run \"docker-compose rm\" using ARGS."
-  (interactive (list (docker-compose-rm-arguments)))
-  (docker-compose--run "rm" args))
+(defun docker-compose-restart (services args)
+  "Run \"docker-compose restart ARGS SERVICES\"."
+  (interactive (list (docker-compose-read-services-names) (docker-compose-restart-arguments)))
+  (docker-compose--run "restart" args services))
+
+;;;###autoload
+(defun docker-compose-rm (services args)
+  "Run \"docker-compose rm ARGS SERVICES\"."
+  (interactive (list (docker-compose-read-services-names) (docker-compose-rm-arguments)))
+  (docker-compose--run "rm" args services))
 
 ;;;###autoload
 (defun docker-compose-run (service command args)
-  "Run \"docker-compose run\" using ARGS."
+  "Run \"docker-compose run SERVICE COMMAND\" using ARGS."
   (interactive (list (docker-compose-read-service-name) (read-string "Command: ") (docker-compose-run-arguments)))
   (docker-compose--run-async "run" args service command))
 
 ;;;###autoload
-(defun docker-compose-start (args)
-  "Run \"docker-compose start\" using ARGS."
+(defun docker-compose-start (services args)
+  "Run \"docker-compose start ARGS SERVICES\"."
+  (interactive (list (docker-compose-read-services-names) (docker-compose-start-arguments)))
+  (docker-compose--run "start" args services))
+
+;;;###autoload
+(defun docker-compose-stop (services args)
+  "Run \"docker-compose stop ARGS SERVICES\"."
+  (interactive (list (docker-compose-read-services-names) (docker-compose-stop-arguments)))
+  (docker-compose--run "stop" args services))
+
+;;;###autoload
+(defun docker-compose-up (services args)
+  "Run \"docker-compose up ARGS SERVICES\"."
+  (interactive (list (docker-compose-read-services-names) (docker-compose-up-arguments)))
+  (docker-compose--run-async "up" args services))
+
+;;;###autoload
+(defun docker-compose-build-all (args)
+  "Run \"docker-compose build ARGS\"."
+  (interactive (list (docker-compose-build-arguments)))
+  (docker-compose--run-async "build" args))
+
+;;;###autoload
+(defun docker-compose-create-all (args)
+  "Run \"docker-compose create ARGS\"."
+  (interactive (list (docker-compose-create-arguments)))
+  (docker-compose--run-async "create" args))
+
+;;;###autoload
+(defun docker-compose-logs-all (args)
+  "Run \"docker-compose logs ARGS\"."
+  (interactive (list (docker-compose-logs-arguments)))
+  (docker-compose--run-async "logs" args))
+
+;;;###autoload
+(defun docker-compose-pull-all (args)
+  "Run \"docker-compose pull ARGS\"."
+  (interactive (list (docker-compose-pull-arguments)))
+  (docker-compose--run "pull" args))
+
+;;;###autoload
+(defun docker-compose-push-all (args)
+  "Run \"docker-compose push ARGS\"."
+  (interactive (list (docker-compose-push-arguments)))
+  (docker-compose--run "push" args))
+
+;;;###autoload
+(defun docker-compose-restart-all (args)
+  "Run \"docker-compose restart ARGS\"."
+  (interactive (list (docker-compose-restart-arguments)))
+  (docker-compose--run "restart" args))
+
+;;;###autoload
+(defun docker-compose-rm-all (args)
+  "Run \"docker-compose rm ARGS\"."
+  (interactive (list (docker-compose-rm-arguments)))
+  (docker-compose--run "rm" args))
+
+;;;###autoload
+(defun docker-compose-start-all (args)
+  "Run \"docker-compose start ARGS\"."
   (interactive (list (docker-compose-start-arguments)))
   (docker-compose--run "start" args))
 
 ;;;###autoload
-(defun docker-compose-stop (args)
-  "Run \"docker-compose stop\" using ARGS."
+(defun docker-compose-stop-all (args)
+  "Run \"docker-compose stop ARGS\"."
   (interactive (list (docker-compose-stop-arguments)))
   (docker-compose--run "stop" args))
 
 ;;;###autoload
-(defun docker-compose-up (args)
-  "Run \"docker-compose up\" using ARGS."
+(defun docker-compose-up-all (args)
+  "Run \"docker-compose up ARGS\"."
   (interactive (list (docker-compose-up-arguments)))
   (docker-compose--run-async "up" args))
 
@@ -159,9 +229,9 @@
               (?n "Do not use cache" "--no-cache")
               (?p "Attempt to pull a newer version of the image" "--pull"))
   :options  '((?b "Build argument" "--build-arg ")
-              (?m "Memory limit" "--memory ")
-              (?s "Services" ""))
-  :actions  '((?B "Build" docker-compose-build)))
+              (?m "Memory limit" "--memory "))
+  :actions  '((?B "Build" docker-compose-build)
+              (?A "Build All" docker-compose-build-all)))
 
 (magit-define-popup docker-compose-create-popup
   "Popup for \"docker-compose create\"."
@@ -170,8 +240,8 @@
   :switches '((?b "Build" "--build")
               (?f "Force recreate" "--force-recreate")
               (?n "No recreate" "--no-recreate"))
-  :options  '((?s "Services" ""))
-  :actions  '((?C "Create" docker-compose-create)))
+  :actions  '((?C "Create" docker-compose-create)
+              (?A "Create All" docker-compose-create-all)))
 
 (magit-define-popup docker-compose-logs-popup
   "Popup for \"docker-compose logs\"."
@@ -180,9 +250,9 @@
   :switches '((?f "Follow" "--follow")
               (?n "No color" "--no-color")
               (?t "Timestamps" "--timestamps"))
-  :options  '((?T "Tail" "--tail=")
-              (?s "Services" ""))
-  :actions  '((?L "Logs" docker-compose-logs)))
+  :options  '((?T "Tail" "--tail="))
+  :actions  '((?L "Logs" docker-compose-logs)
+              (?A "Logs All" docker-compose-logs-all)))
 
 (magit-define-popup docker-compose-pull-popup
   "Popup for \"docker-compose pull\"."
@@ -191,24 +261,24 @@
   :switches '((?d "Include dependencies" "--include-deps")
               (?i "Ignore pull failures" "--ignore-pull-failures")
               (?n "No parallel" "--no-parallel"))
-  :options  '((?s "Services" ""))
-  :actions  '((?F "Pull" docker-compose-pull)))
+  :actions  '((?F "Pull" docker-compose-pull)
+              (?A "Pull All" docker-compose-pull-all)))
 
 (magit-define-popup docker-compose-push-popup
   "Popup for \"docker-compose push\"."
   'docker-compose
   :man-page "docker-compose push"
   :switches '((?i "Ignore push failures" "--ignore-push-failures"))
-  :options  '((?s "Services" ""))
-  :actions  '((?P "Push" docker-compose-push)))
+  :actions  '((?P "Push" docker-compose-push)
+              (?A "Push All" docker-compose-push-all)))
 
 (magit-define-popup docker-compose-restart-popup
   "Popup for \"docker-compose restart\"."
   'docker-compose
   :man-page "docker-compose restart"
-  :options  '((?t "Timeout" "--timeout ")
-              (?s "Services" ""))
-  :actions  '((?R "Restart" docker-compose-restart)))
+  :options  '((?t "Timeout" "--timeout "))
+  :actions  '((?R "Restart" docker-compose-restart)
+              (?A "Restart All" docker-compose-restart-all)))
 
 (magit-define-popup docker-compose-rm-popup
   "Popup for \"docker-compose rm\"."
@@ -217,8 +287,8 @@
   :switches '((?f "Force" "--force")
               (?s "Stop" "--stop")
               (?v "Remove anonymous volumes" "-v"))
-  :options  '((?s "Services" ""))
-  :actions  '((?D "Remove" docker-compose-rm)))
+  :actions  '((?D "Remove" docker-compose-rm)
+              (?A "Remove All" docker-compose-rm-all)))
 
 (magit-define-popup docker-compose-run-popup
   "Popup for \"docker-compose run\"."
@@ -241,16 +311,16 @@
   "Popup for \"docker-compose start\"."
   'docker-compose
   :man-page "docker-compose start"
-  :options  '((?s "Services" ""))
-  :actions  '((?S "Start" docker-compose-start)))
+  :actions  '((?S "Start" docker-compose-start)
+              (?A "Start All" docker-compose-start-all)))
 
 (magit-define-popup docker-compose-stop-popup
   "Popup for \"docker-compose stop\"."
   'docker-compose
   :man-page "docker-compose stop"
-  :options  '((?t "Timeout" "--timeout ")
-              (?s "Services" ""))
-  :actions  '((?O "Stop" docker-compose-stop)))
+  :options  '((?t "Timeout" "--timeout "))
+  :actions  '((?O "Stop" docker-compose-stop)
+              (?A "Stop All" docker-compose-stop-all)))
 
 (magit-define-popup docker-compose-up-popup
   "Popup for \"docker-compose up\"."
@@ -262,9 +332,9 @@
               (?n "No deps" "--no-deps")
               (?r "Remove orphans" "--remove-orphans"))
   :options  '((?c "Scale" "--scale ")
-              (?t "Timeout" "--timeout ")
-              (?s "Services" ""))
-  :actions  '((?U "Up" docker-compose-up)))
+              (?t "Timeout" "--timeout "))
+  :actions  '((?U "Up" docker-compose-up)
+              (?A "Up All" docker-compose-up-all)))
 
 ;;;###autoload (autoload 'docker-compose "docker-compose" nil t)
 (magit-define-popup docker-compose
