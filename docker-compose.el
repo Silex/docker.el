@@ -113,6 +113,12 @@
   (docker-compose--run-async "down" args services))
 
 ;;;###autoload
+(defun docker-compose-exec (service command args)
+  "Run \"docker-compose exec ARGS SERVICE COMMAND\"."
+  (interactive (list (docker-compose-read-service-name) (read-string "Command: ") (docker-compose-exec-arguments)))
+  (docker-compose--run-async "exec" args service command))
+
+;;;###autoload
 (defun docker-compose-logs (services args)
   "Run \"docker-compose logs ARGS SERVICES\"."
   (interactive (list (docker-compose-read-services-names) (docker-compose-logs-arguments)))
@@ -205,6 +211,18 @@
   :actions  `((?W "Down" docker-compose-down)
               (?A "All services" ,(docker-compose--all docker-compose-down))))
 
+(magit-define-popup docker-compose-exec-popup
+  "Popup for \"docker-compose exec\"."
+  'docker-compose
+  :man-page "docker-compose exec"
+  :switches '((?T "Disable pseudo-tty" "-T")
+              (?d "Detach" "--detach")
+              (?p "Privileged" "--privileged"))
+  :options  '((?e "Env KEY=VAL" "-e ")
+              (?u "User " "--user ")
+              (?w "Workdir" "--workdir "))
+  :actions  '((?X "Exec" docker-compose-exec)))
+
 (magit-define-popup docker-compose-logs-popup
   "Popup for \"docker-compose logs\"."
   'docker-compose
@@ -262,7 +280,7 @@
               (?r "Remove container when it exits" "--rm")
               (?s "Enable services ports" "--service-ports"))
   :options  '((?E "Entrypoint" "--entrypoint ")
-              (?e "Environment" "-e ")
+              (?e "Env KEY=VAL" "-e ")
               (?l "Label" "--label ")
               (?n "Name" "--name ")
               (?u "User " "--user ")
@@ -323,7 +341,8 @@
               (?S "Start"      ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-start-popup))
               (?T "Restart"    ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-restart-popup))
               (?U "Up"         ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-up-popup))
-              (?W "Down"       ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-down-popup))))
+              (?W "Down"       ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-down-popup))
+              (?X "Exec"       ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-exec-popup))))
 
 (provide 'docker-compose)
 
