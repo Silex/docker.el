@@ -107,6 +107,12 @@
   (docker-compose--run-async "create" args services))
 
 ;;;###autoload
+(defun docker-compose-down (services args)
+  "Run \"docker-compose down ARGS SERVICES\"."
+  (interactive (list (docker-compose-read-services-names) (docker-compose-down-arguments)))
+  (docker-compose--run-async "down" args services))
+
+;;;###autoload
 (defun docker-compose-logs (services args)
   "Run \"docker-compose logs ARGS SERVICES\"."
   (interactive (list (docker-compose-read-services-names) (docker-compose-logs-arguments)))
@@ -188,6 +194,16 @@
               (?n "No recreate" "--no-recreate"))
   :actions  `((?C "Create" docker-compose-create)
               (?A "All services" ,(docker-compose--all docker-compose-create))))
+
+(magit-define-popup docker-compose-down-popup
+  "Popup for \"docker-compose down\"."
+  'docker-compose
+  :man-page "docker-compose down"
+  :switches '((?o "Remove orphans" "--remove-orphans")
+              (?v "Remove volumes" "--volumes"))
+  :options  '((?t "Timeout" "--timeout "))
+  :actions  `((?W "Down" docker-compose-down)
+              (?A "All services" ,(docker-compose--all docker-compose-down))))
 
 (magit-define-popup docker-compose-logs-popup
   "Popup for \"docker-compose logs\"."
@@ -306,7 +322,8 @@
               (?R "Run"        ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-run-popup))
               (?S "Start"      ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-start-popup))
               (?T "Restart"    ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-restart-popup))
-              (?U "Up"         ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-up-popup))))
+              (?U "Up"         ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-up-popup))
+              (?W "Down"       ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-down-popup))))
 
 (provide 'docker-compose)
 
