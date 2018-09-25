@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0 (2018-09-25)
+
+- Add docker-compose exec.
+- Add docker-compose down.
+- Add docker-compose create.
+- Add separate docker-compose action for all services.
+- Add tail option to docker-compose logs.
+
 ## 1.0.0 (2018-09-14)
 
 - Support docker-compose.
