@@ -57,7 +57,7 @@ Then select an action and follow the popup instructions.
 - docker network: rm
 - docker volume: rm
 - docker-machine: create, env, restart, rm, start, stop
-- docker-compose: build, create, logs, pull, push, remove, restart, run, start, stop, up
+- docker-compose: build, create, down, exec, logs, pull, push, remove, restart, run, start, stop, up
 
 ## Customizations
 
