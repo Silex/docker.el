@@ -257,7 +257,7 @@
   'docker-compose
   :man-page "docker-compose restart"
   :options  '((?t "Timeout" "--timeout "))
-  :actions  `((?R "Restart" docker-compose-restart)
+  :actions  `((?T "Restart" docker-compose-restart)
               (?A "All services" ,(docker-compose--all docker-compose-restart))))
 
 (magit-define-popup docker-compose-rm-popup
