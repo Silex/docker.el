@@ -90,9 +90,17 @@
   "Read one service name."
   (completing-read "Service: " (docker-compose-services)))
 
-(defun docker-compose-read-log-level-name (&rest _ignore)
+(defun docker-compose-read-log-level (&rest _ignore)
   "Read the docker-compose log level."
   (completing-read "Level: " '(DEBUG INFO WARNING ERROR CRITICAL)))
+
+(defun docker-compose-read-directory (&rest _ignore)
+  "Wrapper around `read-directory-name'."
+  (read-directory-name "Directory: "))
+
+(defun docker-compose-read-compose-file (&rest _ignore)
+  "Wrapper around `read-file-name'."
+  (read-file-name "Compose file: " nil nil t nil (apply-partially 'string-match ".*\\.yml")))
 
 ;;;###autoload
 (defun docker-compose-build (services args)
@@ -324,10 +332,10 @@
   :switches '((?a "No ANSI" "--no-ansi")
               (?c "Compatibility" "--compatibility")
               (?v "Verbose" "--verbose"))
-  :options  '((?d "Project directory" "--project-directory " docker-utils-read-directory-name)
-              (?f "Compose file" "--file ")
+  :options  `((?d "Project directory" "--project-directory " docker-compose-read-directory)
+              (?f "Compose file" "--file " docker-compose-read-compose-file)
               (?h "Host" "--host ")
-              (?l "Log level" "--log-level " docker-compose-read-log-level-name)
+              (?l "Log level" "--log-level " docker-compose-read-log-level)
               (?p "Project name" "--project-name "))
   :actions  `("Docker-compose"
               (?B "Build"      ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-build-popup))
