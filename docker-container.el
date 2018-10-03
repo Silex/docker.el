@@ -250,7 +250,7 @@ TIMEOUT is the number of seconds to wait for the container to stop before killin
     (docker-container-eshell it)))
 
 (defun docker-container-find-file-selection (path)
-  "Run `docker-container-find-file' on the containers selection."
+  "Run `docker-container-find-file' for PATH on the containers selection."
   (interactive "sPath: ")
   (--each (docker-utils-get-marked-items-ids)
     (docker-container-find-file it path)))

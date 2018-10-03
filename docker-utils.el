@@ -44,6 +44,7 @@
   (-map #'car (docker-utils-get-marked-items)))
 
 (defun docker-utils-setup-popup (val def)
+  "Ensure something is selected then pass VAL and DEF to `magit-popup-default-setup'."
   (magit-with-pre-popup-buffer (docker-utils-select-if-empty))
   (magit-popup-default-setup val def))
 
@@ -70,7 +71,7 @@ ARG is unused here, but is required by `add-function'."
 
 (defmacro docker-utils-with-buffer (name &rest body)
   "Wrapper around `with-current-buffer'.
-Execute BODY in a buffer."
+Execute BODY in a buffer named with the help of NAME."
   (declare (indent defun))
   `(with-current-buffer (generate-new-buffer (format "* docker - %s *" ,name))
      (setq buffer-read-only nil)

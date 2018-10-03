@@ -74,6 +74,7 @@ and FLIP is a boolean to specify the sort order."
 
 ;;;###autoload
 (defun docker-volume-dired (name)
+  "Enter `dired' in the volume named NAME."
   (interactive (list (docker-volume-read-name)))
   (let ((path (docker-run "inspect" "-f" "\"{{ .Mountpoint }}\"" name)))
     (dired (format "/sudo::%s" path))))

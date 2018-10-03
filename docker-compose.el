@@ -36,7 +36,7 @@
   :group 'docker)
 
 (defcustom docker-compose-arguments '()
-  "Arguments to use when calling \"docker-compose\""
+  "Arguments to use when calling \"docker-compose\"."
   :group 'docker-compose
   :type '(repeat (string :tag "Argument")))
 
@@ -69,7 +69,7 @@
     (list (car data) (apply #'vector data))))
 
 (defun docker-compose-entries ()
-  "Returns the docker compose data for `tabulated-list-entries'."
+  "Return the docker compose data for `tabulated-list-entries'."
   (let* ((data (docker-compose--run "ps"))
          (lines (-slice (s-split "\n" data t) 2)))
     (-map #'docker-compose-parse lines)))
@@ -181,7 +181,7 @@
   (docker-compose--run-async "up" args services))
 
 (defmacro docker-compose--all (command)
-  "Returns a lambda running COMMAND for all services."
+  "Return a lambda running COMMAND for all services."
   `(lambda (args)
      (interactive (list (,(intern (format "%s-arguments" command)))))
      (,command nil args)))

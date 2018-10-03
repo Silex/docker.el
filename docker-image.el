@@ -144,7 +144,7 @@ Do not delete untagged parents when NO-PRUNE is set."
   (tablist-revert))
 
 (defun docker-image-run-selection (command)
-  "Run \"docker run\" on the images selection."
+  "Run \"docker run\" with COMMAND on the images selection."
   (interactive "sCommand: ")
   (let ((default-directory (if (and docker-run-as-root
                                     (not (file-remote-p default-directory)))
