@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.1 (2018-10-03)
+
+- Fix docker-compose restart binding.
+
 ## 1.1.0 (2018-09-25)
 
 - Add docker-compose exec.
