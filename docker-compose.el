@@ -229,7 +229,7 @@
   :options  '((?e "Env KEY=VAL" "-e ")
               (?u "User " "--user ")
               (?w "Workdir" "--workdir "))
-  :actions  '((?X "Exec" docker-compose-exec)))
+  :actions  '((?E "Exec" docker-compose-exec)))
 
 (magit-define-popup docker-compose-logs-popup
   "Popup for \"docker-compose logs\"."
@@ -341,6 +341,7 @@
               (?B "Build"      ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-build-popup))
               (?C "Create"     ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-create-popup))
               (?D "Remove"     ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-rm-popup))
+              (?E "Exec"       ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-exec-popup))
               (?F "Pull"       ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-pull-popup))
               (?L "Logs"       ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-logs-popup))
               (?O "Stop"       ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-stop-popup))
@@ -349,8 +350,7 @@
               (?S "Start"      ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-start-popup))
               (?T "Restart"    ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-restart-popup))
               (?U "Up"         ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-up-popup))
-              (?W "Down"       ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-down-popup))
-              (?X "Exec"       ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-exec-popup))))
+              (?W "Down"       ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-down-popup))))
 
 (provide 'docker-compose)
 
