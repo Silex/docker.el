@@ -52,7 +52,7 @@ Then select an action and follow the popup instructions.
 
 ## Supported commands
 
-- docker container: cp, diff, inspect, kill, logs, pause, rename, restart, rm, start, stop, unpause
+- docker container: attach, cp, diff, inspect, kill, logs, pause, rename, restart, rm, start, stop, unpause
 - docker image: inspect, pull, push, rm, tag
 - docker network: rm
 - docker volume: rm
