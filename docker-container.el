@@ -91,6 +91,12 @@ and FLIP is a boolean to specify the sort order."
   (completing-read "Container: " (-map #'car (docker-container-entries))))
 
 ;;;###autoload
+(defun docker-container-attach (container args)
+  "Run \"docker attach ARGS CONTAINER\"."
+  (interactive (list (docker-compose-read-name) (docker-container-attach-arguments)))
+  (docker-run "attach" args container))
+
+;;;###autoload
 (defun docker-container-eshell (container)
   "Open `eshell' in CONTAINER."
   (interactive (list (docker-container-read-name)))
@@ -224,6 +230,18 @@ TIMEOUT is the number of seconds to wait for the container to stop before killin
   (interactive (list (docker-container-read-name)))
   (docker-run "unpause" name))
 
+(defun docker-container-attach-selection ()
+  "Run \"docker attach\" with the containers selection."
+  (interactive)
+  (let ((default-directory (if (and docker-run-as-root
+                                    (not (file-remote-p default-directory)))
+                               "/sudo::"
+                             default-directory)))
+    (--each (docker-utils-get-marked-items-ids)
+      (async-shell-command
+       (format "%s attach %s %s" docker-command (s-join " " (docker-container-attach-arguments)) it)
+       (generate-new-buffer (format "*attach %s*" it))))))
+
 (defun docker-container-cp-from-selection (container-path host-path)
   "Run \"docker cp\" from CONTAINER-PATH to HOST-PATH for selected container."
   (interactive "sContainer path: \nFHost path: ")
@@ -333,6 +351,15 @@ TIMEOUT is the number of seconds to wait for the container to stop before killin
   (--each (docker-utils-get-marked-items-ids)
     (docker-run "unpause" (docker-container-unpause-arguments) it))
   (tablist-revert))
+
+(magit-define-popup docker-container-attach-popup
+  "Popup for attaching to containers."
+  'docker-container
+  :man-page "docker-attach"
+  :switches '((?n "No STDIN" "--no-stdin"))
+  :options  '((?d "Key sequence for detaching" "--detach-keys "))
+  :actions  '((?a "Attach" docker-container-attach-selection))
+  :setup-function #'docker-utils-setup-popup)
 
 (magit-define-popup docker-container-cp-popup
   "Popup for copying files from/to containers."
@@ -449,6 +476,7 @@ TIMEOUT is the number of seconds to wait for the container to stop before killin
              (?P "Pause"      docker-container-pause-popup)
              (?R "Restart"    docker-container-restart-popup)
              (?S "Start"      docker-container-start-popup)
+             (?a "Attach"     docker-container-attach-popup)
              (?b "Shell"      docker-container-shell-popup)
              (?d "Diff"       docker-container-diff-popup)
              (?f "Find file"  docker-container-find-file-popup)
@@ -467,6 +495,7 @@ TIMEOUT is the number of seconds to wait for the container to stop before killin
     (define-key map "P" 'docker-container-pause-popup)
     (define-key map "R" 'docker-container-restart-popup)
     (define-key map "S" 'docker-container-start-popup)
+    (define-key map "a" 'docker-container-attach-popup)
     (define-key map "b" 'docker-container-shell-popup)
     (define-key map "d" 'docker-container-diff-popup)
     (define-key map "f" 'docker-container-find-file-popup)
