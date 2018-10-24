@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.0 (2018-10-24)
+
+- Add docker-container-attach.
+- Use better keybinding for docker-compose exec.
+
 ## 1.1.1 (2018-10-03)
 
 - Fix docker-compose restart binding.
