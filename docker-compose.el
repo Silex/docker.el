@@ -45,6 +45,11 @@
   :group 'docker-compose
   :type '(repeat (string :tag "Argument")))
 
+(defcustom docker-compose-run-buffer-name-function nil
+  "Names a docker-compose run buffer based on `service' and `command'"
+  :group 'docker-compose
+  :type 'function)
+
 (defun docker-compose--run (action &rest args)
   "Execute docker ACTION passing arguments ARGS."
   (let ((command (format "docker-compose %s %s %s"
@@ -54,14 +59,14 @@
     (message command)
     (shell-command-to-string command)))
 
-(defun docker-compose--run-async (action &rest args)
+(defun docker-compose--run-async (action buffer-name &rest args)
   "Execute docker ACTION passing arguments ARGS."
   (let ((command (format "docker-compose %s %s %s"
                          (s-join " " docker-compose-arguments)
                          action
                          (s-join " " (-flatten (-non-nil args))))))
     (message command)
-    (async-shell-command command (format "*docker-compose %s*" action))))
+    (async-shell-command command (or buffer-name (format "*docker-compose %s*" action)))))
 
 (defun docker-compose-parse (line)
   "Convert a LINE from \"docker-compose ps\" to a `tabulated-list-entries' entry."
@@ -106,31 +111,31 @@
 (defun docker-compose-build (services args)
   "Run \"docker-compose build ARGS SERVICES\"."
   (interactive (list (docker-compose-read-services-names) (docker-compose-build-arguments)))
-  (docker-compose--run-async "build" args services))
+  (docker-compose--run-async "build" nil args services))
 
 ;;;###autoload
 (defun docker-compose-create (services args)
   "Run \"docker-compose create ARGS SERVICES\"."
   (interactive (list (docker-compose-read-services-names) (docker-compose-create-arguments)))
-  (docker-compose--run-async "create" args services))
+  (docker-compose--run-async "create" nil args services))
 
 ;;;###autoload
 (defun docker-compose-down (services args)
   "Run \"docker-compose down ARGS SERVICES\"."
   (interactive (list (docker-compose-read-services-names) (docker-compose-down-arguments)))
-  (docker-compose--run-async "down" args services))
+  (docker-compose--run-async "down" nil args services))
 
 ;;;###autoload
 (defun docker-compose-exec (service command args)
   "Run \"docker-compose exec ARGS SERVICE COMMAND\"."
   (interactive (list (docker-compose-read-service-name) (read-string "Command: ") (docker-compose-exec-arguments)))
-  (docker-compose--run-async "exec" args service command))
+  (docker-compose--run-async "exec" nil args service command))
 
 ;;;###autoload
 (defun docker-compose-logs (services args)
   "Run \"docker-compose logs ARGS SERVICES\"."
   (interactive (list (docker-compose-read-services-names) (docker-compose-logs-arguments)))
-  (docker-compose--run-async "logs" args services))
+  (docker-compose--run-async "logs" nil args services))
 
 ;;;###autoload
 (defun docker-compose-pull (services args)
@@ -160,25 +165,25 @@
 (defun docker-compose-run (service command args)
   "Run \"docker-compose run ARGS SERVICE COMMAND\"."
   (interactive (list (docker-compose-read-service-name) (read-string "Command: ") (docker-compose-run-arguments)))
-  (docker-compose--run-async "run" args service command))
+  (docker-compose--run-async "run" (and docker-compose-run-buffer-name-function (apply docker-compose-run-buffer-name-function (list service command))) args service command))
 
 ;;;###autoload
 (defun docker-compose-start (services args)
   "Run \"docker-compose start ARGS SERVICES\"."
   (interactive (list (docker-compose-read-services-names) (docker-compose-start-arguments)))
-  (docker-compose--run "start" args services))
+  (docker-compose--run "start" nil args services))
 
 ;;;###autoload
 (defun docker-compose-stop (services args)
   "Run \"docker-compose stop ARGS SERVICES\"."
   (interactive (list (docker-compose-read-services-names) (docker-compose-stop-arguments)))
-  (docker-compose--run "stop" args services))
+  (docker-compose--run "stop" nil args services))
 
 ;;;###autoload
 (defun docker-compose-up (services args)
   "Run \"docker-compose up ARGS SERVICES\"."
   (interactive (list (docker-compose-read-services-names) (docker-compose-up-arguments)))
-  (docker-compose--run-async "up" args services))
+  (docker-compose--run-async "up" nil args services))
 
 (defmacro docker-compose--all (command)
   "Return a lambda running COMMAND for all services."
