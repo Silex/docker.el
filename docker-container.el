@@ -101,10 +101,10 @@ and FLIP is a boolean to specify the sort order."
   "Open `eshell' in CONTAINER."
   (interactive (list (docker-container-read-name)))
   (let* ((container-address (format "docker:%s:/" container))
-         (file-prefix (if (file-remote-p default-directory)
-                          (with-parsed-tramp-file-name default-directory nil
-                            (format "/%s:%s|" method host))
-                        "/"))
+         (file-prefix (let ((prefix (file-remote-p default-directory)))
+                        (if prefix
+                            (format "%s|" (s-chop-suffix ":" prefix))
+                          "/")))
          (default-directory (format "%s%s" file-prefix container-address))
          (eshell-buffer-name (generate-new-buffer-name (format "*eshell %s*" default-directory))))
     (eshell)))
@@ -137,10 +137,10 @@ and FLIP is a boolean to specify the sort order."
   (interactive (list (docker-container-read-name)))
   (let* ((shell-file-name docker-container-shell-file-name)
          (container-address (format "docker:%s:/" container))
-         (file-prefix (if (file-remote-p default-directory)
-                          (with-parsed-tramp-file-name default-directory nil
-                            (format "/%s:%s|" method host))
-                        "/"))
+         (file-prefix (let ((prefix (file-remote-p default-directory)))
+                        (if prefix
+                            (format "%s|" (s-chop-suffix ":" prefix))
+                          "/")))
          (default-directory (format "%s%s" file-prefix container-address)))
     (shell (generate-new-buffer (format "*shell %s*" default-directory)))))
 
