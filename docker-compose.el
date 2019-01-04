@@ -45,6 +45,11 @@
   :group 'docker-compose
   :type '(repeat (string :tag "Argument")))
 
+(defcustom docker-compose-run-buffer-name-function 'docker-compose-make-buffer-name
+  "Names a docker-compose run buffer based on `action' and `args'"
+  :group 'docker-compose
+  :type 'function)
+
 (defun docker-compose--run (action &rest args)
   "Execute docker ACTION passing arguments ARGS."
   (let ((command (format "docker-compose %s %s %s"
@@ -61,7 +66,7 @@
                          action
                          (s-join " " (-flatten (-non-nil args))))))
     (message command)
-    (async-shell-command command (format "*docker-compose %s*" action))))
+    (async-shell-command command (funcall docker-compose-run-buffer-name-function action (-flatten args)))))
 
 (defun docker-compose-parse (line)
   "Convert a LINE from \"docker-compose ps\" to a `tabulated-list-entries' entry."
@@ -101,6 +106,10 @@
 (defun docker-compose-read-compose-file (&rest _ignore)
   "Wrapper around `read-file-name'."
   (read-file-name "Compose file: " nil nil t nil (apply-partially 'string-match ".*\\.yml")))
+
+(defun docker-compose-make-buffer-name (action args)
+  "Make a buffer name based on ACTION and ARGS."
+  (format "*docker-compose %s %s*" action (s-join " " (-non-nil args))))
 
 ;;;###autoload
 (defun docker-compose-build (services args)
