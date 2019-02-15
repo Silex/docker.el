@@ -349,7 +349,7 @@ TIMEOUT is the number of seconds to wait for the container to stop before killin
   "Run `docker-unpause' on the containers selection."
   (interactive)
   (--each (docker-utils-get-marked-items-ids)
-    (docker-run "unpause" (docker-container-unpause-arguments) it))
+    (docker-run "unpause" (docker-container-pause-arguments) it))
   (tablist-revert))
 
 (magit-define-popup docker-container-attach-popup
