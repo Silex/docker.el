@@ -61,15 +61,15 @@ and FLIP is a boolean to specify the sort order."
   "Convert a LINE from \"docker image ls\" to a `tabulated-list-entries' entry."
   (condition-case nil
       (let* ((data (json-read-from-string line))
-             (name (format "%s:%s" (aref data 0) (aref data 1))))
-        (setf (aref data 3) (format-time-string "%F %T" (date-to-time (aref data 3))))
-        (list (if (s-contains? "<none>" name) (aref data 2) name) data))
+             (name (format "%s:%s" (aref data 4) (aref data 3))))
+        (setf (aref data 1) (format-time-string "%F %T" (date-to-time (aref data 1))))
+        (list (if (s-contains? "<none>" name) (aref data 0) name) data))
     (json-readtable-error
      (error "Could not read following string as json:\n%s" line))))
 
 (defun docker-image-entries ()
   "Return the docker images data for `tabulated-list-entries'."
-  (let* ((fmt "[{{json .Repository}},{{json .Tag}},{{json .ID}},{{json .CreatedAt}},{{json .Size}}]")
+  (let* ((fmt "[{{json .ID}},{{json .CreatedAt}},{{json .Size}},{{json .Tag}},{{json .Repository}}]")
          (data (docker-run "image ls" docker-image-ls-arguments (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
     (-map #'docker-image-parse lines)))
@@ -262,7 +262,7 @@ Do not delete untagged parents when NO-PRUNE is set."
 
 (define-derived-mode docker-image-mode tabulated-list-mode "Images Menu"
   "Major mode for handling a list of docker images."
-  (setq tabulated-list-format [("Repository" 30 t)("Tag" 20 t)("Id" 16 t)("Created" 23 t)("Size" 10 docker-image-human-size-predicate)])
+  (setq tabulated-list-format [("Id" 16 t)("Created" 23 t)("Size" 10 docker-image-human-size-predicate)("Tag" 20 t)("Repository" 50 t)])
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key docker-image-default-sort-key)
   (add-hook 'tabulated-list-revert-hook 'docker-image-refresh nil t)
