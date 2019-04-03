@@ -66,6 +66,10 @@ and FLIP is a boolean to specify the sort order."
                (choice (const :tag "Ascending" nil)
                        (const :tag "Descending" t))))
 
+(defun docker-container--read-shell (&optional read-shell-name)
+  "Reads a shell name if `read-shell-name' is truthy."
+  (if read-shell-name (read-shell-command "Shell: ") docker-container-shell-file-name))
+
 (defun docker-container-parse (line)
   "Convert a LINE from \"docker container ls\" to a `tabulated-list-entries' entry."
   (condition-case nil
@@ -132,10 +136,12 @@ and FLIP is a boolean to specify the sort order."
   (find-file (format "/docker:%s:%s" container file)))
 
 ;;;###autoload
-(defun docker-container-shell (container)
+(defun docker-container-shell (container &optional read-shell)
   "Open `shell' in CONTAINER."
-  (interactive (list (docker-container-read-name)))
-  (let* ((shell-file-name docker-container-shell-file-name)
+  (interactive (list
+                (docker-container-read-name)
+                current-prefix-arg))
+  (let* ((shell-file-name (docker-container--read-shell read-shell))
          (container-address (format "docker:%s:/" container))
          (file-prefix (let ((prefix (file-remote-p default-directory)))
                         (if prefix
@@ -325,11 +331,11 @@ TIMEOUT is the number of seconds to wait for the container to stop before killin
     (docker-run "rm" (docker-container-rm-arguments) it))
   (tablist-revert))
 
-(defun docker-container-shell-selection ()
+(defun docker-container-shell-selection (prefix)
   "Run `docker-container-shell' on the containers selection."
-  (interactive)
+  (interactive "P")
   (--each (docker-utils-get-marked-items-ids)
-    (docker-container-shell it)))
+    (docker-container-shell it prefix)))
 
 (defun docker-container-start-selection ()
   "Run `docker-start' on the containers selection."
