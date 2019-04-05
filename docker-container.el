@@ -77,8 +77,8 @@ and FLIP is a boolean to specify the sort order."
 
 (defun docker-container-entries ()
   "Return the docker containers data for `tabulated-list-entries'."
-  (let* ((fmt "[{{json .ID}},{{json .Image}},{{json .Command}},{{json .CreatedAt}},{{json .Status}},{{json .Ports}},{{json .Names}}]")
-         (data (docker-run "container ls" docker-container-ls-arguments (format "--format=\"%s\"" fmt)))
+  (let* ((fmt (if(docker-utils-podman-p) "json" "[{{json .ID}},{{json .Image}},{{json .Command}},{{json .CreatedAt}},{{json .Status}},{{json .Ports}},{{json .Names}}]"))
+         (data (docker-run "container ls" docker-container-ls-arguments (format "--format=\"%s\"" fmt)
          (lines (s-split "\n" data t)))
     (-map #'docker-container-parse lines)))
 
