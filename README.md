@@ -87,7 +87,7 @@ You can also customize these using <kbd>M-x customize-variable</kbd>.
 
 | Variable                          | Description                           | Default          |
 |-----------------------------------|---------------------------------------|------------------|
-| docker-command                    | The docker binary to use              | `docker`         |
+| docker-command                    | The docker binary to use. Podman is also supported | `docker`         |
 | docker-container-default-sort-key | Sort key for docker containers        | `("Image")`      |
 | docker-container-shell-file-name  | Shell to use when entering containers | `/bin/bash`      |
 | docker-image-default-sort-key     | Sort key for docker images            | `("Repository")` |
