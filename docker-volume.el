@@ -59,7 +59,7 @@ and FLIP is a boolean to specify the sort order."
 
 (defun docker-volume-entries ()
   "Return the docker volumes data for `tabulated-list-entries'."
-  (let* ((fmt "[{{json .Driver}},{{json .Name}}]")
+  (let* ((fmt (if (docker-utils-podman-p) "json" "[{{json .Driver}},{{json .Name}}]"))
          (data (docker-run "volume ls" docker-volume-ls-arguments (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
     (-map #'docker-volume-parse lines)))
