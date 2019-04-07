@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.0 (2019-04-07)
+
+- Support podman.
+- Add ability to choose shell in docker-container-shell.
+- Allow customizable buffer names for docker-compose.
+- Make shell and eshell work with multi-hop tramp.
+- Add --parallel flag for "docker-compose build".
+
 ## 1.2.0 (2018-10-24)
 
 - Add docker-container-attach.
