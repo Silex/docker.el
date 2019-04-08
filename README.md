@@ -98,7 +98,7 @@ You can also customize these using <kbd>M-x customize-variable</kbd>.
 
 ## FAQ
 
-### How to use docker-machine under OSX?
+### How to use docker-machine under OSX / MacOS?
 
 The following configuration is required (some of it can probably be simplified by using
 https://github.com/purcell/exec-path-from-shell).
@@ -112,6 +112,11 @@ https://github.com/purcell/exec-path-from-shell).
 (setenv "DOCKER_CERT_PATH" "/Users/foo/.docker/machine/machines/box")
 (setenv "DOCKER_MACHINE_NAME" "box")
 ```
+
+This is necessary and useful if you use `docker-machine`.
+Notice though that there is also a native MacOS Docker implementation
+(now called Docker Desktop)
+which does not depend on VirtualBox and which does not require these tweaks.
 
 ## Contributions
 
