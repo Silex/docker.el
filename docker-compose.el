@@ -189,6 +189,12 @@
   (interactive (list (docker-compose-read-services-names) (docker-compose-up-arguments)))
   (docker-compose--run-async "up" args services))
 
+;;;###autoload
+(defun docker-compose-config (args)
+  "Run \"docker-compose config ARGS\"."
+  (interactive (list (docker-compose-up-arguments)))
+  (docker-compose--run-async "config" args))
+
 (defmacro docker-compose--all (command)
   "Return a lambda running COMMAND for all services."
   `(lambda (args)
@@ -360,6 +366,7 @@
               (?S "Start"      ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-start-popup))
               (?T "Restart"    ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-restart-popup))
               (?U "Up"         ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-up-popup))
+              (?V "Config"     ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-config))
               (?W "Down"       ,(docker-utils-set-then-call 'docker-compose-arguments 'docker-compose-down-popup))))
 
 (provide 'docker-compose)
