@@ -60,7 +60,7 @@ and FLIP is a boolean to specify the sort order."
 
 (defun docker-network-entries ()
   "Return the docker networks data for `tabulated-list-entries'."
-  (let* ((fmt (if (docker-utils-podman-p) "[{{json .ID}},{{json .Name}},{{json .Driver}},{{json .Scope}}]"))
+  (let* ((fmt "[{{json .ID}},{{json .Name}},{{json .Driver}},{{json .Scope}}]")
          (data (docker-run "network ls" docker-network-ls-arguments (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
     (-map #'docker-network-parse lines)))

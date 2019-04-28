@@ -28,7 +28,7 @@
 (require 'docker-group)
 
 (defcustom docker-command "docker"
-  "The docker (or podman) binary."
+  "The docker binary."
   :group 'docker
   :type 'string)
 

@@ -92,10 +92,6 @@ Execute BODY in a buffer named with the help of NAME."
          (multiplier (docker-utils-unit-multiplier (-third-item parts))))
     (* value multiplier)))
 
-(defun docker-utils-podman-p ()
-  "Evaluates if podman is used as `docker-command'"
-  (string-match-p "podman" docker-command))
-
 (provide 'docker-utils)
 
 ;;; docker-utils.el ends here

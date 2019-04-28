@@ -85,16 +85,16 @@ You can also customize these using <kbd>M-x customize-variable</kbd>.
 
 ### Others
 
-| Variable                          | Description                                                              | Default          |
-|-----------------------------------|--------------------------------------------------------------------------|------------------|
-| docker-command                    | The docker binary to use ([podman](https://podman.io) is also supported) | `docker`         |
-| docker-container-default-sort-key | Sort key for docker containers                                           | `("Image")`      |
-| docker-container-shell-file-name  | Shell to use when entering containers                                    | `/bin/bash`      |
-| docker-image-default-sort-key     | Sort key for docker images                                               | `("Repository")` |
-| docker-machine-default-sort-key   | Sort key for docker machines                                             | `("Name")`       |
-| docker-network-default-sort-key   | Sort key for docker networks                                             | `("Name")`       |
-| docker-run-as-root                | Run docker as root                                                       | `nil`            |
-| docker-volume-default-sort-key    | Sort key for docker volumes                                              | `("Driver")`     |
+| Variable                          | Description                           | Default          |
+|-----------------------------------|---------------------------------------|------------------|
+| docker-command                    | The docker binary to use              | `docker`         |
+| docker-container-default-sort-key | Sort key for docker containers        | `("Image")`      |
+| docker-container-shell-file-name  | Shell to use when entering containers | `/bin/bash`      |
+| docker-image-default-sort-key     | Sort key for docker images            | `("Repository")` |
+| docker-machine-default-sort-key   | Sort key for docker machines          | `("Name")`       |
+| docker-network-default-sort-key   | Sort key for docker networks          | `("Name")`       |
+| docker-run-as-root                | Run docker as root                    | `nil`            |
+| docker-volume-default-sort-key    | Sort key for docker volumes           | `("Driver")`     |
 
 ## FAQ
 

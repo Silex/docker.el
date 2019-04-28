@@ -69,7 +69,7 @@ and FLIP is a boolean to specify the sort order."
 
 (defun docker-image-entries ()
   "Return the docker images data for `tabulated-list-entries'."
-  (let* ((fmt (if (docker-utils-podman-p) "json" "[{{json .Repository}},{{json .Tag}},{{json .ID}},{{json .CreatedAt}},{{json .Size}}]"))
+  (let* ((fmt "[{{json .Repository}},{{json .Tag}},{{json .ID}},{{json .CreatedAt}},{{json .Size}}]")
          (data (docker-run "image ls" docker-image-ls-arguments (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
     (-map #'docker-image-parse lines)))
