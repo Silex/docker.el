@@ -27,10 +27,9 @@
 (require 'dash)
 (require 'json)
 (require 'tablist)
-(require 'magit-popup)
+(require 'transient)
 
-(require 'docker-group)
-(require 'docker-process)
+(require 'docker-core)
 (require 'docker-utils)
 
 (defgroup docker-volume nil
@@ -60,7 +59,7 @@ and FLIP is a boolean to specify the sort order."
 (defun docker-volume-entries ()
   "Return the docker volumes data for `tabulated-list-entries'."
   (let* ((fmt "[{{json .Driver}},{{json .Name}}]")
-         (data (docker-run "volume ls" docker-volume-ls-arguments (format "--format=\"%s\"" fmt)))
+         (data (docker-run-docker "volume ls" (docker-volume-ls-arguments) (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
     (-map #'docker-volume-parse lines)))
 
@@ -76,57 +75,47 @@ and FLIP is a boolean to specify the sort order."
 (defun docker-volume-dired (name)
   "Enter `dired' in the volume named NAME."
   (interactive (list (docker-volume-read-name)))
-  (let ((path (docker-run "inspect" "-f" "\"{{ .Mountpoint }}\"" name)))
+  (let ((path (docker-run-docker "inspect" "-f" "\"{{ .Mountpoint }}\"" name)))
     (dired (format "/sudo::%s" path))))
-
-;;;###autoload
-(defun docker-volume-rm (name)
-  "Destroy the volume named NAME."
-  (interactive (list (docker-volume-read-name)))
-  (docker-run "volume rm" name))
 
 (defun docker-volume-dired-selection ()
   "Run `docker-volume-dired' on the volumes selection."
   (interactive)
-  (docker-utils-select-if-empty)
+  (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
     (docker-volume-dired it)))
 
-(defun docker-volume-rm-selection ()
-  "Run \"docker volume rm\" on the volumes selection."
-  (interactive)
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-run "volume rm" it))
-  (tablist-revert))
+(defun docker-volume-ls-arguments ()
+  "Return the latest used arguments in the `docker-volume-ls' transient."
+  (car (alist-get 'docker-volume-ls transient-history)))
 
-(magit-define-popup docker-volume-ls-popup
-  "Popup for listing volumes."
-  'docker-volume
+(define-transient-command docker-volume-ls ()
+  "Transient for listing volumes."
   :man-page "docker-volume-ls"
-  :options   '((?f "Filter" "--filter "))
-  :actions   `((?l "List" ,(docker-utils-set-then-call 'docker-volume-ls-arguments 'tablist-revert))))
+  ["Arguments"
+   ("-f" "Filter" "--filter " read-string)]
+  ["Actions"
+   ("l" "List" tablist-revert)])
 
-(magit-define-popup docker-volume-rm-popup
-  "Popup for removing volumes."
-  'docker-volume
+(docker-utils-define-transient-command docker-volume-rm ()
+  "Transient for removing volumes."
   :man-page "docker-volume-rm"
-  :actions  '((?D "Remove" docker-volume-rm-selection))
-  :setup-function #'docker-utils-setup-popup)
+  [:description docker-utils-generic-actions-heading
+   ("D" "Remove" docker-utils-generic-action)])
 
-(magit-define-popup docker-volume-help-popup
-  "Help popup for docker volumes."
-  'docker-volume
-  :actions '("Docker volumes help"
-             (?D "Remove"     docker-volume-rm-popup)
-             (?d "Dired"      docker-volume-dired-selection)
-             (?l "List"       docker-volume-ls-popup)))
+(define-transient-command docker-volume-help ()
+  "Help transient for docker volumes."
+  ["Docker volumes help"
+   ("D" "Remove"     docker-volume-rm)
+   ("d" "Dired"      docker-volume-dired-selection)
+   ("l" "List"       docker-volume-ls)])
 
 (defvar docker-volume-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "?" 'docker-volume-help-popup)
-    (define-key map "D" 'docker-volume-rm-popup)
+    (define-key map "?" 'docker-volume-help)
+    (define-key map "D" 'docker-volume-rm)
     (define-key map "d" 'docker-volume-dired-selection)
-    (define-key map "l" 'docker-volume-ls-popup)
+    (define-key map "l" 'docker-volume-ls)
     map)
   "Keymap for `docker-volume-mode'.")
 

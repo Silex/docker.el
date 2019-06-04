@@ -27,10 +27,9 @@
 (require 'dash)
 (require 'json)
 (require 'tablist)
-(require 'magit-popup)
+(require 'transient)
 
-(require 'docker-group)
-(require 'docker-process)
+(require 'docker-core)
 (require 'docker-utils)
 
 (defgroup docker-network nil
@@ -61,7 +60,7 @@ and FLIP is a boolean to specify the sort order."
 (defun docker-network-entries ()
   "Return the docker networks data for `tabulated-list-entries'."
   (let* ((fmt "[{{json .ID}},{{json .Name}},{{json .Driver}},{{json .Scope}}]")
-         (data (docker-run "network ls" docker-network-ls-arguments (format "--format=\"%s\"" fmt)))
+         (data (docker-run-docker "network ls" (docker-network-ls-arguments) (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
     (-map #'docker-network-parse lines)))
 
@@ -73,46 +72,36 @@ and FLIP is a boolean to specify the sort order."
   "Read a network name."
   (completing-read "Network: " (-map #'car (docker-network-entries))))
 
-;;;###autoload
-(defun docker-network-rm (name)
-  "Destroy the network named NAME."
-  (interactive (list (docker-network-read-name)))
-  (docker-run "network rm" name))
+(defun docker-network-ls-arguments ()
+  "Return the latest used arguments in the `docker-network-ls' transient."
+  (car (alist-get 'docker-network-ls transient-history)))
 
-(defun docker-network-rm-selection ()
-  "Run \"docker network rm\" on the selection."
-  (interactive)
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-run "network rm" it))
-  (tablist-revert))
-
-(magit-define-popup docker-network-ls-popup
-  "Popup for listing networks."
-  'docker-network
+(define-transient-command docker-network-ls ()
+  "Transient for listing networks."
   :man-page "docker-network-ls"
-  :switches  '((?n "Don't truncate" "--no-trunc"))
-  :options   '((?f "Filter" "--filter "))
-  :actions   `((?l "List" ,(docker-utils-set-then-call 'docker-network-ls-arguments 'tablist-revert))))
+  ["Arguments"
+   ("-f" "Filter" "--filter " read-string)
+   ("-n" "Don't truncate" "--no-trunc")]
+  ["Actions"
+   ("l" "List" tablist-revert)])
 
-(magit-define-popup docker-network-rm-popup
-  "Popup for removing networks."
-  'docker-network
+(docker-utils-define-transient-command docker-network-rm ()
+  "Transient for removing networks."
   :man-page "docker-network-rm"
-  :actions  '((?D "Remove" docker-network-rm-selection))
-  :setup-function #'docker-utils-setup-popup)
+  [:description docker-utils-generic-actions-heading
+   ("D" "Remove" docker-utils-generic-action)])
 
-(magit-define-popup docker-network-help-popup
-  "Help popup for docker networks."
-  'docker-network
-  :actions '("Docker networks help"
-             (?D "Remove"     docker-network-rm-popup)
-             (?l "List"       docker-network-ls-popup)))
+(define-transient-command docker-network-help ()
+  "Help transient for docker networks."
+  ["Docker networks help"
+   ("D" "Remove"     docker-network-rm)
+   ("l" "List"       docker-network-ls)])
 
 (defvar docker-network-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "?" 'docker-network-help-popup)
-    (define-key map "D" 'docker-network-rm-popup)
-    (define-key map "l" 'docker-network-ls-popup)
+    (define-key map "?" 'docker-network-help)
+    (define-key map "D" 'docker-network-rm)
+    (define-key map "l" 'docker-network-ls)
     map)
   "Keymap for `docker-network-mode'.")
 

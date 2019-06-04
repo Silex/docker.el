@@ -23,10 +23,12 @@
 
 ;;; Code:
 
+(require 's)
 (require 'dash)
 (require 'tramp)
 (require 'tablist)
-(require 'magit-popup)
+(require 'transient)
+(require 'docker-core)
 
 (defun docker-utils-shell-command-to-string (command)
   "Execute shell command COMMAND and return its output as a string.
@@ -34,39 +36,70 @@ Wrap the function `shell-command-to-string', ensuring variable `shell-file-name'
   (let ((shell-file-name (if (eq system-type 'windows-nt) "cmdproxy.exe" "/bin/sh")))
     (shell-command-to-string command)))
 
-(defun docker-utils-get-marked-items ()
-  "Get the marked items data from `tabulated-list-entries'."
-  (save-excursion
-    (goto-char (point-min))
-    (let ((selection ()))
-      (while (not (eobp))
-        (when (not (null (tablist-get-mark-state)))
-          (setq selection (-snoc selection (cons (tabulated-list-get-id) (tabulated-list-get-entry)))))
-        (forward-line))
-      selection)))
-
 (defun docker-utils-get-marked-items-ids ()
-  "Get the id part of `docker-utils-get-marked-items'."
-  (-map #'car (docker-utils-get-marked-items)))
+  "Get the id part of `tablist-get-marked-items'."
+  (-map #'car (tablist-get-marked-items)))
 
-(defun docker-utils-setup-popup (val def)
-  "Ensure something is selected then pass VAL and DEF to `magit-popup-default-setup'."
-  (magit-with-pre-popup-buffer (docker-utils-select-if-empty))
-  (magit-popup-default-setup val def))
+(defun docker-utils-ensure-items ()
+  (when (null (docker-utils-get-marked-items-ids))
+    (user-error "This action cannot be used en an empty list")))
 
-(defun docker-utils-select-if-empty (&optional arg)
-  "Select current row is selection is empty.
-ARG is unused here, but is required by `add-function'."
-  (save-excursion
-    (when (null (docker-utils-get-marked-items))
-      (tablist-put-mark))))
+(defmacro docker-utils-define-transient-command (name arglist &rest args)
+  `(define-transient-command ,name ()
+     ,@args
+     (interactive)
+     (docker-utils-ensure-items)
+     (transient-setup ',name)))
 
-(defun docker-utils-set-then-call (variable func)
-  "Return a lambda settings VARIABLE before calling FUNC."
-  (lambda ()
-    (interactive)
-    (set variable (funcall variable))
-    (call-interactively func)))
+(defun docker-utils-generic-actions-heading ()
+  (let ((items (s-join ", " (docker-utils-get-marked-items-ids))))
+    (format "%s %s"
+            (propertize "Actions on" 'face 'transient-heading)
+            (propertize items        'face 'transient-value))))
+
+(defun docker-utils-get-transient-action ()
+  (s-replace "-" " " (s-chop-prefix "docker-" (symbol-name current-transient-command))))
+
+(defun docker-utils-generic-action (action args)
+  (interactive (list (docker-utils-get-transient-action)
+                     (transient-args current-transient-command)))
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-run-docker action args it))
+  (tablist-revert))
+
+(defun docker-utils-generic-action-with-buffer (action args)
+  (interactive (list (docker-utils-get-transient-action)
+                     (transient-args current-transient-command)))
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-utils-with-buffer (format "%s %s" action it)
+      (insert (docker-run-docker action args it))))
+  (tablist-revert))
+
+(defun docker-utils-generic-action-with-buffer:json (action args)
+  (interactive (list (docker-utils-get-transient-action)
+                     (transient-args current-transient-command)))
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-utils-with-buffer (format "%s %s" action it)
+      (insert (docker-run-docker action args it))
+      (json-mode)))
+  (tablist-revert))
+
+(defmacro docker-utils-with-sudo (&rest body)
+  (declare (indent defun))
+  `(let ((default-directory (if (and docker-run-as-root (not (file-remote-p default-directory)))
+                                "/sudo::"
+                              default-directory)))
+     ,@body))
+
+(defun docker-utils-generic-action-with-command (action args)
+  (interactive (list (docker-utils-get-transient-action)
+                     (transient-args current-transient-command)))
+  (docker-utils-with-sudo
+    (--each (docker-utils-get-marked-items-ids)
+      (async-shell-command
+       (format "%s %s %s %s" docker-command action (s-join " " args) it)
+       (docker-utils-generate-new-buffer action it)))
+    (tablist-revert)))
 
 (defun docker-utils-pop-to-buffer (name)
   "Like `pop-to-buffer', but suffix NAME with the host if on a remote host."
@@ -75,11 +108,19 @@ ARG is unused here, but is required by `add-function'."
        (with-parsed-tramp-file-name default-directory nil (concat name " - " host))
      name)))
 
+(defun docker-utils-generate-new-buffer-name (&rest args)
+  "Wrapper around `generate-new-buffer-name'."
+  (generate-new-buffer-name (format "* docker %s *" (s-join " " args))))
+
+(defun docker-utils-generate-new-buffer (&rest args)
+  "Wrapper around `generate-new-buffer'."
+  (generate-new-buffer (apply #'docker-utils-generate-new-buffer-name args)))
+
 (defmacro docker-utils-with-buffer (name &rest body)
   "Wrapper around `with-current-buffer'.
 Execute BODY in a buffer named with the help of NAME."
   (declare (indent defun))
-  `(with-current-buffer (generate-new-buffer (format "* docker - %s *" ,name))
+  `(with-current-buffer (docker-utils-generate-new-buffer ,name)
      (setq buffer-read-only nil)
      (erase-buffer)
      ,@body

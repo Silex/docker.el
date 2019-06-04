@@ -26,14 +26,19 @@
 (require 's)
 (require 'dash)
 (require 'tablist)
-(require 'magit-popup)
+(require 'transient)
 
-(require 'docker-group)
+(require 'docker-core)
 (require 'docker-utils)
 
 (defgroup docker-machine nil
   "Docker machine customization group."
   :group 'docker)
+
+(defcustom docker-machine-command "docker-machine"
+  "The docker-machine binary"
+  :group 'docker-machine
+  :type 'string)
 
 (defcustom docker-machine-default-sort-key '("Name" . nil)
   "Sort key for docker machines.
@@ -61,7 +66,7 @@ and FLIP is a boolean to specify the sort order."
 (defun docker-machine-entries ()
   "Return the docker machines data for `tabulated-list-entries'."
   (let* ((fmt "{{.Name}}\\t{{.Active}}\\t{{.DriverName}}\\t{{.State}}\\t{{.URL}}\\t{{.Swarm}}\\t{{.DockerVersion}}\\t{{.Error}}")
-         (data (docker-machine-run "ls" docker-machine-ls-arguments (format "--format=\"%s\"" fmt)))
+         (data (docker-machine-run-docker-machine "ls" (docker-machine-ls-arguments) (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
     (-map #'docker-machine-parse lines)))
 
@@ -73,30 +78,35 @@ and FLIP is a boolean to specify the sort order."
   "Read a machine name."
   (completing-read "Machine: " (-map #'car (docker-machine-entries))))
 
-(defun docker-machine-run (action &rest args)
-  "Execute \"docker-machine ACTION\" using ARGS."
-  (let ((command (format "docker-machine %s %s" action (s-join " " (-flatten (-non-nil args))))))
+(defun docker-machine-run-docker-machine (action &rest args)
+  "Execute \"`docker-machine-command' ACTION ARGS\"."
+  (let ((command (format "%s %s %s" docker-machine-command action (s-join " " (-flatten (-non-nil args))))))
     (message command)
     (docker-utils-shell-command-to-string command)))
 
-;;;###autoload
-(defun docker-machine-config (name)
-  "Print the connection config for the machine NAME."
-  (interactive (list (docker-machine-read-name)))
-  (docker-machine-run "config" name))
+(defun docker-machine-get-transient-action ()
+  (s-replace "-" " " (s-chop-prefix "docker-machine" (symbol-name current-transient-command))))
+
+(defun docker-machine-generic-action (action args)
+  (interactive (list (docker-machine-get-transient-action)
+                     (transient-args current-transient-command)))
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-machine-run-docker-machine action args it))
+  (tablist-revert))
 
 ;;;###autoload
 (defun docker-machine-create (name driver)
   "Create a machine NAME using DRIVER."
   (interactive "sName: \nsDriver: ")
-  (docker-machine-run "create" name "-d" driver))
+  (docker-machine-run-docker-machine "create" name "-d" driver)
+  (tablist-revert))
 
 ;;;###autoload
 (defun docker-machine-env (name)
   "Parse and set environment variables from \"docker-machine env NAME\" output."
   (interactive (list (docker-machine-read-name)))
   (--each-while
-      (s-lines (docker-machine-run "env" name))
+      (s-lines (docker-machine-run-docker-machine "env" name))
       (s-prefix? "export" it)
     (docker-machine-env-export it)))
 
@@ -107,165 +117,84 @@ and FLIP is a boolean to specify the sort order."
       (error (format "Cannot find separator in %s" line)))
     (setenv (substring line (length "export ") index) (substring line (+ 2 index) -1))))
 
-;;;###autoload
-(defun docker-machine-inspect (name)
-  "Inspect information about the machine NAME."
-  (interactive (list (docker-machine-read-name)))
-  (docker-machine-run "inspect" name))
-
-;;;###autoload
-(defun docker-machine-ip (name)
-  "Get the IP address of the machine NAME."
-  (interactive (list (docker-machine-read-name)))
-  (docker-machine-run "ip" name))
-
-;;;###autoload
-(defun docker-machine-kill (name)
-  "Kill the machine NAME."
-  (interactive (list (docker-machine-read-name)))
-  (docker-machine-run "kill" name))
-
-;;;###autoload
-(defun docker-machine-restart (name)
-  "Restart the machine NAME."
-  (interactive (list (docker-machine-read-name) current-prefix-arg))
-  (docker-machine-run "restart" name))
-
-;;;###autoload
-(defun docker-machine-rm (name &optional force)
-  "Destroy or uncommand the machine NAME.  If FORCE is set, use \"--force\"."
-  (interactive (list (docker-machine-read-name) current-prefix-arg))
-  (docker-machine-run "rm" (when force "--force") name))
-
-;;;###autoload
-(defun docker-machine-start (name)
-  "Start the machine NAME."
-  (interactive (list (docker-machine-read-name)))
-  (docker-machine-run "start" name))
-
-;;;###autoload
-(defun docker-machine-status (name)
-  "Get the status of the machine NAME."
-  (interactive (list (docker-machine-read-name)))
-  (docker-machine-run "status" name))
-
-;;;###autoload
-(defun docker-machine-stop (name)
-  "Stop the machine NAME."
-  (interactive (list (docker-machine-read-name) current-prefix-arg))
-  (docker-machine-run "stop" name))
-
-;;;###autoload
-(defun docker-machine-upgrade (name)
-  "Upgrade the machine NAME to the latest version of Docker."
-  (interactive (list (docker-machine-read-name)))
-  (docker-machine-run "upgrade" name))
-
 (defun docker-machine-env-selection ()
   "Run \"docker-machine env\" on selected machine."
   (interactive)
+  (docker-utils-ensure-items)
   (let ((marked (docker-utils-get-marked-items-ids)))
     (when (/= (length marked) 1)
       (error "Can only set environment vars for one machine at a time"))
     (docker-machine-env (car marked))
     (tablist-revert)))
 
-(defun docker-machine-restart-selection ()
-  "Run `docker-machine-restart' on the machines selection."
-  (interactive)
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-machine-run "restart" (docker-machine-restart-arguments) it))
-  (tablist-revert))
-
-(defun docker-machine-rm-selection ()
-  "Run `docker-machine-rm' on the machines selection."
-  (interactive)
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-machine-run "rm" (docker-machine-rm-arguments) it))
-  (tablist-revert))
-
-(defun docker-machine-start-selection ()
-  "Run `docker-machine-start' on the machines selection."
-  (interactive)
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-machine-run "start" (docker-machine-start-arguments) it))
-  (tablist-revert))
-
-(defun docker-machine-stop-selection ()
-  "Run `docker-machine-stop' on the machines selection."
-  (interactive)
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-machine-run "stop" (docker-machine-stop-arguments) it))
-  (tablist-revert))
-
-(magit-define-popup docker-machine-env-popup
-  "Popup for setting up environment variables."
-  'docker-machine
+(docker-utils-define-transient-command docker-machine-env ()
+  "Transient for setting up environment variables."
   :man-page "docker-machine-env"
-  :actions '((?E "Env" docker-machine-env-selection))
-  :setup-function #'docker-utils-setup-popup)
+  [:description docker-utils-generic-actions-heading
+   ("E" "Env" docker-machine-env-selection)])
 
-(magit-define-popup docker-machine-ls-popup
-  "Popup for listing machines."
-  'docker-machine
+(defun docker-machine-ls-arguments ()
+  "Return the latest used arguments in the `docker-machine-ls' transient."
+  (car (alist-get 'docker-machine-ls transient-history)))
+
+(define-transient-command docker-machine-ls ()
+  "Transient for listing machines."
   :man-page "docker-machine-ls"
-  :options   '((?f "Filter" "--filter ")
-               (?t "Timeout" "--timeout "))
-  :actions   `((?l "List" ,(docker-utils-set-then-call 'docker-machine-ls-arguments 'tablist-revert))))
+  ["Arguments"
+   ("-f" "Filter" "--filter " read-string)
+   ("-t" "Timeout" "--timeout " transient-read-number-N0)]
+  ["Actions"
+   ("l" "List" tablist-revert)])
 
-(magit-define-popup docker-machine-restart-popup
-  "Popup for restarting machines."
-  'docker-machine
+(docker-utils-define-transient-command docker-machine-restart ()
+  "Transient for restarting machines."
   :man-page "docker-machine-restart"
-  :actions '((?R "Restart" docker-machine-restart-selection))
-  :setup-function #'docker-utils-setup-popup)
+  [:description docker-utils-generic-actions-heading
+   ("R" "Restart" docker-machine-generic-action)])
 
-(magit-define-popup docker-machine-rm-popup
-  "Popup for removing machines."
-  'docker-machine
+(docker-utils-define-transient-command docker-machine-rm ()
+  "Transient for removing machines."
   :man-page "docker-machine-rm"
-  :switches '((?f "Force" "-f")
-              (?y "Automatic yes" "-y"))
-  :actions  '((?D "Remove" docker-machine-rm-selection))
-  :default-arguments '("-y")
-  :setup-function #'docker-utils-setup-popup)
+  :value '("-y")
+  ["Arguments"
+   ("-f" "Force" "-f")
+   ("-y" "Automatic yes" "-y")]
+  [:description docker-utils-generic-actions-heading
+   ("D" "Remove" docker-machine-generic-action)])
 
-(magit-define-popup docker-machine-start-popup
-  "Popup for starting machines."
-  'docker-machine
+(docker-utils-define-transient-command docker-machine-start ()
+  "Transient for starting machines."
   :man-page "docker-machine-start"
-  :actions  '((?S "Start" docker-machine-start-selection))
-  :setup-function #'docker-utils-setup-popup)
+  [:description docker-utils-generic-actions-heading
+   ("S" "Start" docker-machine-generic-action)])
 
-(magit-define-popup docker-machine-stop-popup
-  "Popup for stoping machines."
-  'docker-machine
+(docker-utils-define-transient-command docker-machine-stop ()
+  "Transient for stoping machines."
   :man-page "docker-machine-stop"
-  :actions '((?O "Stop" docker-machine-stop-selection))
-  :setup-function #'docker-utils-setup-popup)
+  [:description docker-utils-generic-actions-heading
+   ("O" "Stop" docker-machine-generic-action)])
 
-(magit-define-popup docker-machine-help-popup
-  "Help popup for docker machine."
-  'docker-machine
-  :actions '("Docker machines help"
-             (?C "Create"     docker-machine-create)
-             (?D "Remove"     docker-machine-rm-popup)
-             (?E "Env"        docker-machine-env-popup)
-             (?O "Stop"       docker-machine-stop-popup)
-             (?R "Restart"    docker-machine-restart-popup)
-             (?S "Start"      docker-machine-start-popup)
-             (?l "List"       docker-machine-ls-popup)))
+(define-transient-command docker-machine-help ()
+  "Help transient for docker machine."
+  ["Docker machines help"
+   ("C" "Create"     docker-machine-create)
+   ("D" "Remove"     docker-machine-rm)
+   ("E" "Env"        docker-machine-env-selection)
+   ("O" "Stop"       docker-machine-stop)
+   ("R" "Restart"    docker-machine-restart)
+   ("S" "Start"      docker-machine-start)
+   ("l" "List"       docker-machine-ls)])
 
 (defvar docker-machine-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "?" 'docker-machine-help-popup)
+    (define-key map "?" 'docker-machine-help)
     (define-key map "C" 'docker-machine-create)
-    (define-key map "D" 'docker-machine-rm-popup)
-    (define-key map "E" 'docker-machine-env-popup)
-    (define-key map "O" 'docker-machine-stop-popup)
-    (define-key map "R" 'docker-machine-restart-popup)
-    (define-key map "S" 'docker-machine-start-popup)
-    (define-key map "l" 'docker-machine-ls-popup)
+    (define-key map "D" 'docker-machine-rm)
+    (define-key map "E" 'docker-machine-env-selection)
+    (define-key map "O" 'docker-machine-stop)
+    (define-key map "R" 'docker-machine-restart)
+    (define-key map "S" 'docker-machine-start)
+    (define-key map "l" 'docker-machine-ls)
     map)
   "Keymap for `docker-machine-mode'.")
 

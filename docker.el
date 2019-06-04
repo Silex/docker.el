@@ -4,7 +4,7 @@
 ;; URL: https://github.com/Silex/docker.el
 ;; Keywords: filename, convenience
 ;; Version: 1.3.0
-;; Package-Requires: ((emacs "24.5") (dash "2.14.1") (docker-tramp "0.1") (magit-popup "2.12.4") (s "1.12.0") (tablist "0.70") (json-mode "1.7.0"))
+;; Package-Requires: ((dash "2.14.1") (docker-tramp "0.1") (emacs "24.5") (json-mode "1.7.0") (s "1.12.0") (tablist "0.70") (transient "0.1.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -31,30 +31,14 @@
 
 ;;; Code:
 
-(require 'magit-popup)
+(require 'transient)
 
-(require 'docker-group)
-(require 'docker-utils)
+(require 'docker-core)
 (require 'docker-container)
 (require 'docker-image)
 (require 'docker-machine)
 (require 'docker-network)
 (require 'docker-volume)
-
-;;;###autoload (autoload 'docker "docker" nil t)
-(magit-define-popup docker
-  "Popup for docker."
-  'docker
-  :man-page "docker"
-  :options  '((?H "Host" "--host "))
-  :actions  `("Docker"
-              (?c "Containers" ,(docker-utils-set-then-call 'docker-arguments 'docker-containers))
-              (?i "Images"     ,(docker-utils-set-then-call 'docker-arguments 'docker-images))
-              (?n "Networks"   ,(docker-utils-set-then-call 'docker-arguments 'docker-networks))
-              (?v "Volumes"    ,(docker-utils-set-then-call 'docker-arguments 'docker-volumes))
-              "Other"
-              (?C "Compose"    docker-compose)
-              (?M "Machines"   docker-machines)))
 
 (provide 'docker)
 

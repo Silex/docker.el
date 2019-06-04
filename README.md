@@ -13,9 +13,9 @@ Supports docker containers, images, volumes, networks, docker-machine and docker
 
 ![Images list](screenshots/image-ls.png)
 
-### Image run popup
+### Image run
 
-![Image run popup](screenshots/image-run.png)
+![Image run](screenshots/image-run.png)
 
 ## Installation
 
@@ -48,7 +48,7 @@ marking possibilities, check out https://github.com/politza/tablist):
 | <kbd>></kbd>       | Enlarge column       |
 | <kbd>C-c C-e</kbd> | Export to csv        |
 
-Then select an action and follow the popup instructions.
+Then select an action and follow the instructions.
 
 ## Supported commands
 
@@ -63,27 +63,10 @@ You can also enter `dired` or open a file inside a container or volume.
 
 ## Customizations
 
-### Popups
+Thanks to [transient](https://github.com/magit/transient), all the transients arguments can be set temporarily or
+permanently. See https://magit.vc/manual/transient/Saving-Values.html#Saving-Values for more information.
 
-Thanks to [magit-popup](https://github.com/magit/magit-popup), all the popups default arguments can be customized. For
-example, here is how to customize the arguments for `docker-image-run-popup`:
-
-``` elisp
-(setq docker-image-run-arguments '("-i" "-t" "--rm"))
-```
-
-or inside a use-package declaration:
-
-``` elisp
-(use-package docker
-  :ensure t
-  :bind ("C-c d" . docker)
-  :custom (docker-image-run-arguments '("-i" "-t" "--rm")))
-```
-
-You can also customize these using <kbd>M-x customize-variable</kbd>.
-
-### Others
+Here is a list of other customizations you can set:
 
 | Variable                          | Description                           | Default          |
 |-----------------------------------|---------------------------------------|------------------|
