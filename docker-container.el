@@ -155,7 +155,7 @@ and FLIP is a boolean to specify the sort order."
   "Diff the container named NAME."
   (interactive (list (docker-container-read-name)))
   (docker-utils-with-buffer (format "diff %s" name)
-   (insert (docker-run "diff" name))))
+    (insert (docker-run "diff" name))))
 
 ;;;###autoload
 (defun docker-inspect (name)
