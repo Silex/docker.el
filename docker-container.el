@@ -28,20 +28,14 @@
 (require 'dash)
 (require 'json)
 (require 'tablist)
-(require 'magit-popup)
+(require 'transient)
 
-(require 'docker-group)
-(require 'docker-process)
+(require 'docker-core)
 (require 'docker-utils)
 
 (defgroup docker-container nil
   "Docker container customization group."
   :group 'docker)
-
-(defcustom docker-container-ls-arguments '("--all")
-  "Default arguments for `docker-container-ls-popup'."
-  :group 'docker-container
-  :type '(repeat (string :tag "Argument")))
 
 (defcustom docker-container-shell-file-name "/bin/sh"
   "Shell to use when entering containers."
@@ -81,7 +75,7 @@ and FLIP is a boolean to specify the sort order."
 (defun docker-container-entries ()
   "Return the docker containers data for `tabulated-list-entries'."
   (let* ((fmt "[{{json .ID}},{{json .Image}},{{json .Command}},{{json .CreatedAt}},{{json .Status}},{{json .Ports}},{{json .Names}}]")
-         (data (docker-run "container ls" docker-container-ls-arguments (format "--format=\"%s\"" fmt)))
+         (data (docker-run-docker "container ls" (docker-container-ls-arguments) (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
     (-map #'docker-container-parse lines)))
 
@@ -94,12 +88,6 @@ and FLIP is a boolean to specify the sort order."
   (completing-read "Container: " (-map #'car (docker-container-entries))))
 
 ;;;###autoload
-(defun docker-container-attach (container args)
-  "Run \"docker attach ARGS CONTAINER\"."
-  (interactive (list (docker-compose-read-name) (docker-container-attach-arguments)))
-  (docker-run "attach" args container))
-
-;;;###autoload
 (defun docker-container-eshell (container)
   "Open `eshell' in CONTAINER."
   (interactive (list (docker-container-read-name)))
@@ -109,7 +97,7 @@ and FLIP is a boolean to specify the sort order."
                             (format "%s|" (s-chop-suffix ":" prefix))
                           "/")))
          (default-directory (format "%s%s" file-prefix container-address))
-         (eshell-buffer-name (generate-new-buffer-name (format "*eshell %s*" default-directory))))
+         (eshell-buffer-name (docker-utils-generate-new-buffer-name "eshell" default-directory)))
     (eshell)))
 
 ;;;###autoload
@@ -147,364 +135,197 @@ and FLIP is a boolean to specify the sort order."
                             (format "%s|" (s-chop-suffix ":" prefix))
                           "/")))
          (default-directory (format "%s%s" file-prefix container-address)))
-    (shell (generate-new-buffer (format "*shell %s*" default-directory)))))
-
-;;;###autoload
-(defun docker-diff (name)
-  "Diff the container named NAME."
-  (interactive (list (docker-container-read-name)))
-  (docker-utils-with-buffer (format "diff %s" name)
-    (insert (docker-run "diff" name))))
-
-;;;###autoload
-(defun docker-inspect (name)
-  "Inspect the container named NAME."
-  (interactive (list (docker-container-read-name)))
-  (docker-utils-with-buffer (format "inspect %s" name)
-    (insert (docker-run "inspect" name))
-    (json-mode)))
-
-;;;###autoload
-(defun docker-kill (name &optional signal)
-  "Kill the container named NAME using SIGNAL."
-  (interactive (list (docker-container-read-name)))
-  (docker-run "kill" (when signal (format "-s %s" signal)) name))
-
-;;;###autoload
-(defun docker-logs (name &optional follow)
-  "Show the logs from container NAME.
-
-If FOLLOW is set, run in `async-shell-command'."
-  (interactive (list (docker-container-read-name)))
-  (if follow
-      (async-shell-command
-       (format "%s logs -f %s" docker-command name)
-       (generate-new-buffer (format "* docker logs %s *" name)))
-    (docker-utils-with-buffer (format "logs %s" name)
-      (insert (docker-run "logs" name)))))
-
-;;;###autoload
-(defun docker-pause (name)
-  "Pause the container named NAME."
-  (interactive (list (docker-container-read-name)))
-  (docker-run "pause" name))
-
-;;;###autoload
-(defun docker-rename (container name)
-  "Rename CONTAINER using NAME."
-  (interactive (list (docker-container-read-name) (read-string "Name: ")))
-  (docker-run "rename" container name))
-
-;;;###autoload
-(defun docker-restart (name &optional timeout)
-  "Restart the container named NAME.
-
-TIMEOUT is the number of seconds to wait for the container to stop before killing it."
-  (interactive (list (docker-container-read-name) current-prefix-arg))
-  (docker-run "restart" (when timeout (format "-t %d" timeout)) name))
-
-;;;###autoload
-(defun docker-rm (name &optional force link volumes)
-  "Remove the container named NAME.
-
-With prefix argument, sets FORCE to true.
-
-Force the removal even if the container is running when FORCE is set.
-Remove the specified link and not the underlying container when LINK is set.
-Remove the volumes associated with the container when VOLUMES is set."
-  (interactive (list (docker-container-read-name) current-prefix-arg))
-  (docker-run "rm" (when force "-f") (when link "-l") (when volumes "-v") name))
-
-;;;###autoload
-(defun docker-start (name)
-  "Start the container named NAME."
-  (interactive (list (docker-container-read-name)))
-  (docker-run "start" name))
-
-;;;###autoload
-(defun docker-stop (name &optional timeout)
-  "Stop the container named NAME.
-
-TIMEOUT is the number of seconds to wait for the container to stop before killing it."
-  (interactive (list (docker-container-read-name) current-prefix-arg))
-  (docker-run "stop" (when timeout (format "-t %d" timeout)) name))
-
-;;;###autoload
-(defun docker-unpause (name)
-  "Unpause the container named NAME."
-  (interactive (list (docker-container-read-name)))
-  (docker-run "unpause" name))
-
-(defun docker-container-attach-selection ()
-  "Run \"docker attach\" with the containers selection."
-  (interactive)
-  (let ((default-directory (if (and docker-run-as-root
-                                    (not (file-remote-p default-directory)))
-                               "/sudo::"
-                             default-directory)))
-    (--each (docker-utils-get-marked-items-ids)
-      (async-shell-command
-       (format "%s attach %s %s" docker-command (s-join " " (docker-container-attach-arguments)) it)
-       (generate-new-buffer (format "*attach %s*" it))))))
+    (shell (docker-utils-generate-new-buffer "shell" default-directory))))
 
 (defun docker-container-cp-from-selection (container-path host-path)
   "Run \"docker cp\" from CONTAINER-PATH to HOST-PATH for selected container."
   (interactive "sContainer path: \nFHost path: ")
+  (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
-    (docker-run "cp" (concat it ":" container-path) host-path)))
+    (docker-run-docker "cp" (concat it ":" container-path) host-path)))
 
 (defun docker-container-cp-to-selection (host-path container-path)
   "Run \"docker cp\" from HOST-PATH to CONTAINER-PATH for selected containers."
   (interactive "fHost path: \nsContainer path: ")
+  (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
-    (docker-run "cp" host-path (concat it ":" container-path))))
-
-(defun docker-container-diff-selection ()
-  "Run `docker-diff' on the containers selection."
-  (interactive)
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-utils-with-buffer (format "diff %s" it)
-      (insert (docker-run "diff" (docker-container-diff-arguments) it)))))
+    (docker-run-docker "cp" host-path (concat it ":" container-path))))
 
 (defun docker-container-eshell-selection ()
   "Run `docker-container-eshell' on the containers selection."
   (interactive)
+  (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
     (docker-container-eshell it)))
 
 (defun docker-container-find-file-selection (path)
   "Run `docker-container-find-file' for PATH on the containers selection."
   (interactive "sPath: ")
+  (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
     (docker-container-find-file it path)))
-
-(defun docker-container-inspect-selection ()
-  "Run `docker-inspect' on the containers selection."
-  (interactive)
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-utils-with-buffer (format "inspect %s" it)
-      (insert (docker-run "inspect" (docker-container-inspect-arguments) it))
-      (json-mode))))
-
-(defun docker-container-kill-selection ()
-  "Run `docker-kill' on the containers selection."
-  (interactive)
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-run "kill" (docker-container-kill-arguments) it))
-  (tablist-revert))
-
-(defun docker-container-logs-selection ()
-  "Run \"docker logs\" on the containers selection."
-  (interactive)
-  (--each (docker-utils-get-marked-items-ids)
-    (async-shell-command
-     (format "%s logs %s %s" docker-command (s-join " " (docker-container-logs-arguments)) it)
-     (generate-new-buffer (format "* docker logs %s *" it)))))
-
-(defun docker-container-pause-selection ()
-  "Run `docker-pause' on the containers selection."
-  (interactive)
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-run "pause" (docker-container-pause-arguments) it))
-  (tablist-revert))
 
 (defun docker-container-rename-selection ()
   "Rename containers."
   (interactive)
-  (docker-utils-select-if-empty)
+  (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
-    (docker-rename it (read-string (format "New name for %s: " it))))
-  (tablist-revert))
-
-(defun docker-container-restart-selection ()
-  "Run `docker-restart' on the containers selection."
-  (interactive)
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-run "restart" (docker-container-restart-arguments) it))
-  (tablist-revert))
-
-(defun docker-container-rm-selection ()
-  "Run `docker-rm' on the containers selection."
-  (interactive)
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-run "rm" (docker-container-rm-arguments) it))
+    (docker-run-docker "rename" it (read-string (format "Rename \"%s\" to: " it))))
   (tablist-revert))
 
 (defun docker-container-shell-selection (prefix)
   "Run `docker-container-shell' on the containers selection."
   (interactive "P")
+  (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
     (docker-container-shell it prefix)))
 
-(defun docker-container-start-selection ()
-  "Run `docker-start' on the containers selection."
-  (interactive)
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-run "start" (docker-container-start-arguments) it))
-  (tablist-revert))
+(docker-utils-define-transient-command docker-container-attach ()
+  "Transient for attaching to containers."
+  :man-page "docker-container-attach"
+  ["Arguments"
+   ("-n" "No STDIN" "--no-stdin")
+   ("-d" "Key sequence for detaching" "--detach-keys=" read-string)]
+  [:description docker-utils-generic-actions-heading
+   ("a" "Attach" docker-utils-generic-action-with-command)])
 
-(defun docker-container-stop-selection ()
-  "Run `docker-stop' on the containers selection."
-  (interactive)
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-run "stop" (docker-container-stop-arguments) it))
-  (tablist-revert))
+(docker-utils-define-transient-command docker-container-cp ()
+  "Transient for copying files from/to containers."
+  :man-page "docker-container-cp"
+  [:description docker-utils-generic-actions-heading
+   ("f" "Copy From" docker-container-cp-from-selection)
+   ("t" "Copy To" docker-container-cp-to-selection)])
 
-(defun docker-container-unpause-selection ()
-  "Run `docker-unpause' on the containers selection."
-  (interactive)
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-run "unpause" (docker-container-pause-arguments) it))
-  (tablist-revert))
+(docker-utils-define-transient-command docker-container-diff ()
+  "Transient for showing containers diffs."
+  :man-page "docker-container-diff"
+  [:description docker-utils-generic-actions-heading
+   ("d" "Diff" docker-utils-generic-action-with-buffer)])
 
-(magit-define-popup docker-container-attach-popup
-  "Popup for attaching to containers."
-  'docker-container
-  :man-page "docker-attach"
-  :switches '((?n "No STDIN" "--no-stdin"))
-  :options  '((?d "Key sequence for detaching" "--detach-keys "))
-  :actions  '((?a "Attach" docker-container-attach-selection))
-  :setup-function #'docker-utils-setup-popup)
+(docker-utils-define-transient-command docker-container-find-file ()
+  "Transient for opening containers files."
+  [:description docker-utils-generic-actions-heading
+   ("f" "Open file" docker-container-find-file-selection)])
 
-(magit-define-popup docker-container-cp-popup
-  "Popup for copying files from/to containers."
-  'docker-container
-  :man-page "docker-cp"
-  :actions  '((?f "Copy From" docker-container-cp-from-selection)
-              (?t "Copy To" docker-container-cp-to-selection))
-  :setup-function #'docker-utils-setup-popup)
+(docker-utils-define-transient-command docker-container-inspect ()
+  "Transient for inspecting containers."
+  :man-page "docker-container-inspect"
+  [:description docker-utils-generic-actions-heading
+   ("I" "Inspect" docker-utils-generic-action-with-buffer:json)])
 
-(magit-define-popup docker-container-diff-popup
-  "Popup for showing containers diffs."
-  'docker-container
-  :man-page "docker-diff"
-  :actions  '((?d "Diff" docker-container-diff-selection))
-  :setup-function #'docker-utils-setup-popup)
+(docker-utils-define-transient-command docker-container-kill ()
+  "Transient for kill signaling containers"
+  :man-page "docker-container-kill"
+  ["Arguments"
+   ("-s" "Signal" "-s " read-string)]
+  [:description docker-utils-generic-actions-heading
+   ("K" "Kill" docker-utils-generic-action)])
 
-(magit-define-popup docker-container-find-file-popup
-  "Popup for opening containers files."
-  'docker-container
-  :actions  '((?f "Open file" docker-container-find-file-selection))
-  :setup-function #'docker-utils-setup-popup)
+(docker-utils-define-transient-command docker-container-logs ()
+  "Transient for showing containers logs."
+  :man-page "docker-container-logs"
+  ["Arguments"
+   ("-f" "Follow" "-f")]
+  [:description docker-utils-generic-actions-heading
+   ("L" "Logs" docker-utils-generic-action-with-command)])
 
-(magit-define-popup docker-container-inspect-popup
-  "Popup for inspecting containers."
-  'docker-container
-  :man-page "docker-inspect"
-  :actions  '((?I "Inspect" docker-container-inspect-selection))
-  :setup-function #'docker-utils-setup-popup)
+(defun docker-container-ls-arguments ()
+  "Return the latest used arguments in the `docker-container-ls' transient."
+  (car (alist-get 'docker-container-ls transient-history)))
 
-(magit-define-popup docker-container-kill-popup
-  "Popup for kill signaling containers"
-  'docker-container
-  :man-page "docker-kill"
-  :options  '((?s "Signal" "-s "))
-  :actions  '((?K "Kill" docker-container-kill-selection))
-  :setup-function #'docker-utils-setup-popup)
-
-(magit-define-popup docker-container-logs-popup
-  "Popup for showing containers logs."
-  'docker-container
-  :man-page "docker-logs"
-  :switches '((?f "Follow" "-f"))
-  :actions  '((?L "Logs" docker-container-logs-selection))
-  :setup-function #'docker-utils-setup-popup)
-
-(magit-define-popup docker-container-ls-popup
-  "Popup for listing containers."
-  'docker-container
+(define-transient-command docker-container-ls ()
+  "Transient for listing containers."
   :man-page "docker-container-ls"
-  :switches  '((?a "All" "--all")
-               (?e "Exited containers" "--filter status=exited")
-               (?n "Don't truncate" "--no-trunc"))
-  :options   '((?f "Filter" "--filter ")
-               (?n "Last" "--last "))
-  :actions   `((?l "List" ,(docker-utils-set-then-call 'docker-container-ls-arguments 'tablist-revert))))
+  :value '("--all")
+  ["Arguments"
+   ("-N" "Last" "--last " transient-read-number-N0)
+   ("-a" "All" "--all")
+   ("-e" "Exited containers" "--filter status=exited")
+   ("-f" "Filter" "--filter " read-string)
+   ("-n" "Don't truncate" "--no-trunc")]
+  ["Actions"
+   ("l" "List" tablist-revert)])
 
-(magit-define-popup docker-container-pause-popup
-  "Popup for pauseing containers."
-  'docker-container
-  :man-page "docker-pause"
-  :actions  '((?P "Pause" docker-container-pause-selection)
-              (?U "Unpause" docker-container-unpause-selection))
-  :setup-function #'docker-utils-setup-popup)
+(docker-utils-define-transient-command docker-container-pause ()
+  "Transient for pauseing containers."
+  :man-page "docker-container-pause"
+  [:description docker-utils-generic-actions-heading
+   ("P" "Pause" docker-utils-generic-action)
+   ("U" "Unpause" docker-utils-generic-action)])
 
-(magit-define-popup docker-container-restart-popup
-  "Popup for restarting containers."
-  'docker-container
-  :man-page "docker-restart"
-  :options '((?t "Timeout" "-t "))
-  :actions '((?R "Restart" docker-container-restart-selection))
-  :setup-function #'docker-utils-setup-popup)
+(docker-utils-define-transient-command docker-container-restart ()
+  "Transient for restarting containers."
+  :man-page "docker-container-restart"
+  ["Arguments"
+   ("-t" "Timeout" "-t " transient-read-number-N0)]
+  [:description docker-utils-generic-actions-heading
+   ("R" "Restart" docker-utils-generic-action)])
 
-(magit-define-popup docker-container-rm-popup
-  "Popup for removing containers."
-  'docker-container
-  :man-page "docker-rm"
-  :switches '((?f "Force" "-f")
-              (?v "Volumes" "-v"))
-  :actions  '((?D "Remove" docker-container-rm-selection))
-  :setup-function #'docker-utils-setup-popup)
+(docker-utils-define-transient-command docker-container-rm ()
+  "Transient for removing containers."
+  :man-page "docker-container-rm"
+  ["Arguments"
+   ("-f" "Force" "-f")
+   ("-v" "Volumes" "-v")]
+  [:description docker-utils-generic-actions-heading
+   ("D" "Remove" docker-utils-generic-action)])
 
-(magit-define-popup docker-container-shell-popup
-  "Popup for doing M-x `shell'/`eshell' to containers."
-  'docker-container
-  :actions  '((?b "Shell" docker-container-shell-selection)
-              (?e "Eshell" docker-container-eshell-selection))
-  :setup-function #'docker-utils-setup-popup)
+(docker-utils-define-transient-command docker-container-shells ()
+  "Transient for doing M-x `shell'/`eshell' to containers."
+  [:description docker-utils-generic-actions-heading
+   ("b" "Shell" docker-container-shell-selection)
+   ("e" "Eshell" docker-container-eshell-selection)])
 
-(magit-define-popup docker-container-start-popup
-  "Popup for starting containers."
-  'docker-container
-  :man-page "docker-start"
-  :actions  '((?S "Start" docker-container-start-selection))
-  :setup-function #'docker-utils-setup-popup)
+(docker-utils-define-transient-command docker-container-start ()
+  "Transient for starting containers."
+  :man-page "docker-container-start"
+  [:description docker-utils-generic-actions-heading
+   ("S" "Start" docker-utils-generic-action)])
 
-(magit-define-popup docker-container-stop-popup
-  "Popup for stoping containers."
-  'docker-container
-  :man-page "docker-stop"
-  :options '((?t "Timeout" "-t "))
-  :actions '((?O "Stop" docker-container-stop-selection))
-  :setup-function #'docker-utils-setup-popup)
+(docker-utils-define-transient-command docker-container-stop ()
+  "Transient for stoping containers."
+  :man-page "docker-container-stop"
+  ["Arguments"
+   ("-t" "Timeout" "-t " transient-read-number-N0)]
+  [:description docker-utils-generic-actions-heading
+   ("O" "Stop" docker-utils-generic-action)])
 
-(magit-define-popup docker-container-help-popup
-  "Help popup for docker containers."
-  'docker-container
-  :actions '("Docker containers help"
-             (?C "Copy"       docker-container-cp-popup)
-             (?D "Remove"     docker-container-rm-popup)
-             (?I "Inspect"    docker-container-inspect-popup)
-             (?K "Kill"       docker-container-kill-popup)
-             (?L "Logs"       docker-container-logs-popup)
-             (?O "Stop"       docker-container-stop-popup)
-             (?P "Pause"      docker-container-pause-popup)
-             (?R "Restart"    docker-container-restart-popup)
-             (?S "Start"      docker-container-start-popup)
-             (?a "Attach"     docker-container-attach-popup)
-             (?b "Shell"      docker-container-shell-popup)
-             (?d "Diff"       docker-container-diff-popup)
-             (?f "Find file"  docker-container-find-file-popup)
-             (?l "List"       docker-container-ls-popup)
-             (?r "Rename"     docker-container-rename-selection)))
+(define-transient-command docker-container-help ()
+  "Help transient for docker containers."
+  ["Docker containers help"
+   ("C" "Copy"       docker-container-cp)
+   ("D" "Remove"     docker-container-rm)
+   ("I" "Inspect"    docker-container-inspect)
+   ("K" "Kill"       docker-container-kill)
+   ("L" "Logs"       docker-container-logs)
+   ("O" "Stop"       docker-container-stop)
+   ("P" "Pause"      docker-container-pause)
+   ("R" "Restart"    docker-container-restart)
+   ("S" "Start"      docker-container-start)
+   ("a" "Attach"     docker-container-attach)
+   ("b" "Shell"      docker-container-shells)
+   ("d" "Diff"       docker-container-diff)
+   ("f" "Find file"  docker-container-find-file)
+   ("l" "List"       docker-container-ls)
+   ("r" "Rename"     docker-container-rename-selection)])
 
 (defvar docker-container-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "?" 'docker-container-help-popup)
-    (define-key map "C" 'docker-container-cp-popup)
-    (define-key map "D" 'docker-container-rm-popup)
-    (define-key map "I" 'docker-container-inspect-popup)
-    (define-key map "K" 'docker-container-kill-popup)
-    (define-key map "L" 'docker-container-logs-popup)
-    (define-key map "O" 'docker-container-stop-popup)
-    (define-key map "P" 'docker-container-pause-popup)
-    (define-key map "R" 'docker-container-restart-popup)
-    (define-key map "S" 'docker-container-start-popup)
-    (define-key map "a" 'docker-container-attach-popup)
-    (define-key map "b" 'docker-container-shell-popup)
-    (define-key map "d" 'docker-container-diff-popup)
-    (define-key map "f" 'docker-container-find-file-popup)
-    (define-key map "l" 'docker-container-ls-popup)
+    (define-key map "?" 'docker-container-help)
+    (define-key map "C" 'docker-container-cp)
+    (define-key map "D" 'docker-container-rm)
+    (define-key map "I" 'docker-container-inspect)
+    (define-key map "K" 'docker-container-kill)
+    (define-key map "L" 'docker-container-logs)
+    (define-key map "O" 'docker-container-stop)
+    (define-key map "P" 'docker-container-pause)
+    (define-key map "R" 'docker-container-restart)
+    (define-key map "S" 'docker-container-start)
+    (define-key map "a" 'docker-container-attach)
+    (define-key map "b" 'docker-container-shells)
+    (define-key map "d" 'docker-container-diff)
+    (define-key map "f" 'docker-container-find-file)
+    (define-key map "l" 'docker-container-ls)
     (define-key map "r" 'docker-container-rename-selection)
     map)
   "Keymap for `docker-container-mode'.")
