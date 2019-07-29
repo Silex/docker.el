@@ -99,7 +99,7 @@ and FLIP is a boolean to specify the sort order."
   'docker-network
   :man-page "docker-network-rm"
   :actions  '((?D "Remove" docker-network-rm-selection))
-  :setup-function #'docker-utils-popup-setup)
+  :setup-function #'docker-utils-setup-popup)
 
 (magit-define-popup docker-network-help-popup
   "Help popup for docker networks."
