@@ -89,7 +89,7 @@
 
 (defun docker-compose-read-services-names ()
   "Read the services names."
-  (read-string (format "Services (%s or RET): " (s-join "," (docker-compose-services)))))
+  (completing-read-multiple "Services: " (docker-compose-services)))
 
 (defun docker-compose-read-service-name ()
   "Read one service name."
