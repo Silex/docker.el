@@ -35,6 +35,11 @@
   "Docker compose customization group."
   :group 'docker)
 
+(defcustom docker-compose-command "docker-compose"
+  "The docker-compose binary"
+  :group 'docker
+  :type 'string)
+
 (defcustom docker-compose-arguments '()
   "Arguments to use when calling \"docker-compose\"."
   :group 'docker-compose
@@ -52,7 +57,8 @@
 
 (defun docker-compose--run (action &rest args)
   "Execute docker ACTION passing arguments ARGS."
-  (let ((command (format "docker-compose %s %s %s"
+  (let ((command (format "%s %s %s %s"
+                         docker-compose-command
                          (s-join " " docker-compose-arguments)
                          action
                          (s-join " " (-flatten (-non-nil args))))))
@@ -61,7 +67,8 @@
 
 (defun docker-compose--run-async (action &rest args)
   "Execute docker ACTION passing arguments ARGS."
-  (let ((command (format "docker-compose %s %s %s"
+  (let ((command (format "%s %s %s %s"
+                         docker-compose-command
                          (s-join " " docker-compose-arguments)
                          action
                          (s-join " " (-flatten (-non-nil args))))))
