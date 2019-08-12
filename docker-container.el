@@ -67,7 +67,7 @@ and FLIP is a boolean to specify the sort order."
                        (const :tag "Descending" t))))
 
 (defun docker-container--read-shell (&optional read-shell-name)
-  "Reads a shell name if `read-shell-name' is truthy."
+  "Return `docker-container-shell-file-name' or read a shell name if READ-SHELL-NAME is truthy."
   (if read-shell-name (read-shell-command "Shell: ") docker-container-shell-file-name))
 
 (defun docker-container-parse (line)
@@ -127,7 +127,7 @@ and FLIP is a boolean to specify the sort order."
 
 ;;;###autoload
 (defun docker-container-find-file (container file)
-  "Inside CONTAINER open FILE."
+  "Open FILE inside CONTAINER."
   (interactive
    (let* ((container-name (docker-container-read-name))
           (tramp-filename (read-file-name "File: " (format "/docker:%s:/" container-name))))
@@ -137,7 +137,7 @@ and FLIP is a boolean to specify the sort order."
 
 ;;;###autoload
 (defun docker-container-shell (container &optional read-shell)
-  "Open `shell' in CONTAINER."
+  "Open `shell' in CONTAINER.  When READ-SHELL is not nil, ask the user for it."
   (interactive (list
                 (docker-container-read-name)
                 current-prefix-arg))
