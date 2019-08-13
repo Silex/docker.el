@@ -92,7 +92,7 @@
 
 (defun docker-compose-services ()
   "Return the list of services."
-  (s-split "\n" (docker-compose--run "config" "--services") t))
+  (s-split "\n" (docker-compose--run "config" "--services" "2>/dev/null") t))
 
 (defun docker-compose-read-services-names ()
   "Read the services names."
