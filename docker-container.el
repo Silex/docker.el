@@ -43,9 +43,8 @@
   :group 'docker-container
   :type '(repeat (string :tag "Argument")))
 
-(defcustom docker-container-shell-file-name shell-file-name
-  "Shell to use when entering containers.
-For more information see the variable `shell-file-name'."
+(defcustom docker-container-shell-file-name "/bin/sh"
+  "Shell to use when entering containers."
   :group 'docker-container
   :type 'string)
 
