@@ -28,6 +28,12 @@
 (require 'tablist)
 (require 'magit-popup)
 
+(defun docker-utils-shell-command-to-string (command)
+  "Execute shell command COMMAND and return its output as a string.
+Wrapper around function `shell-command-to-string'."
+  (let ((shell-file-name "/bin/sh"))
+    (shell-command-to-string command)))
+
 (defun docker-utils-get-marked-items ()
   "Get the marked items data from `tabulated-list-entries'."
   (save-excursion

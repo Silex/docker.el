@@ -51,7 +51,7 @@
                            action
                            (s-join " " (-flatten (-non-nil args))))))
       (message command)
-      (shell-command-to-string command))))
+      (docker-utils-shell-command-to-string command))))
 
 (provide 'docker-process)
 

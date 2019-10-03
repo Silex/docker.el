@@ -77,7 +77,7 @@ and FLIP is a boolean to specify the sort order."
   "Execute \"docker-machine ACTION\" using ARGS."
   (let ((command (format "docker-machine %s %s" action (s-join " " (-flatten (-non-nil args))))))
     (message command)
-    (shell-command-to-string command)))
+    (docker-utils-shell-command-to-string command)))
 
 ;;;###autoload
 (defun docker-machine-config (name)
