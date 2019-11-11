@@ -30,8 +30,8 @@
 
 (defun docker-utils-shell-command-to-string (command)
   "Execute shell command COMMAND and return its output as a string.
-Wrapper around function `shell-command-to-string'."
-  (let ((shell-file-name "/bin/sh"))
+Wrap the function `shell-command-to-string', ensuring variable `shell-file-name' behaves properly."
+  (let ((shell-file-name (if (eq system-type 'windows-nt) "cmdproxy.exe" "/bin/sh")))
     (shell-command-to-string command)))
 
 (defun docker-utils-get-marked-items ()
