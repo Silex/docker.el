@@ -211,7 +211,7 @@ Do not delete untagged parents when NO-PRUNE is set."
   :switches '((?D "With display" "-v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY")
               (?T "Synchronize time" "-v /etc/localtime:/etc/localtime:ro")
               (?W "Web ports" "-p 80:80 -p 443:443 -p 8080:8080")
-              (?d "Daemonize" "-d")
+              (?d "Detach" "-d")
               (?i "Interactive" "-i")
               (?o "Read only" "--read-only")
               (?p "Privileged" "--privileged")
