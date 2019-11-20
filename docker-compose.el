@@ -247,7 +247,7 @@
   'docker-compose
   :man-page "docker-compose exec"
   :switches '((?T "Disable pseudo-tty" "-T")
-              (?d "Detach" "--detach")
+              (?d "Detach" "-d")
               (?p "Privileged" "--privileged"))
   :options  '((?e "Env KEY=VAL" "-e ")
               (?u "User " "--user ")
@@ -306,7 +306,7 @@
   'docker-compose
   :man-page "docker-compose run"
   :switches '((?T "Disable pseudo-tty" "-T")
-              (?d "Detach" "--detach")
+              (?d "Detach" "-d")
               (?n "No deps" "--no-deps")
               (?r "Remove container when it exits" "--rm")
               (?s "Enable services ports" "--service-ports"))
@@ -338,7 +338,7 @@
   'docker-compose
   :man-page "docker-compose up"
   :switches '((?b "Build" "--build")
-              (?d "Detach" "--detach")
+              (?d "Detach" "-d")
               (?f "Force recreate" "--force-recreate")
               (?n "No deps" "--no-deps")
               (?r "Remove orphans" "--remove-orphans"))
