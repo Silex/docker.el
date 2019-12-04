@@ -158,6 +158,13 @@ and FLIP is a boolean to specify the sort order."
   (--each (docker-utils-get-marked-items-ids)
     (docker-container-eshell it)))
 
+(defun docker-container-find-directory-selection (path)
+  "Run `docker-container-find-directory' for PATH on the containers selection."
+  (interactive "sPath: ")
+  (docker-utils-ensure-items)
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-container-find-directory it path)))
+
 (defun docker-container-find-file-selection (path)
   "Run `docker-container-find-file' for PATH on the containers selection."
   (interactive "sPath: ")
@@ -205,6 +212,7 @@ and FLIP is a boolean to specify the sort order."
 (docker-utils-define-transient-command docker-container-open ()
   "Transient for opening containers files."
   [:description docker-utils-generic-actions-heading
+   ("d" "Open directory" docker-container-find-directory-selection)
    ("f" "Open file" docker-container-find-file-selection)])
 
 (docker-utils-define-transient-command docker-container-inspect ()
