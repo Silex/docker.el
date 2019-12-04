@@ -202,7 +202,7 @@ and FLIP is a boolean to specify the sort order."
   [:description docker-utils-generic-actions-heading
    ("d" "Diff" docker-utils-generic-action-with-buffer)])
 
-(docker-utils-define-transient-command docker-container-find-file ()
+(docker-utils-define-transient-command docker-container-open ()
   "Transient for opening containers files."
   [:description docker-utils-generic-actions-heading
    ("f" "Open file" docker-container-find-file-selection)])
@@ -305,7 +305,7 @@ and FLIP is a boolean to specify the sort order."
    ("a" "Attach"     docker-container-attach)
    ("b" "Shell"      docker-container-shells)
    ("d" "Diff"       docker-container-diff)
-   ("f" "Find file"  docker-container-find-file)
+   ("f" "Find file"  docker-container-open)
    ("l" "List"       docker-container-ls)
    ("r" "Rename"     docker-container-rename-selection)])
 
@@ -324,7 +324,7 @@ and FLIP is a boolean to specify the sort order."
     (define-key map "a" 'docker-container-attach)
     (define-key map "b" 'docker-container-shells)
     (define-key map "d" 'docker-container-diff)
-    (define-key map "f" 'docker-container-find-file)
+    (define-key map "f" 'docker-container-open)
     (define-key map "l" 'docker-container-ls)
     (define-key map "r" 'docker-container-rename-selection)
     map)
