@@ -92,15 +92,15 @@
   "Read one service name."
   (completing-read "Service: " (docker-compose-services)))
 
-(defun docker-compose-read-log-level (prompt &optional initial-input history)
+(defun docker-compose-read-log-level (prompt &rest _args)
   "Read the docker-compose log level."
-  (completing-read "Level: " '(DEBUG INFO WARNING ERROR CRITICAL)))
+  (completing-read prompt '(DEBUG INFO WARNING ERROR CRITICAL)))
 
-(defun docker-compose-read-directory (prompt &optional initial-input history)
+(defun docker-compose-read-directory (prompt &optional initial-input _history)
   "Wrapper around `read-directory-name'."
   (read-directory-name prompt nil nil t initial-input))
 
-(defun docker-compose-read-compose-file (prompt &optional initial-input history)
+(defun docker-compose-read-compose-file (prompt &optional initial-input _history)
   "Wrapper around `read-file-name'."
   (read-file-name prompt nil nil t initial-input (apply-partially 'string-match ".*\\.yml")))
 

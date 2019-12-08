@@ -88,12 +88,6 @@ and FLIP is a boolean to specify the sort order."
   (interactive (list (docker-image-read-name) current-prefix-arg))
   (docker-run-docker "pull" (when all "-a ") name))
 
-;;;###autoload
-(defun docker-image-pull-one (name &optional all)
-  "Pull the image named NAME.  If ALL is set, use \"-a\"."
-  (interactive (list (docker-image-read-name) current-prefix-arg))
-  (docker-run-docker "pull" (when all "-a ") name))
-
 (defun docker-image-run-selection (command)
   "Run \"docker image run\" with COMMAND on the images selection."
   (interactive "sCommand: ")

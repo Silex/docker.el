@@ -102,7 +102,7 @@ and FLIP is a boolean to specify the sort order."
   (tablist-revert))
 
 ;;;###autoload
-(defun docker-machine-env (name)
+(defun docker-machine-env-one (name)
   "Parse and set environment variables from \"docker-machine env NAME\" output."
   (interactive (list (docker-machine-read-name)))
   (--each-while
@@ -124,7 +124,7 @@ and FLIP is a boolean to specify the sort order."
   (let ((marked (docker-utils-get-marked-items-ids)))
     (when (/= (length marked) 1)
       (error "Can only set environment vars for one machine at a time"))
-    (docker-machine-env (car marked))
+    (docker-machine-env-one (car marked))
     (tablist-revert)))
 
 (docker-utils-define-transient-command docker-machine-env ()

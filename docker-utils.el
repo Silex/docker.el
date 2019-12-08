@@ -45,7 +45,7 @@ Wrap the function `shell-command-to-string', ensuring variable `shell-file-name'
     (user-error "This action cannot be used en an empty list")))
 
 (defmacro docker-utils-define-transient-command (name arglist &rest args)
-  `(define-transient-command ,name ()
+  `(define-transient-command ,name ,arglist
      ,@args
      (interactive)
      (docker-utils-ensure-items)
@@ -66,6 +66,18 @@ Wrap the function `shell-command-to-string', ensuring variable `shell-file-name'
   (--each (docker-utils-get-marked-items-ids)
     (docker-run-docker action args it))
   (tablist-revert))
+
+(defmacro docker-utils-with-buffer (name &rest body)
+  "Wrapper around `with-current-buffer'.
+Execute BODY in a buffer named with the help of NAME."
+  (declare (indent defun))
+  `(with-current-buffer (docker-utils-generate-new-buffer ,name)
+     (setq buffer-read-only nil)
+     (erase-buffer)
+     ,@body
+     (setq buffer-read-only t)
+     (goto-char (point-min))
+     (pop-to-buffer (current-buffer))))
 
 (defun docker-utils-generic-action-with-buffer (action args)
   (interactive (list (docker-utils-get-transient-action)
@@ -115,18 +127,6 @@ Wrap the function `shell-command-to-string', ensuring variable `shell-file-name'
 (defun docker-utils-generate-new-buffer (&rest args)
   "Wrapper around `generate-new-buffer'."
   (generate-new-buffer (apply #'docker-utils-generate-new-buffer-name args)))
-
-(defmacro docker-utils-with-buffer (name &rest body)
-  "Wrapper around `with-current-buffer'.
-Execute BODY in a buffer named with the help of NAME."
-  (declare (indent defun))
-  `(with-current-buffer (docker-utils-generate-new-buffer ,name)
-     (setq buffer-read-only nil)
-     (erase-buffer)
-     ,@body
-     (setq buffer-read-only t)
-     (goto-char (point-min))
-     (pop-to-buffer (current-buffer))))
 
 (defun docker-utils-unit-multiplier (str)
   "Return the correct multiplier for STR."

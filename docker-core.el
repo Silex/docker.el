@@ -41,7 +41,7 @@
   :group 'docker
   :type 'boolean)
 
-(defun docker-read-log-level (prompt &rest args)
+(defun docker-read-log-level (prompt &rest _args)
   "Read the docker log level using PROMPT."
   (completing-read prompt '(debug info warn error fatal)))
 

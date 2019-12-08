@@ -87,6 +87,8 @@ and FLIP is a boolean to specify the sort order."
   "Read an container name."
   (completing-read "Container: " (-map #'car (docker-container-entries))))
 
+(defvar eshell-buffer-name)
+
 ;;;###autoload
 (defun docker-container-eshell (container)
   "Open `eshell' in CONTAINER."
