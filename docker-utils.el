@@ -33,7 +33,10 @@
 (defun docker-utils-shell-command-to-string (command)
   "Execute shell command COMMAND and return its output as a string.
 Wrap the function `shell-command-to-string', ensuring variable `shell-file-name' behaves properly."
-  (let ((shell-file-name (if (eq system-type 'windows-nt) "cmdproxy.exe" "/bin/sh")))
+  (let ((shell-file-name (if (and (eq system-type 'windows-nt)
+                                  (not (file-remote-p default-directory)))
+                             "cmdproxy.exe"
+                           "/bin/sh")))
     (shell-command-to-string command)))
 
 (defun docker-utils-get-marked-items-ids ()
