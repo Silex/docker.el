@@ -56,7 +56,7 @@ and FLIP is a boolean to specify the sort order."
   (condition-case nil
       (let* ((data (json-read-from-string line))
              (name (format "%s:%s" (aref data 0) (aref data 1))))
-        (setf (aref data 3) (format-time-string "%F %T" (date-to-time (aref data 3))))
+        (aset data 3 (format-time-string "%F %T" (date-to-time (aref data 3))))
         (list (if (s-contains? "<none>" name) (aref data 2) name) data))
     (json-readtable-error
      (error "Could not read following string as json:\n%s" line))))
