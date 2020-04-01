@@ -29,8 +29,6 @@
 
 ;;; Code:
 
-(require 'transient)
-
 (require 'docker-core)
 (require 'docker-container)
 (require 'docker-image)
