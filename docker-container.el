@@ -205,6 +205,14 @@ and FLIP is a boolean to specify the sort order."
   (--each (docker-utils-get-marked-items-ids)
     (docker-container-shell it prefix)))
 
+(defun docker-container-unpause-selection ()
+  "Run `docker-container-unpause' on the containers selection."
+  (interactive)
+  (docker-utils-ensure-items)
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-run-docker "unpause" it))
+  (tablist-revert))
+
 (docker-utils-define-transient-command docker-container-attach ()
   "Transient for attaching to containers."
   :man-page "docker-container-attach"
@@ -277,7 +285,7 @@ and FLIP is a boolean to specify the sort order."
   :man-page "docker-container-pause"
   [:description docker-utils-generic-actions-heading
    ("P" "Pause" docker-utils-generic-action)
-   ("U" "Unpause" docker-utils-generic-action)])
+   ("U" "Unpause" docker-container-unpause-selection)])
 
 (docker-utils-define-transient-command docker-container-restart ()
   "Transient for restarting containers."
