@@ -29,6 +29,7 @@
 (require 'transient)
 
 (require 'docker-core)
+(require 'docker-faces)
 (require 'docker-utils)
 
 (defgroup docker-machine nil
@@ -60,8 +61,20 @@ and FLIP is a boolean to specify the sort order."
 
 (defun docker-machine-parse (line)
   "Convert a LINE from \"docker machine ls\" to a `tabulated-list-entries' entry."
-  (let ((data (s-split "\t" line)))
-    (list (car data) (apply #'vector data))))
+  (let* ((data (apply #'vector (s-split "\t" line)))
+         (status (aref data 3)))
+    (aset data 3 (propertize status 'font-lock-face (docker-machine-status-face status)))
+    (list (aref data 0) data)))
+
+(defun docker-machine-status-face (status)
+  "Return the correct face according to STATUS."
+  (cond
+   ((s-equals? status "Running")
+    'docker-face-status-success)
+   ((s-equals? status "Stopped")
+    'docker-face-status-error)
+   (t
+    'docker-face-status-warning)))
 
 (defun docker-machine-entries ()
   "Return the docker machines data for `tabulated-list-entries'."

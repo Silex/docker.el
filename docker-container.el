@@ -31,6 +31,7 @@
 (require 'transient)
 
 (require 'docker-core)
+(require 'docker-faces)
 (require 'docker-utils)
 
 (defgroup docker-container nil
@@ -66,11 +67,26 @@ and FLIP is a boolean to specify the sort order."
 (defun docker-container-parse (line)
   "Convert a LINE from \"docker container ls\" to a `tabulated-list-entries' entry."
   (condition-case nil
-      (let ((data (json-read-from-string line)))
-        (aset data 3 (format-time-string "%F %T" (date-to-time (aref data 3))))
+      (let* ((data (json-read-from-string line))
+             (uptime (aref data 3))
+             (status (aref data 4)))
+        (aset data 3 (format-time-string "%F %T" (date-to-time uptime)))
+        (aset data 4 (propertize status 'font-lock-face (docker-container-status-face status)))
         (list (aref data 6) data))
     (json-readtable-error
      (error "Could not read following string as json:\n%s" line))))
+
+(defun docker-container-status-face (status)
+  "Return the correct face according to STATUS."
+  (cond
+   ((s-contains? "(Paused)" status)
+    'docker-face-status-warning)
+   ((s-starts-with? "Up" status)
+    'docker-face-status-success)
+   ((s-starts-with? "Exited" status)
+    'docker-face-status-error)
+   (t
+    'docker-face-status-warning)))
 
 (defun docker-container-entries ()
   "Return the docker containers data for `tabulated-list-entries'."
