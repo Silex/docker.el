@@ -157,6 +157,7 @@ and FLIP is a boolean to specify the sort order."
   :value '("-i" "-t" "--rm")
   ["Arguments"
    ("-D" "With display" "-v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY")
+   ("-N" "Network" "--network " read-string)
    ("-P" "Privileged" "--privileged")
    ("-T" "Synchronize time" "-v /etc/localtime:/etc/localtime:ro")
    ("-W" "Web ports" "-p 80:80 -p 443:443 -p 8080:8080")
