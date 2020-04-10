@@ -133,7 +133,7 @@ Execute BODY in a buffer named with the help of NAME."
 
 (defun docker-utils-unit-multiplier (str)
   "Return the correct multiplier for STR."
-  (expt 1024 (-elem-index str '("B" "KB" "MB" "GB" "TB" "PB" "EB"))))
+  (expt 1024 (-elem-index (upcase str) '("B" "KB" "MB" "GB" "TB" "PB" "EB"))))
 
 (defun docker-utils-human-size-to-bytes (str)
   "Parse STR and return size in bytes."
