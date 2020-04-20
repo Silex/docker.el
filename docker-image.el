@@ -156,8 +156,8 @@ and FLIP is a boolean to specify the sort order."
   :man-page "docker-image-run"
   :value '("-i" "-t" "--rm")
   ["Arguments"
-   ("--mount" "Mount Volume" "--mount=" read-string)
    ("-D" "With display" "-v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY")
+   ("-M" "Mount volume" "--mount=" read-string)
    ("-N" "Network" "--network " read-string)
    ("-P" "Privileged" "--privileged")
    ("-T" "Synchronize time" "-v /etc/localtime:/etc/localtime:ro")
