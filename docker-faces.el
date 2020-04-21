@@ -33,19 +33,19 @@
   :group 'docker
   :group 'faces)
 
-(defface docker-face-status-success
+(defface docker-face-status-up
   '((t :foreground "Green"))
-  "Face for successes."
+  "Face used when the status is up."
   :group 'docker-faces)
 
-(defface docker-face-status-warning
-  '((t :foreground "Gold"))
-  "Face for warnings."
-  :group 'docker-faces)
-
-(defface docker-face-status-error
+(defface docker-face-status-down
   '((t :foreground "Red"))
-  "Face for errors."
+  "Face used when the status is down"
+  :group 'docker-faces)
+
+(defface docker-face-status-other
+  '((t :foreground "Gold"))
+  "Face used when the status is not up/down."
   :group 'docker-faces)
 
 (provide 'docker-faces)

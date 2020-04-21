@@ -80,13 +80,13 @@ and FLIP is a boolean to specify the sort order."
   "Return the correct face according to STATUS."
   (cond
    ((s-contains? "(Paused)" status)
-    'docker-face-status-warning)
+    'docker-face-status-other)
    ((s-starts-with? "Up" status)
-    'docker-face-status-success)
+    'docker-face-status-up)
    ((s-starts-with? "Exited" status)
-    'docker-face-status-error)
+    'docker-face-status-down)
    (t
-    'docker-face-status-warning)))
+    'docker-face-status-other)))
 
 (defun docker-container-entries ()
   "Return the docker containers data for `tabulated-list-entries'."

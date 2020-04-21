@@ -70,11 +70,11 @@ and FLIP is a boolean to specify the sort order."
   "Return the correct face according to STATUS."
   (cond
    ((s-equals? status "Running")
-    'docker-face-status-success)
+    'docker-face-status-up)
    ((s-equals? status "Stopped")
-    'docker-face-status-error)
+    'docker-face-status-down)
    (t
-    'docker-face-status-warning)))
+    'docker-face-status-other)))
 
 (defun docker-machine-entries ()
   "Return the docker machines data for `tabulated-list-entries'."
