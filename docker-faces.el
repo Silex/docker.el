@@ -34,17 +34,17 @@
   :group 'faces)
 
 (defface docker-face-status-up
-  '((t :foreground "Green"))
+  '((t :inherit success))
   "Face used when the status is up."
   :group 'docker-faces)
 
 (defface docker-face-status-down
-  '((t :foreground "Red"))
+  '((t :inherit error))
   "Face used when the status is down"
   :group 'docker-faces)
 
 (defface docker-face-status-other
-  '((t :foreground "Gold"))
+  '((t :inherit warning))
   "Face used when the status is not up/down."
   :group 'docker-faces)
 
