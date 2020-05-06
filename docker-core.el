@@ -61,17 +61,6 @@
    ("C" "Compose"    docker-compose)
    ("M" "Machines"   docker-machines)])
 
-(defun docker-arguments ()
-  "Return the latest used arguments in the `docker' transient."
-  (car (alist-get 'docker transient-history)))
-
-(defun docker-run-docker (action &rest args)
-  "Execute \"`docker-command' ACTION ARGS\"."
-  (docker-utils-with-sudo
-    (let* ((command (s-join " " (-remove 's-blank? (-flatten (list docker-command (docker-arguments) action args))))))
-      (message command)
-      (docker-utils-shell-command-to-string command))))
-
 (provide 'docker-core)
 
 ;;; docker-core.el ends here
