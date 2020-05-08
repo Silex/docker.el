@@ -53,7 +53,7 @@
                          action
                          (s-join " " (-flatten (-non-nil args))))))
     (message command)
-    (docker-utils-shell-command-to-string command)))
+    (docker-shell-command-to-string command)))
 
 (defun docker-compose-run-docker-compose-async (action &rest args)
   "Execute \"`docker-compose-command' ACTION ARGS\"."

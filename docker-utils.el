@@ -27,17 +27,10 @@
 (require 'dash)
 (require 'tramp)
 (require 'tablist)
+(require 'json-mode)
 (require 'transient)
-(require 'docker-core)
 
-(defun docker-utils-shell-command-to-string (command)
-  "Execute shell command COMMAND and return its output as a string.
-Wrap the function `shell-command-to-string', ensuring variable `shell-file-name' behaves properly."
-  (let ((shell-file-name (if (and (eq system-type 'windows-nt)
-                                  (not (file-remote-p default-directory)))
-                             "cmdproxy.exe"
-                           "/bin/sh")))
-    (shell-command-to-string command)))
+(require 'docker-core)
 
 (defun docker-utils-get-marked-items-ids ()
   "Get the id part of `tablist-get-marked-items'."
@@ -99,17 +92,10 @@ Execute BODY in a buffer named with the help of NAME."
       (json-mode)))
   (tablist-revert))
 
-(defmacro docker-utils-with-sudo (&rest body)
-  (declare (indent defun))
-  `(let ((default-directory (if (and docker-run-as-root (not (file-remote-p default-directory)))
-                                "/sudo::"
-                              default-directory)))
-     ,@body))
-
 (defun docker-utils-generic-action-with-command (action args)
   (interactive (list (docker-utils-get-transient-action)
                      (transient-args current-transient-command)))
-  (docker-utils-with-sudo
+  (docker-with-sudo
     (--each (docker-utils-get-marked-items-ids)
       (async-shell-command
        (format "%s %s %s %s" docker-command action (s-join " " args) it)

@@ -95,7 +95,7 @@ and FLIP is a boolean to specify the sort order."
   "Execute \"`docker-machine-command' ACTION ARGS\"."
   (let ((command (format "%s %s %s" docker-machine-command action (s-join " " (-flatten (-non-nil args))))))
     (message command)
-    (docker-utils-shell-command-to-string command)))
+    (docker-shell-command-to-string command)))
 
 (defun docker-machine-get-transient-action ()
   (s-replace "-" " " (s-chop-prefix "docker-machine" (symbol-name current-transient-command))))

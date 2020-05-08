@@ -41,36 +41,32 @@
   :group 'docker
   :type 'boolean)
 
-(defun docker-read-log-level (prompt &rest _args)
-  "Read the docker log level using PROMPT."
-  (completing-read prompt '(debug info warn error fatal)))
-
-;;;###autoload (autoload 'docker "docker" nil t)
-(define-transient-command docker ()
-  "Transient for docker."
-  :man-page "docker"
-  ["Arguments"
-   ("-l" "Log level" "--log-level " docker-read-log-level)
-   ("-H" "Host" "--host " read-string)]
-  ["Docker"
-   ("c" "Containers" docker-containers)
-   ("i" "Images"     docker-images)
-   ("n" "Networks"   docker-networks)
-   ("v" "Volumes"    docker-volumes)]
-  ["Other"
-   ("C" "Compose"    docker-compose)
-   ("M" "Machines"   docker-machines)])
-
 (defun docker-arguments ()
   "Return the latest used arguments in the `docker' transient."
   (car (alist-get 'docker transient-history)))
 
+(defmacro docker-with-sudo (&rest body)
+  (declare (indent defun))
+  `(let ((default-directory (if (and docker-run-as-root (not (file-remote-p default-directory)))
+                                "/sudo::"
+                              default-directory)))
+     ,@body))
+
+(defun docker-shell-command-to-string (command)
+  "Execute shell command COMMAND and return its output as a string.
+Wrap the function `shell-command-to-string', ensuring variable `shell-file-name' behaves properly."
+  (let ((shell-file-name (if (and (eq system-type 'windows-nt)
+                                  (not (file-remote-p default-directory)))
+                             "cmdproxy.exe"
+                           "/bin/sh")))
+    (shell-command-to-string command)))
+
 (defun docker-run-docker (action &rest args)
   "Execute \"`docker-command' ACTION ARGS\"."
-  (docker-utils-with-sudo
+  (docker-with-sudo
     (let* ((command (s-join " " (-remove 's-blank? (-flatten (list docker-command (docker-arguments) action args))))))
       (message command)
-      (docker-utils-shell-command-to-string command))))
+      (docker-shell-command-to-string command))))
 
 (provide 'docker-core)
 

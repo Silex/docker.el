@@ -29,12 +29,32 @@
 
 ;;; Code:
 
-(require 'docker-core)
+(require 'docker-compose)
 (require 'docker-container)
 (require 'docker-image)
 (require 'docker-machine)
 (require 'docker-network)
 (require 'docker-volume)
+
+(defun docker-read-log-level (prompt &rest _args)
+  "Read the docker log level using PROMPT."
+  (completing-read prompt '(debug info warn error fatal)))
+
+;;;###autoload (autoload 'docker "docker" nil t)
+(define-transient-command docker ()
+  "Transient for docker."
+  :man-page "docker"
+  ["Arguments"
+   ("-l" "Log level" "--log-level " docker-read-log-level)
+   ("-H" "Host" "--host " read-string)]
+  ["Docker"
+   ("c" "Containers" docker-containers)
+   ("i" "Images"     docker-images)
+   ("n" "Networks"   docker-networks)
+   ("v" "Volumes"    docker-volumes)]
+  ["Other"
+   ("C" "Compose"    docker-compose)
+   ("M" "Machines"   docker-machines)])
 
 (provide 'docker)
 
