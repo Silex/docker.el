@@ -40,29 +40,6 @@
   (when (null (docker-utils-get-marked-items-ids))
     (user-error "This action cannot be used en an empty list")))
 
-(defmacro docker-utils-define-transient-command (name arglist &rest args)
-  `(define-transient-command ,name ,arglist
-     ,@args
-     (interactive)
-     (docker-utils-ensure-items)
-     (transient-setup ',name)))
-
-(defun docker-utils-generic-actions-heading ()
-  (let ((items (s-join ", " (docker-utils-get-marked-items-ids))))
-    (format "%s %s"
-            (propertize "Actions on" 'face 'transient-heading)
-            (propertize items        'face 'transient-value))))
-
-(defun docker-utils-get-transient-action ()
-  (s-replace "-" " " (s-chop-prefix "docker-" (symbol-name current-transient-command))))
-
-(defun docker-utils-generic-action (action args)
-  (interactive (list (docker-utils-get-transient-action)
-                     (transient-args current-transient-command)))
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-run-docker action args it))
-  (tablist-revert))
-
 (defmacro docker-utils-with-buffer (name &rest body)
   "Wrapper around `with-current-buffer'.
 Execute BODY in a buffer named with the help of NAME."
@@ -74,6 +51,36 @@ Execute BODY in a buffer named with the help of NAME."
      (setq buffer-read-only t)
      (goto-char (point-min))
      (pop-to-buffer (current-buffer))))
+
+(defmacro docker-utils-define-transient-command (name arglist &rest args)
+  `(define-transient-command ,name ,arglist
+     ,@args
+     (interactive)
+     (docker-utils-ensure-items)
+     (transient-setup ',name)))
+
+(defun docker-utils-get-transient-action ()
+  (s-replace "-" " " (s-chop-prefix "docker-" (symbol-name current-transient-command))))
+
+(defun docker-utils-generic-actions-heading ()
+  (let ((items (s-join ", " (docker-utils-get-marked-items-ids))))
+    (format "%s %s"
+            (propertize "Actions on" 'face 'transient-heading)
+            (propertize items        'face 'transient-value))))
+
+(defun docker-utils-generic-action (action args)
+  (interactive (list (docker-utils-get-transient-action)
+                     (transient-args current-transient-command)))
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-run-docker action args it))
+  (tablist-revert))
+
+(defun docker-utils-generic-action-async (action args)
+  (interactive (list (docker-utils-get-transient-action)
+                     (transient-args current-transient-command)))
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-run-docker-async action args it))
+  (tablist-revert))
 
 (defun docker-utils-generic-action-with-buffer (action args)
   (interactive (list (docker-utils-get-transient-action)
@@ -90,13 +97,6 @@ Execute BODY in a buffer named with the help of NAME."
     (docker-utils-with-buffer (format "%s %s" action it)
       (insert (docker-run-docker action args it))
       (json-mode)))
-  (tablist-revert))
-
-(defun docker-utils-generic-action-async (action args)
-  (interactive (list (docker-utils-get-transient-action)
-                     (transient-args current-transient-command)))
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-run-docker-async action args it))
   (tablist-revert))
 
 (defun docker-utils-pop-to-buffer (name)
