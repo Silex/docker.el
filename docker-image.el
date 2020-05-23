@@ -92,11 +92,9 @@ and FLIP is a boolean to specify the sort order."
   "Run \"docker image run\" with COMMAND on the images selection."
   (interactive "sCommand: ")
   (docker-utils-ensure-items)
-  (docker-with-sudo
-    (--each (docker-utils-get-marked-items-ids)
-      (async-shell-command
-       (format "%s container run %s %s %s" docker-command (s-join " " (transient-args 'docker-image-run)) it command)
-       (docker-utils-generate-new-buffer "run" it)))))
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-run-docker-async "container run" (transient-args 'docker-image-run) it command))
+  (tablist-revert))
 
 (defun docker-image-tag-selection ()
   "Tag images."

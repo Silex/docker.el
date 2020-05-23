@@ -67,7 +67,7 @@
   "Wrapper around `with-current-buffer'.
 Execute BODY in a buffer named with the help of NAME."
   (declare (indent defun))
-  `(with-current-buffer (docker-utils-generate-new-buffer ,name)
+  `(with-current-buffer (docker-generate-new-buffer ,name)
      (setq buffer-read-only nil)
      (erase-buffer)
      ,@body
@@ -95,12 +95,9 @@ Execute BODY in a buffer named with the help of NAME."
 (defun docker-utils-generic-action-with-command (action args)
   (interactive (list (docker-utils-get-transient-action)
                      (transient-args current-transient-command)))
-  (docker-with-sudo
-    (--each (docker-utils-get-marked-items-ids)
-      (async-shell-command
-       (format "%s %s %s %s" docker-command action (s-join " " args) it)
-       (docker-utils-generate-new-buffer action it)))
-    (tablist-revert)))
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-run-docker-async action args it))
+  (tablist-revert))
 
 (defun docker-utils-pop-to-buffer (name)
   "Like `pop-to-buffer', but suffix NAME with the host if on a remote host."
@@ -108,14 +105,6 @@ Execute BODY in a buffer named with the help of NAME."
    (if (file-remote-p default-directory)
        (with-parsed-tramp-file-name default-directory nil (concat name " - " host))
      name)))
-
-(defun docker-utils-generate-new-buffer-name (&rest args)
-  "Wrapper around `generate-new-buffer-name'."
-  (generate-new-buffer-name (format "* docker %s *" (s-join " " args))))
-
-(defun docker-utils-generate-new-buffer (&rest args)
-  "Wrapper around `generate-new-buffer'."
-  (generate-new-buffer (apply #'docker-utils-generate-new-buffer-name args)))
 
 (defun docker-utils-unit-multiplier (str)
   "Return the correct multiplier for STR."

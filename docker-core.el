@@ -62,11 +62,26 @@ Wrap the function `shell-command-to-string', ensuring variable `shell-file-name'
     (shell-command-to-string command)))
 
 (defun docker-run-docker (action &rest args)
-  "Execute \"`docker-command' ACTION ARGS\"."
+  "Execute \"`docker-command' ACTION ARGS\" and return the results."
   (docker-with-sudo
     (let* ((command (s-join " " (-remove 's-blank? (-flatten (list docker-command (docker-arguments) action args))))))
       (message command)
       (docker-shell-command-to-string command))))
+
+(defun docker-run-docker-async (action &rest args)
+  "Execute \"`docker-command' ACTION ARGS\" using `async-shell-command'."
+  (docker-with-sudo
+    (let* ((command (s-join " " (-remove 's-blank? (-flatten (list docker-command (docker-arguments) action args))))))
+      (message command)
+      (async-shell-command command (docker-generate-new-buffer-name action)))))
+
+(defun docker-generate-new-buffer-name (&rest args)
+  "Wrapper around `generate-new-buffer-name'."
+  (generate-new-buffer-name (format "* docker %s *" (s-join " " args))))
+
+(defun docker-generate-new-buffer (&rest args)
+  "Wrapper around `generate-new-buffer'."
+  (generate-new-buffer (apply #'docker-generate-new-buffer-name args)))
 
 (provide 'docker-core)
 

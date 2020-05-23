@@ -115,7 +115,7 @@ and FLIP is a boolean to specify the sort order."
                             (format "%s|" (s-chop-suffix ":" prefix))
                           "/")))
          (default-directory (format "%s%s" file-prefix container-address))
-         (eshell-buffer-name (docker-utils-generate-new-buffer-name "eshell" default-directory)))
+         (eshell-buffer-name (docker-generate-new-buffer-name "eshell" default-directory)))
     (eshell)))
 
 ;;;###autoload
@@ -153,7 +153,7 @@ and FLIP is a boolean to specify the sort order."
                             (format "%s|" (s-chop-suffix ":" prefix))
                           "/")))
          (default-directory (format "%s%s" file-prefix container-address)))
-    (shell (docker-utils-generate-new-buffer "shell" default-directory))))
+    (shell (docker-generate-new-buffer "shell" default-directory))))
 
 (defun docker-container-cp-from-selection (container-path host-path)
   "Run \"docker cp\" from CONTAINER-PATH to HOST-PATH for selected container."
