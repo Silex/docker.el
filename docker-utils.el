@@ -92,7 +92,7 @@ Execute BODY in a buffer named with the help of NAME."
       (json-mode)))
   (tablist-revert))
 
-(defun docker-utils-generic-action-with-command (action args)
+(defun docker-utils-generic-action-async (action args)
   (interactive (list (docker-utils-get-transient-action)
                      (transient-args current-transient-command)))
   (--each (docker-utils-get-marked-items-ids)

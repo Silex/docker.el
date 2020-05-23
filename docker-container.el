@@ -220,7 +220,7 @@ and FLIP is a boolean to specify the sort order."
    ("-n" "No STDIN" "--no-stdin")
    ("-d" "Key sequence for detaching" "--detach-keys=" read-string)]
   [:description docker-utils-generic-actions-heading
-   ("a" "Attach" docker-utils-generic-action-with-command)])
+   ("a" "Attach" docker-utils-generic-action-async)])
 
 (docker-utils-define-transient-command docker-container-cp ()
   "Transient for copying files from/to containers."
@@ -261,7 +261,7 @@ and FLIP is a boolean to specify the sort order."
   ["Arguments"
    ("-f" "Follow" "-f")]
   [:description docker-utils-generic-actions-heading
-   ("L" "Logs" docker-utils-generic-action-with-command)])
+   ("L" "Logs" docker-utils-generic-action-async)])
 
 (defun docker-container-ls-arguments ()
   "Return the latest used arguments in the `docker-container-ls' transient."
