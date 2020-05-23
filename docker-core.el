@@ -61,19 +61,21 @@ Wrap the function `shell-command-to-string', ensuring variable `shell-file-name'
                            "/bin/sh")))
     (shell-command-to-string command)))
 
-(defun docker-run-docker (action &rest args)
-  "Execute \"`docker-command' ACTION ARGS\" and return the results."
+(defun docker-run-docker (&rest args)
+  "Execute \"`docker-command' ARGS\" and return the results."
   (docker-with-sudo
-    (let* ((command (s-join " " (-remove 's-blank? (-flatten (list docker-command (docker-arguments) action args))))))
+    (let* ((flat-args (-remove 's-blank? (-flatten (list (docker-arguments) args))))
+           (command (s-join " " (-insert-at 0 docker-command flat-args))))
       (message command)
       (docker-shell-command-to-string command))))
 
-(defun docker-run-docker-async (action &rest args)
-  "Execute \"`docker-command' ACTION ARGS\" using `async-shell-command'."
+(defun docker-run-docker-async (&rest args)
+  "Execute \"`docker-command' ARGS\" using `async-shell-command'."
   (docker-with-sudo
-    (let* ((command (s-join " " (-remove 's-blank? (-flatten (list docker-command (docker-arguments) action args))))))
+    (let* ((flat-args (-remove 's-blank? (-flatten (list (docker-arguments) args))))
+           (command (s-join " " (-insert-at 0 docker-command flat-args))))
       (message command)
-      (async-shell-command command (docker-generate-new-buffer-name action)))))
+      (async-shell-command command (docker-generate-new-buffer-name (s-join " " flat-args))))))
 
 (defun docker-generate-new-buffer-name (&rest args)
   "Wrapper around `generate-new-buffer-name'."
