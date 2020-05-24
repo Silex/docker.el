@@ -66,6 +66,9 @@ You can also enter `dired` or open a file inside a container or volume.
 Thanks to [transient](https://github.com/magit/transient), all the transients arguments can be set temporarily or
 permanently. See https://magit.vc/manual/transient/Saving-Values.html#Saving-Values for more information.
 
+There are also hidden items (e.g on `M-x docker` where you could specify the host or TLS settings), see
+https://magit.vc/manual/transient/Enabling-and-Disabling-Suffixes.html for more information.
+
 Here is a list of other customizations you can set:
 
 | Variable                          | Description                           | Default          |

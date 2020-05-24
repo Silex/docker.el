@@ -40,13 +40,22 @@
   "Read the docker log level using PROMPT."
   (completing-read prompt '(debug info warn error fatal)))
 
+(defun docker-read-certificate (prompt &optional initial-input _history)
+  "Wrapper around `read-file-name'."
+  (read-file-name prompt nil nil t initial-input (apply-partially 'string-match ".*\\.pem")))
+
 ;;;###autoload (autoload 'docker "docker" nil t)
 (transient-define-prefix docker ()
   "Transient for docker."
   :man-page "docker"
   ["Arguments"
-   ("-l" "Log level" "--log-level " docker-read-log-level)
-   ("-H" "Host" "--host " read-string)]
+   (5 "-H" "Host" "--host " read-string)
+   (5 "-Tt" "TLS" "--tls")
+   (5 "-Tv" "TLS verify remote" "--tlsverify")
+   (5 "-Ta" "TLS CA" "--tlscacert" docker-read-certificate)
+   (5 "-Tc" "TLS certificate" "--tlscert" docker-read-certificate)
+   (5 "-Tk" "TLS key" "--tlskey" docker-read-certificate)
+   (5 "-l" "Log level" "--log-level " docker-read-log-level)]
   ["Docker"
    ("c" "Containers" docker-containers)
    ("i" "Images"     docker-images)
