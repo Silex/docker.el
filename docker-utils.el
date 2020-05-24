@@ -52,15 +52,15 @@ Execute BODY in a buffer named with the help of NAME."
      (goto-char (point-min))
      (pop-to-buffer (current-buffer))))
 
-(defmacro docker-utils-define-transient-command (name arglist &rest args)
-  `(define-transient-command ,name ,arglist
+(defmacro docker-utils-transient-define-prefix (name arglist &rest args)
+  `(transient-define-prefix ,name ,arglist
      ,@args
      (interactive)
      (docker-utils-ensure-items)
      (transient-setup ',name)))
 
 (defun docker-utils-get-transient-action ()
-  (s-replace "-" " " (s-chop-prefix "docker-" (symbol-name current-transient-command))))
+  (s-replace "-" " " (s-chop-prefix "docker-" (symbol-name transient-current-command))))
 
 (defun docker-utils-generic-actions-heading ()
   (let ((items (s-join ", " (docker-utils-get-marked-items-ids))))
@@ -70,21 +70,21 @@ Execute BODY in a buffer named with the help of NAME."
 
 (defun docker-utils-generic-action (action args)
   (interactive (list (docker-utils-get-transient-action)
-                     (transient-args current-transient-command)))
+                     (transient-args transient-current-command)))
   (--each (docker-utils-get-marked-items-ids)
     (docker-run-docker action args it))
   (tablist-revert))
 
 (defun docker-utils-generic-action-async (action args)
   (interactive (list (docker-utils-get-transient-action)
-                     (transient-args current-transient-command)))
+                     (transient-args transient-current-command)))
   (--each (docker-utils-get-marked-items-ids)
     (docker-run-docker-async action args it))
   (tablist-revert))
 
 (defun docker-utils-generic-action-with-buffer (action args)
   (interactive (list (docker-utils-get-transient-action)
-                     (transient-args current-transient-command)))
+                     (transient-args transient-current-command)))
   (--each (docker-utils-get-marked-items-ids)
     (docker-utils-with-buffer (format "%s %s" action it)
       (insert (docker-run-docker action args it))))
@@ -92,7 +92,7 @@ Execute BODY in a buffer named with the help of NAME."
 
 (defun docker-utils-generic-action-with-buffer:json (action args)
   (interactive (list (docker-utils-get-transient-action)
-                     (transient-args current-transient-command)))
+                     (transient-args transient-current-command)))
   (--each (docker-utils-get-marked-items-ids)
     (docker-utils-with-buffer (format "%s %s" action it)
       (insert (docker-run-docker action args it))

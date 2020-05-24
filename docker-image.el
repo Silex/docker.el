@@ -104,7 +104,7 @@ and FLIP is a boolean to specify the sort order."
     (docker-run-docker "tag" it (read-string (format "Tag for %s: " it))))
   (tablist-revert))
 
-(docker-utils-define-transient-command docker-image-inspect ()
+(docker-utils-transient-define-prefix docker-image-inspect ()
   "Transient for inspecting images."
   :man-page "docker-image-inspect"
   [:description docker-utils-generic-actions-heading
@@ -114,7 +114,7 @@ and FLIP is a boolean to specify the sort order."
   "Return the latest used arguments in the `docker-image-ls' transient."
   (car (alist-get 'docker-image-ls transient-history)))
 
-(define-transient-command docker-image-ls ()
+(transient-define-prefix docker-image-ls ()
   "Transient for listing images."
   :man-page "docker-image-ls"
   ["Arguments"
@@ -125,7 +125,7 @@ and FLIP is a boolean to specify the sort order."
   ["Actions"
    ("l" "List" tablist-revert)])
 
-(define-transient-command docker-image-pull ()
+(transient-define-prefix docker-image-pull ()
   "Transient for pulling images."
   :man-page "docker-image-pull"
   ["Arguments"
@@ -134,13 +134,13 @@ and FLIP is a boolean to specify the sort order."
    ("F" "Pull selection" docker-utils-generic-action)
    ("N" "Pull a new image" docker-image-pull-one)])
 
-(docker-utils-define-transient-command docker-image-push ()
+(docker-utils-transient-define-prefix docker-image-push ()
   "Transient for pushing images."
   :man-page "docker-image-push"
   [:description docker-utils-generic-actions-heading
    ("P" "Push" docker-utils-generic-action)])
 
-(docker-utils-define-transient-command docker-image-rm ()
+(docker-utils-transient-define-prefix docker-image-rm ()
   "Transient for removing images."
   :man-page "docker-image-rm"
   ["Arguments"
@@ -149,7 +149,7 @@ and FLIP is a boolean to specify the sort order."
   [:description docker-utils-generic-actions-heading
    ("D" "Remove" docker-utils-generic-action)])
 
-(docker-utils-define-transient-command docker-image-run ()
+(docker-utils-transient-define-prefix docker-image-run ()
   "Transient for running images."
   :man-page "docker-image-run"
   :value '("-i" "-t" "--rm")
@@ -175,7 +175,7 @@ and FLIP is a boolean to specify the sort order."
   [:description docker-utils-generic-actions-heading
    ("R" "Run" docker-image-run-selection)])
 
-(define-transient-command docker-image-help ()
+(transient-define-prefix docker-image-help ()
   "Help transient for docker images."
   ["Docker images help"
    ("D" "Remove"  docker-image-rm)

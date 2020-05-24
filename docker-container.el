@@ -213,7 +213,7 @@ and FLIP is a boolean to specify the sort order."
     (docker-run-docker "unpause" it))
   (tablist-revert))
 
-(docker-utils-define-transient-command docker-container-attach ()
+(docker-utils-transient-define-prefix docker-container-attach ()
   "Transient for attaching to containers."
   :man-page "docker-container-attach"
   ["Arguments"
@@ -222,32 +222,32 @@ and FLIP is a boolean to specify the sort order."
   [:description docker-utils-generic-actions-heading
    ("a" "Attach" docker-utils-generic-action-async)])
 
-(docker-utils-define-transient-command docker-container-cp ()
+(docker-utils-transient-define-prefix docker-container-cp ()
   "Transient for copying files from/to containers."
   :man-page "docker-container-cp"
   [:description docker-utils-generic-actions-heading
    ("f" "Copy From" docker-container-cp-from-selection)
    ("t" "Copy To" docker-container-cp-to-selection)])
 
-(docker-utils-define-transient-command docker-container-diff ()
+(docker-utils-transient-define-prefix docker-container-diff ()
   "Transient for showing containers diffs."
   :man-page "docker-container-diff"
   [:description docker-utils-generic-actions-heading
    ("d" "Diff" docker-utils-generic-action-with-buffer)])
 
-(docker-utils-define-transient-command docker-container-open ()
+(docker-utils-transient-define-prefix docker-container-open ()
   "Transient for opening containers files."
   [:description docker-utils-generic-actions-heading
    ("d" "Open directory" docker-container-find-directory-selection)
    ("f" "Open file" docker-container-find-file-selection)])
 
-(docker-utils-define-transient-command docker-container-inspect ()
+(docker-utils-transient-define-prefix docker-container-inspect ()
   "Transient for inspecting containers."
   :man-page "docker-container-inspect"
   [:description docker-utils-generic-actions-heading
    ("I" "Inspect" docker-utils-generic-action-with-buffer:json)])
 
-(docker-utils-define-transient-command docker-container-kill ()
+(docker-utils-transient-define-prefix docker-container-kill ()
   "Transient for kill signaling containers"
   :man-page "docker-container-kill"
   ["Arguments"
@@ -255,7 +255,7 @@ and FLIP is a boolean to specify the sort order."
   [:description docker-utils-generic-actions-heading
    ("K" "Kill" docker-utils-generic-action)])
 
-(docker-utils-define-transient-command docker-container-logs ()
+(docker-utils-transient-define-prefix docker-container-logs ()
   "Transient for showing containers logs."
   :man-page "docker-container-logs"
   ["Arguments"
@@ -267,7 +267,7 @@ and FLIP is a boolean to specify the sort order."
   "Return the latest used arguments in the `docker-container-ls' transient."
   (car (alist-get 'docker-container-ls transient-history)))
 
-(define-transient-command docker-container-ls ()
+(transient-define-prefix docker-container-ls ()
   "Transient for listing containers."
   :man-page "docker-container-ls"
   :value '("--all")
@@ -280,14 +280,14 @@ and FLIP is a boolean to specify the sort order."
   ["Actions"
    ("l" "List" tablist-revert)])
 
-(docker-utils-define-transient-command docker-container-pause ()
+(docker-utils-transient-define-prefix docker-container-pause ()
   "Transient for pauseing containers."
   :man-page "docker-container-pause"
   [:description docker-utils-generic-actions-heading
    ("P" "Pause" docker-utils-generic-action)
    ("U" "Unpause" docker-container-unpause-selection)])
 
-(docker-utils-define-transient-command docker-container-restart ()
+(docker-utils-transient-define-prefix docker-container-restart ()
   "Transient for restarting containers."
   :man-page "docker-container-restart"
   ["Arguments"
@@ -295,7 +295,7 @@ and FLIP is a boolean to specify the sort order."
   [:description docker-utils-generic-actions-heading
    ("R" "Restart" docker-utils-generic-action)])
 
-(docker-utils-define-transient-command docker-container-rm ()
+(docker-utils-transient-define-prefix docker-container-rm ()
   "Transient for removing containers."
   :man-page "docker-container-rm"
   ["Arguments"
@@ -304,19 +304,19 @@ and FLIP is a boolean to specify the sort order."
   [:description docker-utils-generic-actions-heading
    ("D" "Remove" docker-utils-generic-action)])
 
-(docker-utils-define-transient-command docker-container-shells ()
+(docker-utils-transient-define-prefix docker-container-shells ()
   "Transient for doing M-x `shell'/`eshell' to containers."
   [:description docker-utils-generic-actions-heading
    ("b" "Shell" docker-container-shell-selection)
    ("e" "Eshell" docker-container-eshell-selection)])
 
-(docker-utils-define-transient-command docker-container-start ()
+(docker-utils-transient-define-prefix docker-container-start ()
   "Transient for starting containers."
   :man-page "docker-container-start"
   [:description docker-utils-generic-actions-heading
    ("S" "Start" docker-utils-generic-action)])
 
-(docker-utils-define-transient-command docker-container-stop ()
+(docker-utils-transient-define-prefix docker-container-stop ()
   "Transient for stoping containers."
   :man-page "docker-container-stop"
   ["Arguments"
@@ -324,7 +324,7 @@ and FLIP is a boolean to specify the sort order."
   [:description docker-utils-generic-actions-heading
    ("O" "Stop" docker-utils-generic-action)])
 
-(define-transient-command docker-container-help ()
+(transient-define-prefix docker-container-help ()
   "Help transient for docker containers."
   ["Docker containers help"
    ("C" "Copy"       docker-container-cp)

@@ -4,7 +4,7 @@
 ;; URL: https://github.com/Silex/docker.el
 ;; Keywords: filename, convenience
 ;; Version: 1.3.0
-;; Package-Requires: ((dash "2.14.1") (docker-tramp "0.1") (emacs "24.5") (json-mode "1.7.0") (s "1.12.0") (tablist "0.70") (transient "0.1.0"))
+;; Package-Requires: ((dash "2.14.1") (docker-tramp "0.1") (emacs "24.5") (json-mode "1.7.0") (s "1.12.0") (tablist "0.70") (transient "0.2.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -41,7 +41,7 @@
   (completing-read prompt '(debug info warn error fatal)))
 
 ;;;###autoload (autoload 'docker "docker" nil t)
-(define-transient-command docker ()
+(transient-define-prefix docker ()
   "Transient for docker."
   :man-page "docker"
   ["Arguments"

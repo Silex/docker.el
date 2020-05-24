@@ -98,11 +98,11 @@ and FLIP is a boolean to specify the sort order."
     (docker-shell-command-to-string command)))
 
 (defun docker-machine-get-transient-action ()
-  (s-replace "-" " " (s-chop-prefix "docker-machine" (symbol-name current-transient-command))))
+  (s-replace "-" " " (s-chop-prefix "docker-machine" (symbol-name transient-current-command))))
 
 (defun docker-machine-generic-action (action args)
   (interactive (list (docker-machine-get-transient-action)
-                     (transient-args current-transient-command)))
+                     (transient-args transient-current-command)))
   (--each (docker-utils-get-marked-items-ids)
     (docker-machine-run-docker-machine action args it))
   (tablist-revert))
@@ -140,7 +140,7 @@ and FLIP is a boolean to specify the sort order."
     (docker-machine-env-one (car marked))
     (tablist-revert)))
 
-(docker-utils-define-transient-command docker-machine-env ()
+(docker-utils-transient-define-prefix docker-machine-env ()
   "Transient for setting up environment variables."
   :man-page "docker-machine-env"
   [:description docker-utils-generic-actions-heading
@@ -150,7 +150,7 @@ and FLIP is a boolean to specify the sort order."
   "Return the latest used arguments in the `docker-machine-ls' transient."
   (car (alist-get 'docker-machine-ls transient-history)))
 
-(define-transient-command docker-machine-ls ()
+(transient-define-prefix docker-machine-ls ()
   "Transient for listing machines."
   :man-page "docker-machine-ls"
   ["Arguments"
@@ -159,13 +159,13 @@ and FLIP is a boolean to specify the sort order."
   ["Actions"
    ("l" "List" tablist-revert)])
 
-(docker-utils-define-transient-command docker-machine-restart ()
+(docker-utils-transient-define-prefix docker-machine-restart ()
   "Transient for restarting machines."
   :man-page "docker-machine-restart"
   [:description docker-utils-generic-actions-heading
    ("R" "Restart" docker-machine-generic-action)])
 
-(docker-utils-define-transient-command docker-machine-rm ()
+(docker-utils-transient-define-prefix docker-machine-rm ()
   "Transient for removing machines."
   :man-page "docker-machine-rm"
   :value '("-y")
@@ -175,19 +175,19 @@ and FLIP is a boolean to specify the sort order."
   [:description docker-utils-generic-actions-heading
    ("D" "Remove" docker-machine-generic-action)])
 
-(docker-utils-define-transient-command docker-machine-start ()
+(docker-utils-transient-define-prefix docker-machine-start ()
   "Transient for starting machines."
   :man-page "docker-machine-start"
   [:description docker-utils-generic-actions-heading
    ("S" "Start" docker-machine-generic-action)])
 
-(docker-utils-define-transient-command docker-machine-stop ()
+(docker-utils-transient-define-prefix docker-machine-stop ()
   "Transient for stoping machines."
   :man-page "docker-machine-stop"
   [:description docker-utils-generic-actions-heading
    ("O" "Stop" docker-machine-generic-action)])
 
-(define-transient-command docker-machine-help ()
+(transient-define-prefix docker-machine-help ()
   "Help transient for docker machine."
   ["Docker machines help"
    ("C" "Create"     docker-machine-create)

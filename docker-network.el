@@ -76,7 +76,7 @@ and FLIP is a boolean to specify the sort order."
   "Return the latest used arguments in the `docker-network-ls' transient."
   (car (alist-get 'docker-network-ls transient-history)))
 
-(define-transient-command docker-network-ls ()
+(transient-define-prefix docker-network-ls ()
   "Transient for listing networks."
   :man-page "docker-network-ls"
   ["Arguments"
@@ -85,13 +85,13 @@ and FLIP is a boolean to specify the sort order."
   ["Actions"
    ("l" "List" tablist-revert)])
 
-(docker-utils-define-transient-command docker-network-rm ()
+(docker-utils-transient-define-prefix docker-network-rm ()
   "Transient for removing networks."
   :man-page "docker-network-rm"
   [:description docker-utils-generic-actions-heading
    ("D" "Remove" docker-utils-generic-action)])
 
-(define-transient-command docker-network-help ()
+(transient-define-prefix docker-network-help ()
   "Help transient for docker networks."
   ["Docker networks help"
    ("D" "Remove"     docker-network-rm)

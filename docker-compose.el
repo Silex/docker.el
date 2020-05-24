@@ -111,28 +111,28 @@
 (defun docker-compose-run-action-for-one-service (action args services)
   "Run \"docker-compose ACTION ARGS SERVICES\"."
   (interactive (list
-                (-last-item (s-split "-" (symbol-name current-transient-command)))
-                (transient-args current-transient-command)
+                (-last-item (s-split "-" (symbol-name transient-current-command)))
+                (transient-args transient-current-command)
                 (docker-compose-read-services-names)))
   (docker-compose-run-docker-compose-async action args services))
 
 (defun docker-compose-run-action-for-all-services (action args)
   "Run \"docker-compose ACTION ARGS\"."
   (interactive (list
-                (-last-item (s-split "-" (symbol-name current-transient-command)))
-                (transient-args current-transient-command)))
+                (-last-item (s-split "-" (symbol-name transient-current-command)))
+                (transient-args transient-current-command)))
   (docker-compose-run-docker-compose-async action args))
 
 (defun docker-compose-run-action-with-command (action args service command)
   "Run \"docker-compose ACTION ARGS SERVICE COMMAND\"."
   (interactive (list
-                (-last-item (s-split "-" (symbol-name current-transient-command)))
-                (transient-args current-transient-command)
+                (-last-item (s-split "-" (symbol-name transient-current-command)))
+                (transient-args transient-current-command)
                 (docker-compose-read-service-name)
                 (read-string "Command: ")))
   (docker-compose-run-docker-compose-async action args service command))
 
-(define-transient-command docker-compose-build ()
+(transient-define-prefix docker-compose-build ()
   "Transient for \"docker-compose build\"."
   :man-page "docker-compose build"
   ["Arguments"
@@ -147,7 +147,7 @@
    ("B" "Build" docker-compose-run-action-for-one-service)
    ("A" "All services" docker-compose-run-action-for-all-services)])
 
-(define-transient-command docker-compose-config ()
+(transient-define-prefix docker-compose-config ()
   "Transient for \"docker-compose config\"."
   :man-page "docker-compose config"
   ["Arguments"
@@ -157,7 +157,7 @@
   ["Actions"
    ("V" "Config" docker-compose-run-action-for-all-services)])
 
-(define-transient-command docker-compose-create ()
+(transient-define-prefix docker-compose-create ()
   "Transient for \"docker-compose create\"."
   :man-page "docker-compose create"
   ["Arguments"
@@ -168,7 +168,7 @@
    ("C" "Create" docker-compose-run-action-for-one-service)
    ("A" "All services" docker-compose-run-action-for-all-services)])
 
-(define-transient-command docker-compose-down ()
+(transient-define-prefix docker-compose-down ()
   "Transient for \"docker-compose down\"."
   :man-page "docker-compose down"
   ["Arguments"
@@ -179,7 +179,7 @@
    ("W" "Down" docker-compose-run-action-for-one-service)
    ("A" "All services" docker-compose-run-action-for-all-services)])
 
-(define-transient-command docker-compose-exec ()
+(transient-define-prefix docker-compose-exec ()
   "Transient for \"docker-compose exec\"."
   :man-page "docker-compose exec"
   ["Arguments"
@@ -192,7 +192,7 @@
   ["Actions"
    ("E" "Exec" docker-compose-run-action-with-command)])
 
-(define-transient-command docker-compose-logs ()
+(transient-define-prefix docker-compose-logs ()
   "Transient for \"docker-compose logs\"."
   :man-page "docker-compose logs"
   ["Arguments"
@@ -204,7 +204,7 @@
    ("L" "Logs" docker-compose-run-action-for-one-service)
    ("A" "All services" docker-compose-run-action-for-all-services)])
 
-(define-transient-command docker-compose-pull ()
+(transient-define-prefix docker-compose-pull ()
   "Transient for \"docker-compose pull\"."
   :man-page "docker-compose pull"
   ["Arguments"
@@ -215,7 +215,7 @@
    ("F" "Pull" docker-compose-run-action-for-one-service)
    ("A" "All services" docker-compose-run-action-for-all-services)])
 
-(define-transient-command docker-compose-push ()
+(transient-define-prefix docker-compose-push ()
   "Transient for \"docker-compose push\"."
   :man-page "docker-compose push"
   ["Arguments"
@@ -224,7 +224,7 @@
    ("P" "Push" docker-compose-run-action-for-one-service)
    ("A" "All services" docker-compose-run-action-for-all-services)])
 
-(define-transient-command docker-compose-restart ()
+(transient-define-prefix docker-compose-restart ()
   "Transient for \"docker-compose restart\"."
   :man-page "docker-compose restart"
   ["Arguments"
@@ -233,7 +233,7 @@
    ("T" "Restart" docker-compose-run-action-for-one-service)
    ("A" "All services" docker-compose-run-action-for-all-services)])
 
-(define-transient-command docker-compose-rm ()
+(transient-define-prefix docker-compose-rm ()
   "Transient for \"docker-compose rm\"."
   :man-page "docker-compose rm"
   ["Arguments"
@@ -244,7 +244,7 @@
    ("D" "Remove" docker-compose-run-action-for-one-service)
    ("A" "All services" docker-compose-run-action-for-all-services)])
 
-(define-transient-command docker-compose-run ()
+(transient-define-prefix docker-compose-run ()
   "Transient for \"docker-compose run\"."
   :man-page "docker-compose run"
   :value '("--rm")
@@ -263,14 +263,14 @@
   ["Actions"
    ("R" "Run" docker-compose-run-action-with-command)])
 
-(define-transient-command docker-compose-start ()
+(transient-define-prefix docker-compose-start ()
   "Transient for \"docker-compose start\"."
   :man-page "docker-compose start"
   ["Actions"
    ("S" "Start" docker-compose-run-action-for-one-service)
    ("A" "All services" docker-compose-run-action-for-all-services)])
 
-(define-transient-command docker-compose-stop ()
+(transient-define-prefix docker-compose-stop ()
   "Transient for \"docker-compose stop\"."
   :man-page "docker-compose stop"
   ["Arguments"
@@ -279,7 +279,7 @@
    ("O" "Stop" docker-compose-run-action-for-one-service)
    ("A" "All services" docker-compose-run-action-for-all-services)])
 
-(define-transient-command docker-compose-up ()
+(transient-define-prefix docker-compose-up ()
   "Transient for \"docker-compose up\"."
   :man-page "docker-compose up"
   ["Arguments"
@@ -299,7 +299,7 @@
   (car (alist-get 'docker-compose transient-history)))
 
 ;;;###autoload (autoload 'docker-compose "docker-compose" nil t)
-(define-transient-command docker-compose ()
+(transient-define-prefix docker-compose ()
   "Transient for docker-compose."
   :man-page "docker-compose"
   ["Arguments"

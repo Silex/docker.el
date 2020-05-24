@@ -89,7 +89,7 @@ and FLIP is a boolean to specify the sort order."
   "Return the latest used arguments in the `docker-volume-ls' transient."
   (car (alist-get 'docker-volume-ls transient-history)))
 
-(define-transient-command docker-volume-ls ()
+(transient-define-prefix docker-volume-ls ()
   "Transient for listing volumes."
   :man-page "docker-volume-ls"
   ["Arguments"
@@ -97,13 +97,13 @@ and FLIP is a boolean to specify the sort order."
   ["Actions"
    ("l" "List" tablist-revert)])
 
-(docker-utils-define-transient-command docker-volume-rm ()
+(docker-utils-transient-define-prefix docker-volume-rm ()
   "Transient for removing volumes."
   :man-page "docker-volume-rm"
   [:description docker-utils-generic-actions-heading
    ("D" "Remove" docker-utils-generic-action)])
 
-(define-transient-command docker-volume-help ()
+(transient-define-prefix docker-volume-help ()
   "Help transient for docker volumes."
   ["Docker volumes help"
    ("D" "Remove"     docker-volume-rm)
