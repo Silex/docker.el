@@ -259,7 +259,10 @@ and FLIP is a boolean to specify the sort order."
   "Transient for showing containers logs."
   :man-page "docker-container-logs"
   ["Arguments"
-   ("-f" "Follow" "-f")]
+   ("-f" "Follow" "-f")
+   ("-s" "Since" "--since " read-string)
+   ("-t" "Tail" "--tail " read-string)
+   ("-u" "Until" "--until " read-string)]
   [:description docker-utils-generic-actions-heading
    ("L" "Logs" docker-utils-generic-action-async)])
 
