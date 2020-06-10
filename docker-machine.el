@@ -154,8 +154,8 @@ and FLIP is a boolean to specify the sort order."
   "Transient for listing machines."
   :man-page "docker-machine-ls"
   ["Arguments"
-   ("-f" "Filter" "--filter " read-string)
-   ("-t" "Timeout" "--timeout " transient-read-number-N0)]
+   ("f" "Filter" "--filter " read-string)
+   ("t" "Timeout" "--timeout " transient-read-number-N0)]
   ["Actions"
    ("l" "List" tablist-revert)])
 
@@ -170,8 +170,8 @@ and FLIP is a boolean to specify the sort order."
   :man-page "docker-machine-rm"
   :value '("-y")
   ["Arguments"
-   ("-f" "Force" "-f")
-   ("-y" "Automatic yes" "-y")]
+   ("f" "Force" "-f")
+   ("y" "Automatic yes" "-y")]
   [:description docker-utils-generic-actions-heading
    ("D" "Remove" docker-machine-generic-action)])
 

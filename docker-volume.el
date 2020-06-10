@@ -93,7 +93,7 @@ and FLIP is a boolean to specify the sort order."
   "Transient for listing volumes."
   :man-page "docker-volume-ls"
   ["Arguments"
-   ("-f" "Filter" "--filter " read-string)]
+   ("f" "Filter" "--filter " read-string)]
   ["Actions"
    ("l" "List" tablist-revert)])
 

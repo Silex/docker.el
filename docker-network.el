@@ -80,8 +80,8 @@ and FLIP is a boolean to specify the sort order."
   "Transient for listing networks."
   :man-page "docker-network-ls"
   ["Arguments"
-   ("-f" "Filter" "--filter " read-string)
-   ("-n" "Don't truncate" "--no-trunc")]
+   ("f" "Filter" "--filter " read-string)
+   ("n" "Don't truncate" "--no-trunc")]
   ["Actions"
    ("l" "List" tablist-revert)])
 

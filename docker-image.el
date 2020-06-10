@@ -118,10 +118,10 @@ and FLIP is a boolean to specify the sort order."
   "Transient for listing images."
   :man-page "docker-image-ls"
   ["Arguments"
-   ("-a" "All" "--all")
-   ("-d" "Dangling" "-f dangling=true")
-   ("-f" "Filter" "--filter" read-string)
-   ("-n" "Don't truncate" "--no-trunc")]
+   ("a" "All" "--all")
+   ("d" "Dangling" "-f dangling=true")
+   ("f" "Filter" "--filter" read-string)
+   ("n" "Don't truncate" "--no-trunc")]
   ["Actions"
    ("l" "List" tablist-revert)])
 
@@ -129,7 +129,7 @@ and FLIP is a boolean to specify the sort order."
   "Transient for pulling images."
   :man-page "docker-image-pull"
   ["Arguments"
-   ("-a" "All" "-a")]
+   ("a" "All" "-a")]
   [:description docker-utils-generic-actions-heading
    ("F" "Pull selection" docker-utils-generic-action)
    ("N" "Pull a new image" docker-image-pull-one)])
@@ -154,24 +154,24 @@ and FLIP is a boolean to specify the sort order."
   :man-page "docker-image-run"
   :value '("-i" "-t" "--rm")
   ["Arguments"
-   ("-D" "With display" "-v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY")
-   ("-M" "Mount volume" "--mount=" read-string)
-   ("-N" "Network" "--network " read-string)
-   ("-P" "Privileged" "--privileged")
-   ("-T" "Synchronize time" "-v /etc/localtime:/etc/localtime:ro")
-   ("-W" "Web ports" "-p 80:80 -p 443:443 -p 8080:8080")
-   ("-d" "Detach" "-d")
-   ("-e" "environment" "-e " read-string)
-   ("-i" "Interactive" "-i")
-   ("-m" "name" "--name " read-string)
-   ("-n" "entrypoint" "--entrypoint " read-string)
-   ("-o" "Read only" "--read-only")
-   ("-p" "port" "-p " read-string)
-   ("-r" "Remove container when it exits" "--rm")
-   ("-t" "TTY" "-t")
-   ("-u" "user" "-u " read-string)
-   ("-v" "volume" "-v " read-string)
-   ("-w" "workdir" "-w " read-string)]
+   ("D" "With display" "-v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY")
+   ("M" "Mount volume" "--mount=" read-string)
+   ("N" "Network" "--network " read-string)
+   ("P" "Privileged" "--privileged")
+   ("T" "Synchronize time" "-v /etc/localtime:/etc/localtime:ro")
+   ("W" "Web ports" "-p 80:80 -p 443:443 -p 8080:8080")
+   ("d" "Detach" "-d")
+   ("e" "environment" "-e " read-string)
+   ("i" "Interactive" "-i")
+   ("m" "name" "--name " read-string)
+   ("n" "entrypoint" "--entrypoint " read-string)
+   ("o" "Read only" "--read-only")
+   ("p" "port" "-p " read-string)
+   ("r" "Remove container when it exits" "--rm")
+   ("t" "TTY" "-t")
+   ("u" "user" "-u " read-string)
+   ("v" "volume" "-v " read-string)
+   ("w" "workdir" "-w " read-string)]
   [:description docker-utils-generic-actions-heading
    ("R" "Run" docker-image-run-selection)])
 
