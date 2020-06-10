@@ -217,8 +217,8 @@ and FLIP is a boolean to specify the sort order."
   "Transient for attaching to containers."
   :man-page "docker-container-attach"
   ["Arguments"
-   ("-n" "No STDIN" "--no-stdin")
-   ("-d" "Key sequence for detaching" "--detach-keys=" read-string)]
+   ("n" "No STDIN" "--no-stdin")
+   ("d" "Key sequence for detaching" "--detach-keys=" read-string)]
   [:description docker-utils-generic-actions-heading
    ("a" "Attach" docker-utils-generic-action-async)])
 
@@ -251,7 +251,7 @@ and FLIP is a boolean to specify the sort order."
   "Transient for kill signaling containers"
   :man-page "docker-container-kill"
   ["Arguments"
-   ("-s" "Signal" "-s " read-string)]
+   ("s" "Signal" "-s " read-string)]
   [:description docker-utils-generic-actions-heading
    ("K" "Kill" docker-utils-generic-action)])
 
@@ -259,10 +259,10 @@ and FLIP is a boolean to specify the sort order."
   "Transient for showing containers logs."
   :man-page "docker-container-logs"
   ["Arguments"
-   ("-f" "Follow" "-f")
-   ("-s" "Since" "--since " read-string)
-   ("-t" "Tail" "--tail " read-string)
-   ("-u" "Until" "--until " read-string)]
+   ("f" "Follow" "-f")
+   ("s" "Since" "--since " read-string)
+   ("t" "Tail" "--tail " read-string)
+   ("u" "Until" "--until " read-string)]
   [:description docker-utils-generic-actions-heading
    ("L" "Logs" docker-utils-generic-action-async)])
 
@@ -275,11 +275,11 @@ and FLIP is a boolean to specify the sort order."
   :man-page "docker-container-ls"
   :value '("--all")
   ["Arguments"
-   ("-N" "Last" "--last " transient-read-number-N0)
-   ("-a" "All" "--all")
-   ("-e" "Exited containers" "--filter status=exited")
-   ("-f" "Filter" "--filter " read-string)
-   ("-n" "Don't truncate" "--no-trunc")]
+   ("N" "Last" "--last " transient-read-number-N0)
+   ("a" "All" "--all")
+   ("e" "Exited containers" "--filter status=exited")
+   ("f" "Filter" "--filter " read-string)
+   ("n" "Don't truncate" "--no-trunc")]
   ["Actions"
    ("l" "List" tablist-revert)])
 
@@ -294,7 +294,7 @@ and FLIP is a boolean to specify the sort order."
   "Transient for restarting containers."
   :man-page "docker-container-restart"
   ["Arguments"
-   ("-t" "Timeout" "-t " transient-read-number-N0)]
+   ("t" "Timeout" "-t " transient-read-number-N0)]
   [:description docker-utils-generic-actions-heading
    ("R" "Restart" docker-utils-generic-action)])
 
@@ -302,8 +302,8 @@ and FLIP is a boolean to specify the sort order."
   "Transient for removing containers."
   :man-page "docker-container-rm"
   ["Arguments"
-   ("-f" "Force" "-f")
-   ("-v" "Volumes" "-v")]
+   ("f" "Force" "-f")
+   ("v" "Volumes" "-v")]
   [:description docker-utils-generic-actions-heading
    ("D" "Remove" docker-utils-generic-action)])
 
@@ -323,7 +323,7 @@ and FLIP is a boolean to specify the sort order."
   "Transient for stoping containers."
   :man-page "docker-container-stop"
   ["Arguments"
-   ("-t" "Timeout" "-t " transient-read-number-N0)]
+   ("t" "Timeout" "-t " transient-read-number-N0)]
   [:description docker-utils-generic-actions-heading
    ("O" "Stop" docker-utils-generic-action)])
 

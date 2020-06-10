@@ -136,13 +136,13 @@
   "Transient for \"docker-compose build\"."
   :man-page "docker-compose build"
   ["Arguments"
-   ("-b" "Build argument" "--build-arg " read-string)
-   ("-c" "Compress build context" "--compress")
-   ("-f" "Always remove intermediate containers" "--force-rm")
-   ("-m" "Memory limit" "--memory " transient-read-number-N0)
-   ("-n" "Do not use cache" "--no-cache")
-   ("-p" "Attempt to pull a newer version of the image" "--pull")
-   ("-r" "Build images in parallel" "--parallel")]
+   ("b" "Build argument" "--build-arg " read-string)
+   ("c" "Compress build context" "--compress")
+   ("f" "Always remove intermediate containers" "--force-rm")
+   ("m" "Memory limit" "--memory " transient-read-number-N0)
+   ("n" "Do not use cache" "--no-cache")
+   ("p" "Attempt to pull a newer version of the image" "--pull")
+   ("r" "Build images in parallel" "--parallel")]
   ["Actions"
    ("B" "Build" docker-compose-run-action-for-one-service)
    ("A" "All services" docker-compose-run-action-for-all-services)])
@@ -151,9 +151,10 @@
   "Transient for \"docker-compose config\"."
   :man-page "docker-compose config"
   ["Arguments"
-   ("-r" "Pin image tags to digests" "--resolve-image-digests")
-   ("-s" "Print the service names" "--services")
-   ("-v" "Print the volume names" "--volumes")]
+
+   ("r" "Pin image tags to digests" "--resolve-image-digests")
+   ("s" "Print the service names" "--services")
+   ("v" "Print the volume names" "--volumes")]
   ["Actions"
    ("V" "Config" docker-compose-run-action-for-all-services)])
 
@@ -161,9 +162,9 @@
   "Transient for \"docker-compose create\"."
   :man-page "docker-compose create"
   ["Arguments"
-   ("-b" "Build" "--build")
-   ("-f" "Force recreate" "--force-recreate")
-   ("-n" "No recreate" "--no-recreate")]
+   ("b" "Build" "--build")
+   ("f" "Force recreate" "--force-recreate")
+   ("n" "No recreate" "--no-recreate")]
   ["Actions"
    ("C" "Create" docker-compose-run-action-for-one-service)
    ("A" "All services" docker-compose-run-action-for-all-services)])
@@ -172,9 +173,9 @@
   "Transient for \"docker-compose down\"."
   :man-page "docker-compose down"
   ["Arguments"
-   ("-o" "Remove orphans" "--remove-orphans")
-   ("-t" "Timeout" "--timeout " transient-read-number-N0)
-   ("-v" "Remove volumes" "--volumes")]
+   ("o" "Remove orphans" "--remove-orphans")
+   ("t" "Timeout" "--timeout " transient-read-number-N0)
+   ("v" "Remove volumes" "--volumes")]
   ["Actions"
    ("W" "Down" docker-compose-run-action-for-one-service)
    ("A" "All services" docker-compose-run-action-for-all-services)])
@@ -183,12 +184,12 @@
   "Transient for \"docker-compose exec\"."
   :man-page "docker-compose exec"
   ["Arguments"
-   ("-P" "Privileged" "--privileged")
-   ("-T" "Disable pseudo-tty" "-T")
-   ("-d" "Detach" "-d")
-   ("-e" "Env KEY=VAL" "-e " read-string)
-   ("-u" "User " "--user " read-string)
-   ("-w" "Workdir" "--workdir " read-string)]
+   ("P" "Privileged" "--privileged")
+   ("T" "Disable pseudo-tty" "-T")
+   ("d" "Detach" "-d")
+   ("e" "Env KEY=VAL" "-e " read-string)
+   ("u" "User " "--user " read-string)
+   ("w" "Workdir" "--workdir " read-string)]
   ["Actions"
    ("E" "Exec" docker-compose-run-action-with-command)])
 
@@ -196,11 +197,12 @@
   "Transient for \"docker-compose logs\"."
   :man-page "docker-compose logs"
   ["Arguments"
-   ("-T" "Tail" "--tail=" read-string)
-   ("-f" "Follow" "--follow")
-   ("-n" "No color" "--no-color")
-   ("-t" "Timestamps" "--timestamps")]
+   ("T" "Tail" "--tail=" read-string)
+   ("f" "Follow" "--follow")
+   ("n" "No color" "--no-color")
+   ("t" "Timestamps" "--timestamps")]
   ["Actions"
+
    ("L" "Logs" docker-compose-run-action-for-one-service)
    ("A" "All services" docker-compose-run-action-for-all-services)])
 
@@ -208,9 +210,9 @@
   "Transient for \"docker-compose pull\"."
   :man-page "docker-compose pull"
   ["Arguments"
-   ("-d" "Include dependencies" "--include-deps")
-   ("-i" "Ignore pull failures" "--ignore-pull-failures")
-   ("-n" "No parallel" "--no-parallel")]
+   ("d" "Include dependencies" "--include-deps")
+   ("i" "Ignore pull failures" "--ignore-pull-failures")
+   ("n" "No parallel" "--no-parallel")]
   ["Actions"
    ("F" "Pull" docker-compose-run-action-for-one-service)
    ("A" "All services" docker-compose-run-action-for-all-services)])
@@ -219,7 +221,7 @@
   "Transient for \"docker-compose push\"."
   :man-page "docker-compose push"
   ["Arguments"
-   ("-i" "Ignore push failures" "--ignore-push-failures")]
+   ("i" "Ignore push failures" "--ignore-push-failures")]
   ["Actions"
    ("P" "Push" docker-compose-run-action-for-one-service)
    ("A" "All services" docker-compose-run-action-for-all-services)])
@@ -228,7 +230,7 @@
   "Transient for \"docker-compose restart\"."
   :man-page "docker-compose restart"
   ["Arguments"
-   ("-t" "Timeout" "--timeout " transient-read-number-N0)]
+   ("t" "Timeout" "--timeout " transient-read-number-N0)]
   ["Actions"
    ("T" "Restart" docker-compose-run-action-for-one-service)
    ("A" "All services" docker-compose-run-action-for-all-services)])
@@ -237,9 +239,9 @@
   "Transient for \"docker-compose rm\"."
   :man-page "docker-compose rm"
   ["Arguments"
-   ("-f" "Force" "--force")
-   ("-s" "Stop" "--stop")
-   ("-v" "Remove anonymous volumes" "-v")]
+   ("f" "Force" "--force")
+   ("s" "Stop" "--stop")
+   ("v" "Remove anonymous volumes" "-v")]
   ["Actions"
    ("D" "Remove" docker-compose-run-action-for-one-service)
    ("A" "All services" docker-compose-run-action-for-all-services)])
@@ -249,17 +251,17 @@
   :man-page "docker-compose run"
   :value '("--rm")
   ["Arguments"
-   ("-E" "Entrypoint" "--entrypoint " read-string)
-   ("-N" "Name" "--name " read-string)
-   ("-T" "Disable pseudo-tty" "-T")
-   ("-d" "Detach" "-d")
-   ("-e" "Env KEY=VAL" "-e " read-string)
-   ("-l" "Label" "--label " read-string)
-   ("-n" "No deps" "--no-deps")
-   ("-r" "Remove container when it exits" "--rm")
-   ("-s" "Enable services ports" "--service-ports")
-   ("-u" "User " "--user " read-string)
-   ("-w" "Workdir" "--workdir " read-string)]
+   ("E" "Entrypoint" "--entrypoint " read-string)
+   ("N" "Name" "--name " read-string)
+   ("T" "Disable pseudo-tty" "-T")
+   ("d" "Detach" "-d")
+   ("e" "Env KEY=VAL" "-e " read-string)
+   ("l" "Label" "--label " read-string)
+   ("n" "No deps" "--no-deps")
+   ("r" "Remove container when it exits" "--rm")
+   ("s" "Enable services ports" "--service-ports")
+   ("u" "User " "--user " read-string)
+   ("w" "Workdir" "--workdir " read-string)]
   ["Actions"
    ("R" "Run" docker-compose-run-action-with-command)])
 
@@ -274,7 +276,7 @@
   "Transient for \"docker-compose stop\"."
   :man-page "docker-compose stop"
   ["Arguments"
-   ("-t" "Timeout" "--timeout " transient-read-number-N0)]
+   ("t" "Timeout" "--timeout " transient-read-number-N0)]
   ["Actions"
    ("O" "Stop" docker-compose-run-action-for-one-service)
    ("A" "All services" docker-compose-run-action-for-all-services)])
@@ -283,13 +285,13 @@
   "Transient for \"docker-compose up\"."
   :man-page "docker-compose up"
   ["Arguments"
-   ("-b" "Build" "--build")
-   ("-c" "Scale" "--scale " transient-read-number-N0)
-   ("-d" "Detach" "-d")
-   ("-f" "Force recreate" "--force-recreate")
-   ("-n" "No deps" "--no-deps")
-   ("-r" "Remove orphans" "--remove-orphans")
-   ("-t" "Timeout" "--timeout " transient-read-number-N0)]
+   ("b" "Build" "--build")
+   ("c" "Scale" "--scale " transient-read-number-N0)
+   ("d" "Detach" "-d")
+   ("f" "Force recreate" "--force-recreate")
+   ("n" "No deps" "--no-deps")
+   ("r" "Remove orphans" "--remove-orphans")
+   ("t" "Timeout" "--timeout " transient-read-number-N0)]
   ["Actions"
    ("U" "Up" docker-compose-run-action-for-one-service)
    ("A" "All services" docker-compose-run-action-for-all-services)])
@@ -303,14 +305,14 @@
   "Transient for docker-compose."
   :man-page "docker-compose"
   ["Arguments"
-   ("-a" "No ANSI" "--no-ansi")
-   ("-c" "Compatibility" "--compatibility")
-   ("-d" "Project directory" "--project-directory " docker-compose-read-directory)
-   ("-f" "Compose file" "--file " docker-compose-read-compose-file)
-   ("-h" "Host" "--host " read-string)
-   ("-l" "Log level" "--log-level " docker-compose-read-log-level)
-   ("-p" "Project name" "--project-name " read-string)
-   ("-v" "Verbose" "--verbose")]
+   ("a" "No ANSI" "--no-ansi")
+   ("c" "Compatibility" "--compatibility")
+   ("d" "Project directory" "--project-directory " docker-compose-read-directory)
+   ("f" "Compose file" "--file " docker-compose-read-compose-file)
+   ("h" "Host" "--host " read-string)
+   ("l" "Log level" "--log-level " docker-compose-read-log-level)
+   ("p" "Project name" "--project-name " read-string)
+   ("v" "Verbose" "--verbose")]
   [["Images"
     ("B" "Build"      docker-compose-build)
     ("F" "Pull"       docker-compose-pull)
