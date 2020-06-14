@@ -58,7 +58,7 @@ Wrap the function `shell-command-to-string', ensuring variable `shell-file-name'
   (let ((shell-file-name (if (and (eq system-type 'windows-nt)
                                   (not (file-remote-p default-directory)))
                              "cmdproxy.exe"
-                           "/bin/sh")))
+                           (getenv "SHELL"))))
     (shell-command-to-string command)))
 
 (defun docker-run-docker (&rest args)
