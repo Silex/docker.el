@@ -140,6 +140,14 @@ and FLIP is a boolean to specify the sort order."
   [:description docker-utils-generic-actions-heading
    ("P" "Push" docker-utils-generic-action)])
 
+(docker-utils-transient-define-prefix docker-image-build ()
+  "Transient for building images."
+  :man-page "docker-image-build"
+  ["Arguments"
+   ("-f" "File" "-f" read-file-name)]
+  [:description docker-utils-generic-actions-heading
+   ("B" "Build" docker-utils-generic-action)])
+
 (docker-utils-transient-define-prefix docker-image-rm ()
   "Transient for removing images."
   :man-page "docker-image-rm"
@@ -178,6 +186,7 @@ and FLIP is a boolean to specify the sort order."
 (transient-define-prefix docker-image-help ()
   "Help transient for docker images."
   ["Docker images help"
+   ("B" "Build"  docker-image-build)
    ("D" "Remove"  docker-image-rm)
    ("F" "Pull"    docker-image-pull)
    ("I" "Inspect" docker-image-inspect)
