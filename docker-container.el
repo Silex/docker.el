@@ -119,6 +119,23 @@ and FLIP is a boolean to specify the sort order."
     (eshell)))
 
 ;;;###autoload
+(defun docker-container-eshell-env (container)
+  "Open `eshell' in CONTAINER."
+  (interactive (list (docker-container-read-name)))
+  (let* ((container-address (format "docker:%s:/" container))
+         (file-prefix (let ((prefix (file-remote-p default-directory)))
+                        (if prefix
+                            (format "%s|" (s-chop-suffix ":" prefix))
+                          "/")))
+         (container-config (cdr (assq 'Config (aref (json-read-from-string (docker-run-docker "inspect" container))))))
+         (container-workdir (cdr (assq 'WorkingDir container-config)))
+         (container-env (cdr (assq 'Env container-config)))
+         (process-environment (append container-env nil))
+         (default-directory (format "%s%s%s" file-prefix container-address container-workdir))
+         (eshell-buffer-name (docker-generate-new-buffer-name "eshell" default-directory)))
+    (eshell)))
+
+;;;###autoload
 (defun docker-container-find-directory (container directory)
   "Inside CONTAINER open DIRECTORY."
   (interactive
@@ -155,6 +172,27 @@ and FLIP is a boolean to specify the sort order."
          (default-directory (format "%s%s" file-prefix container-address)))
     (shell (docker-generate-new-buffer "shell" default-directory))))
 
+;;;###autoload
+(defun docker-container-shell-env (container &optional read-shell)
+  "Open `shell' in CONTAINER with the environment variable set
+and default directory set to workdir. When READ-SHELL is not
+nil, ask the user for it."
+  (interactive (list
+                (docker-container-read-name)
+                current-prefix-arg))
+  (let* ((shell-file-name (docker-container--read-shell read-shell))
+         (container-address (format "docker:%s:/" container))
+         (file-prefix (let ((prefix (file-remote-p default-directory)))
+                        (if prefix
+                            (format "%s|" (s-chop-suffix ":" prefix))
+                          "/")))
+         (container-config (cdr (assq 'Config (aref (json-read-from-string (docker-run-docker "inspect" container))))))
+         (container-workdir (cdr (assq 'WorkingDir container-config)))
+         (container-env (cdr (assq 'Env container-config)))
+         (default-directory (format "%s%s%s" file-prefix container-address container-workdir))
+         (process-environment (append container-env nil)))
+    (shell (docker-generate-new-buffer "shell" default-directory))))
+
 (defun docker-container-cp-from-selection (container-path host-path)
   "Run \"docker cp\" from CONTAINER-PATH to HOST-PATH for selected container."
   (interactive "sContainer path: \nFHost path: ")
@@ -175,6 +213,13 @@ and FLIP is a boolean to specify the sort order."
   (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
     (docker-container-eshell it)))
+
+(defun docker-container-eshell-env-selection ()
+  "Run `docker-container-eshell-env' on the containers selection."
+  (interactive)
+  (docker-utils-ensure-items)
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-container-eshell-env it)))
 
 (defun docker-container-find-directory-selection (path)
   "Run `docker-container-find-directory' for PATH on the containers selection."
@@ -204,6 +249,13 @@ and FLIP is a boolean to specify the sort order."
   (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
     (docker-container-shell it prefix)))
+
+(defun docker-container-shell-env-selection (prefix)
+  "Run `docker-container-shell-env' on the containers selection."
+  (interactive "P")
+  (docker-utils-ensure-items)
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-container-shell-env it prefix)))
 
 (defun docker-container-unpause-selection ()
   "Run `docker-container-unpause' on the containers selection."
@@ -311,7 +363,9 @@ and FLIP is a boolean to specify the sort order."
   "Transient for doing M-x `shell'/`eshell' to containers."
   [:description docker-utils-generic-actions-heading
    ("b" "Shell" docker-container-shell-selection)
-   ("e" "Eshell" docker-container-eshell-selection)])
+   ("B" "Shell with env" docker-container-shell-env-selection)
+   ("e" "Eshell" docker-container-eshell-selection)
+   ("E" "Eshell with env" docker-container-eshell-env-selection)])
 
 (docker-utils-transient-define-prefix docker-container-start ()
   "Transient for starting containers."
