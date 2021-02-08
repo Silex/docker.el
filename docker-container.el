@@ -119,23 +119,6 @@ and FLIP is a boolean to specify the sort order."
     (eshell)))
 
 ;;;###autoload
-(defun docker-container-eshell-env (container)
-  "Open `eshell' in CONTAINER."
-  (interactive (list (docker-container-read-name)))
-  (let* ((container-address (format "docker:%s:/" container))
-         (file-prefix (let ((prefix (file-remote-p default-directory)))
-                        (if prefix
-                            (format "%s|" (s-chop-suffix ":" prefix))
-                          "/")))
-         (container-config (cdr (assq 'Config (aref (json-read-from-string (docker-run-docker "inspect" container))))))
-         (container-workdir (cdr (assq 'WorkingDir container-config)))
-         (container-env (cdr (assq 'Env container-config)))
-         (process-environment (append container-env nil))
-         (default-directory (format "%s%s%s" file-prefix container-address container-workdir))
-         (eshell-buffer-name (docker-generate-new-buffer-name "eshell" default-directory)))
-    (eshell)))
-
-;;;###autoload
 (defun docker-container-find-directory (container directory)
   "Inside CONTAINER open DIRECTORY."
   (interactive
@@ -186,7 +169,7 @@ nil, ask the user for it."
                         (if prefix
                             (format "%s|" (s-chop-suffix ":" prefix))
                           "/")))
-         (container-config (cdr (assq 'Config (aref (json-read-from-string (docker-run-docker "inspect" container))))))
+         (container-config (cdr (assq 'Config (aref (json-read-from-string (docker-run-docker "inspect" container)) 0))))
          (container-workdir (cdr (assq 'WorkingDir container-config)))
          (container-env (cdr (assq 'Env container-config)))
          (default-directory (format "%s%s%s" file-prefix container-address container-workdir))
@@ -213,13 +196,6 @@ nil, ask the user for it."
   (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
     (docker-container-eshell it)))
-
-(defun docker-container-eshell-env-selection ()
-  "Run `docker-container-eshell-env' on the containers selection."
-  (interactive)
-  (docker-utils-ensure-items)
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-container-eshell-env it)))
 
 (defun docker-container-find-directory-selection (path)
   "Run `docker-container-find-directory' for PATH on the containers selection."
@@ -364,8 +340,7 @@ nil, ask the user for it."
   [:description docker-utils-generic-actions-heading
    ("b" "Shell" docker-container-shell-selection)
    ("B" "Shell with env" docker-container-shell-env-selection)
-   ("e" "Eshell" docker-container-eshell-selection)
-   ("E" "Eshell with env" docker-container-eshell-env-selection)])
+   ("e" "Eshell" docker-container-eshell-selection)])
 
 (docker-utils-transient-define-prefix docker-container-start ()
   "Transient for starting containers."
