@@ -164,7 +164,7 @@ nil, ask the user for it."
                 (docker-container-read-name)
                 current-prefix-arg))
   (let* ((shell-file-name (docker-container--read-shell read-shell))
-         (container-address (format "docker:%s:/" container))
+         (container-address (format "docker:%s:" container))
          (file-prefix (let ((prefix (file-remote-p default-directory)))
                         (if prefix
                             (format "%s|" (s-chop-suffix ":" prefix))
