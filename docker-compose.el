@@ -102,7 +102,7 @@
 
 (defun docker-compose-read-compose-file (prompt &optional initial-input _history)
   "Wrapper around `read-file-name'."
-  (read-file-name prompt nil nil t initial-input (apply-partially 'string-match ".*\\.yml")))
+  (read-file-name prompt nil nil t initial-input (apply-partially 'string-match ".*\\.yml\\|.*\\.yaml")))
 
 (defun docker-compose-make-buffer-name (action args)
   "Make a buffer name based on ACTION and ARGS."
