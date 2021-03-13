@@ -173,7 +173,8 @@ nil, ask the user for it."
          (container-workdir (cdr (assq 'WorkingDir container-config)))
          (container-env (cdr (assq 'Env container-config)))
          (default-directory (format "%s%s%s" file-prefix container-address container-workdir))
-         (process-environment (append container-env nil)))
+         ;; process-environment doesn't work with tramp if you call this function more than one per emacs session
+         (tramp-remote-process-environment (append container-env nil)))
     (shell (docker-generate-new-buffer "shell" default-directory))))
 
 (defun docker-container-cp-from-selection (container-path host-path)
