@@ -71,16 +71,29 @@ https://magit.vc/manual/transient/Enabling-and-Disabling-Suffixes.html for more 
 
 Here is a list of other customizations you can set:
 
-| Variable                          | Description                           | Default          |
-|-----------------------------------|---------------------------------------|------------------|
-| docker-command                    | The docker binary to use              | `docker`         |
-| docker-container-default-sort-key | Sort key for docker containers        | `("Image")`      |
-| docker-container-shell-file-name  | Shell to use when entering containers | `/bin/sh`        |
-| docker-image-default-sort-key     | Sort key for docker images            | `("Repository")` |
-| docker-machine-default-sort-key   | Sort key for docker machines          | `("Name")`       |
-| docker-network-default-sort-key   | Sort key for docker networks          | `("Name")`       |
-| docker-run-as-root                | Run docker as root                    | `nil`            |
-| docker-volume-default-sort-key    | Sort key for docker volumes           | `("Driver")`     |
+| Variable                          | Description                           | Default              |
+|-----------------------------------|---------------------------------------|----------------------|
+| docker-command                    | The docker binary to use              | `docker`             |
+| docker-container-default-sort-key | Sort key for docker containers        | `("Image")`          |
+| docker-container-shell-file-name  | Shell to use when entering containers | `/bin/sh`            |
+| docker-image-default-sort-key     | Sort key for docker images            | `("Repository")`     |
+| docker-machine-default-sort-key   | Sort key for docker machines          | `("Name")`           |
+| docker-network-default-sort-key   | Sort key for docker networks          | `("Name")`           |
+| docker-run-as-root                | Run docker as root                    | `nil`                |
+| docker-volume-default-sort-key    | Sort key for docker volumes           | `("Driver")`         |
+| docker-run-default-args           | Base arguments to use for docker run  | `("-i" "-t" "--rm")` |
+
+### Changing the Default Arguments for `docker run`
+
+You can match on the repository name for an image to customize the initial infix arguments via `docker-image-run-custom-args`:
+
+```elips
+(add-to-list
+   'docker-image-run-custom-args
+   `("^postgres" ("-e POSTGRES_PASSWORD=postgres" . ,docker-run-default-args)))
+```
+
+So when `docker run` is called on an image whose repository name matches the regular expression `^postgres`, the option `"-e POSTGRES_PASSWORD=postgres"` will appear as set along with the defaults specified by `docker-run-default-args`.
 
 ## FAQ
 
