@@ -53,18 +53,23 @@ and FLIP is a boolean to specify the sort order."
 
 (defcustom docker-run-default-args
   '("-i" "-t" "--rm")
-  "Default infix args used when docker run is invoked."
+  "Default infix args used when docker run is invoked.
+
+Note this can be overriden for specific images using
+`docker-image-run-custom-args'."
   :group 'docker-run
   :type '(repeat string))
 
-(defvar docker-run-arg-init-list nil)
+(defcustom docker-image-run-custom-args
+  nil
+  "List which can be used to customize the default arguments for docker run.
 
-(defun docker-register-run-args-for-regex (regex args)
-  "Register infix arguments for matching docker images.
+Its elements should be of the form (REGEX ARGS) where
+REGEX is a (string) regular expression and ARGS is a list of strings
+corresponding to arguments.
 
-Register infix arguments ARGS for docker run when the
-image repository string matches the string REGEX."
-  (add-to-list 'docker-run-arg-init-list `(,regex ,args)))
+Also note if you do not specify `docker-run-default-args', they will be ignored."
+  :type '(repeat (list string (repeat string))))
 
 (defun docker-image-parse (line)
   "Convert a LINE from \"docker image ls\" to a `tabulated-list-entries' entry."
@@ -172,7 +177,7 @@ image repository string matches the string REGEX."
                   (_ (not (cdr images)))
                   (repo-name (caar images))
                   (matched-args (--first (string-match (car it) repo-name)
-                                         docker-run-arg-init-list)))
+                                         docker-image-run-custom-args)))
             (cadr matched-args)
           docker-run-default-args)))
 
