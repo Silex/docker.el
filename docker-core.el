@@ -67,7 +67,7 @@ Wrap the function `shell-command-to-string', ensuring variable `shell-file-name'
     (let* ((flat-args (-remove 's-blank? (-flatten (list (docker-arguments) args))))
            (command (s-join " " (-insert-at 0 docker-command flat-args))))
       (message command)
-      (docker-shell-command-to-string command))))
+      (s-trim-right (docker-shell-command-to-string command)))))
 
 (defun docker-run-docker-async (&rest args)
   "Execute \"`docker-command' ARGS\" using `async-shell-command'."
