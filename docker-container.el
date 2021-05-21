@@ -88,16 +88,28 @@ and FLIP is a boolean to specify the sort order."
    (t
     'docker-face-status-other)))
 
-(defun docker-container-entries ()
+(defun docker-container-entries (&optional args)
   "Return the docker containers data for `tabulated-list-entries'."
   (let* ((fmt "[{{json .ID}},{{json .Image}},{{json .Command}},{{json .CreatedAt}},{{json .Status}},{{json .Ports}},{{json .Names}}]")
-         (data (docker-run-docker "container ls" (docker-container-ls-arguments) (format "--format=\"%s\"" fmt)))
+         (data (docker-run-docker "container ls" args (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
     (-map #'docker-container-parse lines)))
 
+(defun docker-container-description-with-stats ()
+  "Return the containers stats string."
+  (let* ((up (length (docker-container-entries "--filter status=running")))
+         (down (length (docker-container-entries "--filter status=exited")))
+         (all (length (docker-container-entries "--all")))
+         (other (- all up down)))
+    (format "Containers (%s total, %s up, %s down, %s other)"
+            all
+            (propertize (number-to-string up) 'face 'docker-face-status-up)
+            (propertize (number-to-string down) 'face 'docker-face-status-down)
+            (propertize (number-to-string other) 'face 'docker-face-status-other))))
+
 (defun docker-container-refresh ()
   "Refresh the containers list."
-  (setq tabulated-list-entries (docker-container-entries)))
+  (setq tabulated-list-entries (docker-container-entries (docker-container-ls-arguments))))
 
 (defun docker-container-read-name ()
   "Read an container name."

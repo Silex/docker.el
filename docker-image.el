@@ -81,16 +81,39 @@ Also note if you do not specify `docker-run-default-args', they will be ignored.
     (json-readtable-error
      (error "Could not read following string as json:\n%s" line))))
 
-(defun docker-image-entries ()
+(defun docker-image-raw-entries (&optional args)
   "Return the docker images data for `tabulated-list-entries'."
   (let* ((fmt "[{{json .Repository}},{{json .Tag}},{{json .ID}},{{json .CreatedAt}},{{json .Size}}]")
-         (data (docker-run-docker "image ls" (docker-image-ls-arguments) (format "--format=\"%s\"" fmt)))
+         (data (docker-run-docker "image ls" args (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
     (-map #'docker-image-parse lines)))
 
+(defun docker-image-entries (&optional args)
+  "Return the docker images data for `tabulated-list-entries'."
+  (let ((all (docker-image-raw-entries args))
+        (dangling (docker-image-raw-entries "--filter dangling=true")))
+    (--map-when (-contains? dangling it) (docker-image-set-dangling it) all)))
+
+(defun docker-image-dangling-p (entry)
+  "Predicate for if ENTRY is dangling."
+  (get-text-property 0 'docker-image-dangling (car entry)))
+
+(defun docker-image-set-dangling (entry)
+  "Set ENTRY as dangling."
+  (list (propertize (car entry) 'docker-image-dangling t)
+        (apply #'vector (--map (propertize it 'font-lock-face 'docker-face-dangling) (cadr entry)))))
+
+(defun docker-image-description-with-stats ()
+  "Return the images stats string."
+  (let* ((entries (docker-image-entries))
+         (dangling (-filter #'docker-image-dangling-p entries)))
+    (format "Images (%s total, %s dangling)"
+            (length entries)
+            (propertize (number-to-string (length dangling)) 'face 'docker-face-dangling))))
+
 (defun docker-image-refresh ()
   "Refresh the images list."
-  (setq tabulated-list-entries (docker-image-entries)))
+  (setq tabulated-list-entries (docker-image-entries (docker-image-ls-arguments))))
 
 (defun docker-image-read-name ()
   "Read an image name."

@@ -57,16 +57,39 @@ and FLIP is a boolean to specify the sort order."
     (json-readtable-error
      (error "Could not read following string as json:\n%s" line))))
 
-(defun docker-network-entries ()
+(defun docker-network-raw-entries (&optional args)
   "Return the docker networks data for `tabulated-list-entries'."
   (let* ((fmt "[{{json .ID}},{{json .Name}},{{json .Driver}},{{json .Scope}}]")
-         (data (docker-run-docker "network ls" (docker-network-ls-arguments) (format "--format=\"%s\"" fmt)))
+         (data (docker-run-docker "network ls" args (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
     (-map #'docker-network-parse lines)))
 
+(defun docker-network-entries (&optional args)
+  "Return the docker networks data for `tabulated-list-entries'."
+  (let ((all (docker-network-raw-entries args))
+        (dangling (docker-network-raw-entries "--filter dangling=true")))
+    (--map-when (-contains? dangling it) (docker-network-set-dangling it) all)))
+
+(defun docker-network-dangling-p (entry)
+  "Predicate for if ENTRY is dangling."
+  (get-text-property 0 'docker-network-dangling (car entry)))
+
+(defun docker-network-set-dangling (entry)
+  "Set ENTRY as dangling."
+  (list (propertize (car entry) 'docker-network-dangling t)
+        (apply #'vector (--map (propertize it 'font-lock-face 'docker-face-dangling) (cadr entry)))))
+
+(defun docker-network-description-with-stats ()
+  "Return the networks stats string."
+  (let* ((entries (docker-network-entries))
+         (dangling (-filter #'docker-network-dangling-p entries)))
+    (format "Networks (%s total, %s dangling)"
+            (length entries)
+            (propertize (number-to-string (length dangling)) 'face 'docker-face-dangling))))
+
 (defun docker-network-refresh ()
   "Refresh the networks list."
-  (setq tabulated-list-entries (docker-network-entries)))
+  (setq tabulated-list-entries (docker-network-entries (docker-network-ls-arguments))))
 
 (defun docker-network-read-name ()
   "Read a network name."
