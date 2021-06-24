@@ -173,13 +173,15 @@ Also note if you do not specify `docker-run-default-args', they will be ignored.
 
 (cl-defmethod transient-init-value ((obj docker-run-prefix))
   (oset obj value
-        (if-let* ((images (tablist-get-marked-items))
-                  (_ (not (cdr images)))
-                  (repo-name (caar images))
-                  (matched-args (--first (string-match (car it) repo-name)
-                                         docker-image-run-custom-args)))
-            (cadr matched-args)
-          docker-run-default-args)))
+        (let* ((images (tablist-get-marked-items))
+               (matched-args (let ((repo-name (caar images)))
+                               (if repo-name
+                                   (--first (string-match (car it) repo-name)
+                                            docker-image-run-custom-args)
+                                 nil))))
+          (if matched-args
+              (cadr matched-args)
+            docker-run-default-args))))
 
 (docker-utils-transient-define-prefix docker-image-run ()
   "Transient for running images."
