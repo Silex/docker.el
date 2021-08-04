@@ -290,6 +290,7 @@
    ("d" "Detach" "-d")
    ("f" "Force recreate" "--force-recreate")
    ("n" "No deps" "--no-deps")
+   ("q" "Quiet pull" "--quiet-pull")
    ("r" "Remove orphans" "--remove-orphans")
    ("t" "Timeout" "--timeout " transient-read-number-N0)]
   ["Actions"
