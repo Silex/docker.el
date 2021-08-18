@@ -106,7 +106,8 @@ Also note if you do not specify `docker-run-default-args', they will be ignored.
 (defun docker-image-pull-one (name &optional all)
   "Pull the image named NAME.  If ALL is set, use \"-a\"."
   (interactive (list (docker-image-read-name) current-prefix-arg))
-  (docker-run-docker "pull" (when all "-a ") name))
+  (docker-run-docker "pull" (when all "-a ") name)
+  (tablist-revert))
 
 (defun docker-image-run-selection (command)
   "Run \"docker image run\" with COMMAND on the images selection."
