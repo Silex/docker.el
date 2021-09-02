@@ -95,6 +95,7 @@ and FLIP is a boolean to specify the sort order."
   "Help transient for docker networks."
   ["Docker networks help"
    ("D" "Remove"     docker-network-rm)
+   ("I" "Inspect"    docker-utils-inspect)
    ("l" "List"       docker-network-ls)])
 
 (defvar docker-network-mode-map
@@ -102,6 +103,7 @@ and FLIP is a boolean to specify the sort order."
     (define-key map "?" 'docker-network-help)
     (define-key map "D" 'docker-network-rm)
     (define-key map "l" 'docker-network-ls)
+    (define-key map "I" 'docker-utils-inspect)
     map)
   "Keymap for `docker-network-mode'.")
 

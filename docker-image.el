@@ -125,12 +125,6 @@ Also note if you do not specify `docker-run-default-args', they will be ignored.
     (docker-run-docker "tag" it (read-string (format "Tag for %s: " it))))
   (tablist-revert))
 
-(docker-utils-transient-define-prefix docker-image-inspect ()
-  "Transient for inspecting images."
-  :man-page "docker-image-inspect"
-  [:description docker-utils-generic-actions-heading
-   ("I" "Inspect" docker-utils-generic-action-with-buffer:json)])
-
 (defun docker-image-ls-arguments ()
   "Return the latest used arguments in the `docker-image-ls' transient."
   (car (alist-get 'docker-image-ls transient-history)))
@@ -215,7 +209,7 @@ Also note if you do not specify `docker-run-default-args', they will be ignored.
   ["Docker images help"
    ("D" "Remove"  docker-image-rm)
    ("F" "Pull"    docker-image-pull)
-   ("I" "Inspect" docker-image-inspect)
+   ("I" "Inspect" docker-utils-inspect)
    ("P" "Push"    docker-image-push)
    ("R" "Run"     docker-image-run)
    ("T" "Tag"     docker-image-tag-selection)
@@ -226,7 +220,7 @@ Also note if you do not specify `docker-run-default-args', they will be ignored.
     (define-key map "?" 'docker-image-help)
     (define-key map "D" 'docker-image-rm)
     (define-key map "F" 'docker-image-pull)
-    (define-key map "I" 'docker-image-inspect)
+    (define-key map "I" 'docker-utils-inspect)
     (define-key map "P" 'docker-image-push)
     (define-key map "R" 'docker-image-run)
     (define-key map "T" 'docker-image-tag-selection)

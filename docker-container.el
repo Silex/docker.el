@@ -270,12 +270,6 @@ nil, ask the user for it."
    ("d" "Open directory" docker-container-find-directory-selection)
    ("f" "Open file" docker-container-find-file-selection)])
 
-(docker-utils-transient-define-prefix docker-container-inspect ()
-  "Transient for inspecting containers."
-  :man-page "docker-container-inspect"
-  [:description docker-utils-generic-actions-heading
-   ("I" "Inspect" docker-utils-generic-action-with-buffer:json)])
-
 (docker-utils-transient-define-prefix docker-container-kill ()
   "Transient for kill signaling containers"
   :man-page "docker-container-kill"
@@ -362,7 +356,7 @@ nil, ask the user for it."
   ["Docker containers help"
    ("C" "Copy"       docker-container-cp)
    ("D" "Remove"     docker-container-rm)
-   ("I" "Inspect"    docker-container-inspect)
+   ("I" "Inspect"    docker-utils-inspect)
    ("K" "Kill"       docker-container-kill)
    ("L" "Logs"       docker-container-logs)
    ("O" "Stop"       docker-container-stop)
@@ -381,7 +375,7 @@ nil, ask the user for it."
     (define-key map "?" 'docker-container-help)
     (define-key map "C" 'docker-container-cp)
     (define-key map "D" 'docker-container-rm)
-    (define-key map "I" 'docker-container-inspect)
+    (define-key map "I" 'docker-utils-inspect)
     (define-key map "K" 'docker-container-kill)
     (define-key map "L" 'docker-container-logs)
     (define-key map "O" 'docker-container-stop)

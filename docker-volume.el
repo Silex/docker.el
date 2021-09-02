@@ -108,6 +108,7 @@ and FLIP is a boolean to specify the sort order."
   ["Docker volumes help"
    ("D" "Remove"     docker-volume-rm)
    ("d" "Dired"      docker-volume-dired-selection)
+   ("I" "Inspect"    docker-utils-inspect)
    ("l" "List"       docker-volume-ls)])
 
 (defvar docker-volume-mode-map
@@ -116,6 +117,7 @@ and FLIP is a boolean to specify the sort order."
     (define-key map "D" 'docker-volume-rm)
     (define-key map "d" 'docker-volume-dired-selection)
     (define-key map "l" 'docker-volume-ls)
+    (define-key map "I" 'docker-utils-inspect)
     map)
   "Keymap for `docker-volume-mode'.")
 
