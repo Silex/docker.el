@@ -117,6 +117,15 @@ Execute BODY in a buffer named with the help of NAME."
          (multiplier (docker-utils-unit-multiplier (-third-item parts))))
     (* value multiplier)))
 
+(defun docker-utils-inspect ()
+  "Docker Inspect the tablist entry under point."
+  (interactive)
+  (let ((entry-id (tabulated-list-get-id)))
+    (docker-utils-with-buffer (format "inspect %s" entry-id)
+      (insert (docker-run-docker "inspect" () entry-id))
+      (js-mode)
+      (view-mode))))
+
 (provide 'docker-utils)
 
 ;;; docker-utils.el ends here
