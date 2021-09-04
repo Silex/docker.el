@@ -36,6 +36,14 @@
   "Docker images customization group."
   :group 'docker)
 
+(defconst docker-image-default-column-order
+  '(("Repository" . 30)
+    ("Tag" . 20)
+    ("Id" . 16)
+    ("Created" . 23)
+    ("Size" . 10))
+  "This should match the column order used in the format string in docker-image-entries.")
+
 (defcustom docker-image-default-sort-key '("Repository" . nil)
   "Sort key for docker images.
 
@@ -43,13 +51,12 @@ This should be a cons cell (NAME . FLIP) where
 NAME is a string matching one of the column names
 and FLIP is a boolean to specify the sort order."
   :group 'docker-image
-  :type '(cons (choice (const "Repository")
-                       (const "Tag")
-                       (const "Id")
-                       (const "Created")
-                       (const "Size"))
-               (choice (const :tag "Ascending" nil)
-                       (const :tag "Descending" t))))
+  :type (docker-utils-sort-key-customize-type docker-image-default-column-order))
+
+(defcustom docker-image-column-order docker-image-default-column-order
+  "Column ordering and width for docker images."
+  :group 'docker-image
+  :type (docker-utils-column-order-customize-type docker-image-default-column-order))
 
 (defcustom docker-run-default-args
   '("-i" "-t" "--rm")
@@ -77,7 +84,8 @@ Also note if you do not specify `docker-run-default-args', they will be ignored.
       (let* ((data (json-read-from-string line))
              (name (format "%s:%s" (aref data 0) (aref data 1))))
         (aset data 3 (format-time-string "%F %T" (date-to-time (aref data 3))))
-        (list (if (s-contains? "<none>" name) (aref data 2) name) data))
+        (let ((ordered (docker-utils-reorder-data docker-image-column-order docker-image-default-column-order data)))
+          (list (if (s-contains? "<none>" name) (aref data 2) name) ordered)))
     (json-readtable-error
      (error "Could not read following string as json:\n%s" line))))
 
@@ -238,7 +246,9 @@ Also note if you do not specify `docker-run-default-args', they will be ignored.
 
 (define-derived-mode docker-image-mode tabulated-list-mode "Images Menu"
   "Major mode for handling a list of docker images."
-  (setq tabulated-list-format [("Repository" 30 t)("Tag" 20 t)("Id" 16 t)("Created" 23 t)("Size" 10 docker-image-human-size-predicate)])
+  (setq tabulated-list-format (seq-into
+                               (-map (lambda (x) (list (car x) (cdr x) t)) docker-image-column-order)
+                               'vector))
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key docker-image-default-sort-key)
   (add-hook 'tabulated-list-revert-hook 'docker-image-refresh nil t)
