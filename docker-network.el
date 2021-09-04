@@ -126,9 +126,7 @@ and FLIP is a boolean to specify the sort order."
 
 (define-derived-mode docker-network-mode tabulated-list-mode "Networks Menu"
   "Major mode for handling a list of docker networks."
-  (setq tabulated-list-format (seq-into
-                               (-map (lambda (x) (list (car x) (cdr x) t)) docker-network-column-order)
-                               'vector))
+  (setq tabulated-list-format (docker-utils-column-order-list-format docker-network-column-order))
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key docker-network-default-sort-key)
   (add-hook 'tabulated-list-revert-hook 'docker-network-refresh nil t)

@@ -126,7 +126,6 @@ Execute BODY in a buffer named with the help of NAME."
       (js-mode)
       (view-mode))))
 
-;; TODO allow passing nil or empty string to remove a column, use -keep
 (defun docker-utils-reorder-data (order-alist default-order-alist data)
   "Reorder the DATA vector from the order in DEFAULT-ORDER-ALIST to that in ORDER-ALIST."
   (let* ((ordered-columns (-map 'car order-alist))
@@ -134,8 +133,7 @@ Execute BODY in a buffer named with the help of NAME."
                    (seq-position default-order-alist it (lambda (x y) (equal (car x) y)))
                    ordered-columns)))
 
-  (seq-into (--map (aref data it) indices) 'vector)))
-
+  (seq-into (--keep (when it (aref data it)) indices) 'vector)))
 
 (defun docker-utils-sort-key-customize-type (columns-alist)
   "Make the customize type descriptor from COLUMNS-ALIST, whose keys should be the column headers."
@@ -147,10 +145,17 @@ Execute BODY in a buffer named with the help of NAME."
 
 (defun docker-utils-column-order-customize-type (columns-alist)
   "Make the customize type descriptor from COLUMNS-ALIST, whose keys should be the column headers."
-  (let ((column-names (-map (lambda (x) (list 'const (car x))) columns-alist)))
+  (let ((column-names (cons '(const :tag "Hidden" nil)
+                            (-map (lambda (x) (list 'const (car x))) columns-alist))))
     (cons
      'list
      (make-list (length columns-alist) `(cons ,(cons 'choice column-names) (integer))))))
+
+(defun docker-utils-column-order-list-format (columns-alist)
+  "Convert COLUMNS-ALIST to tabulated-list-format"
+  (seq-into
+   (--keep (when (car it) (list (car it) (cdr it) t)) columns-alist)
+   'vector))
 
 (provide 'docker-utils)
 

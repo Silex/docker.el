@@ -409,9 +409,7 @@ nil, ask the user for it."
 
 (define-derived-mode docker-container-mode tabulated-list-mode "Containers Menu"
   "Major mode for handling a list of docker containers."
-  (setq tabulated-list-format (seq-into
-                               (-map (lambda (x) (list (car x) (cdr x) t)) docker-container-column-order)
-                               'vector))
+  (setq tabulated-list-format (docker-utils-column-order-list-format docker-container-column-order))
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key docker-container-default-sort-key)
   (add-hook 'tabulated-list-revert-hook 'docker-container-refresh nil t)
