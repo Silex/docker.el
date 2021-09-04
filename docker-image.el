@@ -244,10 +244,14 @@ Also note if you do not specify `docker-run-default-args', they will be ignored.
   (docker-image-mode)
   (tablist-revert))
 
-;; TODO previously Size column was sorted with docker-image-human-size-predicate
 (define-derived-mode docker-image-mode tabulated-list-mode "Images Menu"
   "Major mode for handling a list of docker images."
   (setq tabulated-list-format (docker-utils-column-order-list-format docker-image-column-order))
+  ;; Manually set sort function of "Size" column
+  (let* ((size-pos (seq-position tabulated-list-format "Size" (lambda (x y) (equal (car x) y))))
+         (current-elt (aref tabulated-list-format size-pos)))
+    (aset tabulated-list-format size-pos (list "Size" (elt current-elt 1) 'docker-image-human-size-predicate)))
+
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key docker-image-default-sort-key)
   (add-hook 'tabulated-list-revert-hook 'docker-image-refresh nil t)
