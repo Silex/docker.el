@@ -38,6 +38,16 @@
   "Docker container customization group."
   :group 'docker)
 
+(defconst docker-container-default-column-order
+  '(("Id" . 16)
+    ("Image" . 15)
+    ("Command" . 30)
+    ("Created" . 23)
+    ("Status" . 20)
+    ("Ports" . 10)
+    ("Names" . 10))
+  "This should match the column order used in the format string in docker-container-entries.")
+
 (defcustom docker-container-shell-file-name "/bin/sh"
   "Shell to use when entering containers."
   :group 'docker-container
@@ -50,15 +60,12 @@ This should be a cons cell (NAME . FLIP) where
 NAME is a string matching one of the column names
 and FLIP is a boolean to specify the sort order."
   :group 'docker-container
-  :type '(cons (choice (const "Id")
-                       (const "Image")
-                       (const "Command")
-                       (const "Created")
-                       (const "Status")
-                       (const "Ports")
-                       (const "Names"))
-               (choice (const :tag "Ascending" nil)
-                       (const :tag "Descending" t))))
+  :type (docker-utils-sort-key-customize-type docker-container-default-column-order))
+
+(defcustom docker-container-column-order docker-container-default-column-order
+  "Column ordering and width for docker container."
+  :group 'docker-container
+  :type (docker-utils-column-order-customize-type docker-container-default-column-order))
 
 (defun docker-container--read-shell (&optional read-shell-name)
   "Return `docker-container-shell-file-name' or read a shell name if READ-SHELL-NAME is truthy."
@@ -72,7 +79,8 @@ and FLIP is a boolean to specify the sort order."
              (status (aref data 4)))
         (aset data 3 (format-time-string "%F %T" (date-to-time uptime)))
         (aset data 4 (propertize status 'font-lock-face (docker-container-status-face status)))
-        (list (aref data 6) data))
+        (let ((ordered (docker-utils-reorder-data docker-container-column-order docker-container-default-column-order data)))
+        (list (aref data 6) ordered)))
     (json-readtable-error
      (error "Could not read following string as json:\n%s" line))))
 
@@ -401,7 +409,9 @@ nil, ask the user for it."
 
 (define-derived-mode docker-container-mode tabulated-list-mode "Containers Menu"
   "Major mode for handling a list of docker containers."
-  (setq tabulated-list-format [("Id" 16 t)("Image" 15 t)("Command" 30 t)("Created" 23 t)("Status" 20 t)("Ports" 10 t)("Names" 10 t)])
+  (setq tabulated-list-format (seq-into
+                               (-map (lambda (x) (list (car x) (cdr x) t)) docker-container-column-order)
+                               'vector))
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key docker-container-default-sort-key)
   (add-hook 'tabulated-list-revert-hook 'docker-container-refresh nil t)

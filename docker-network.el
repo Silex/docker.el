@@ -36,6 +36,13 @@
   "Docker network customization group."
   :group 'docker)
 
+(defconst docker-network-default-column-order
+  '(("Network ID" . 20)
+    ("Name" . 50)
+    ("Driver" . 10)
+    ("Scope" . 10))
+  "This should match the column order used in the format string in docker-network-entries.")
+
 (defcustom docker-network-default-sort-key '("Name" . nil)
   "Sort key for docker networks.
 
@@ -43,17 +50,19 @@ This should be a cons cell (NAME . FLIP) where
 NAME is a string matching one of the column names
 and FLIP is a boolean to specify the sort order."
   :group 'docker-network
-  :type '(cons (choice (const "Network ID")
-                       (const "Name")
-                       (const "Driver"))
-               (choice (const :tag "Ascending" nil)
-                       (const :tag "Descending" t))))
+  :type (docker-utils-sort-key-customize-type docker-network-default-column-order))
+
+(defcustom docker-network-column-order docker-network-default-column-order
+  "Column ordering and width for docker networks."
+  :group 'docker-network
+  :type (docker-utils-column-order-customize-type docker-network-default-column-order))
 
 (defun docker-network-parse (line)
   "Convert a LINE from \"docker network ls\" to a `tabulated-list-entries' entry."
   (condition-case nil
-      (let ((data (json-read-from-string line)))
-        (list (aref data 1) data))
+      (let* ((raw-data (json-read-from-string line))
+             (data (docker-utils-reorder-data docker-network-column-order docker-network-default-column-order raw-data)))
+        (list (aref raw-data 1) data))
     (json-readtable-error
      (error "Could not read following string as json:\n%s" line))))
 
@@ -117,7 +126,9 @@ and FLIP is a boolean to specify the sort order."
 
 (define-derived-mode docker-network-mode tabulated-list-mode "Networks Menu"
   "Major mode for handling a list of docker networks."
-  (setq tabulated-list-format [("Network ID" 20 t)("Name" 50 t)("Driver" 10 t)("Scope" 10 t)])
+  (setq tabulated-list-format (seq-into
+                               (-map (lambda (x) (list (car x) (cdr x) t)) docker-network-column-order)
+                               'vector))
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key docker-network-default-sort-key)
   (add-hook 'tabulated-list-revert-hook 'docker-network-refresh nil t)

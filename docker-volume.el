@@ -36,6 +36,11 @@
   "Docker volume customization group."
   :group 'docker)
 
+(defconst docker-volume-default-column-order
+  '(("Driver" . 10)
+    ("Name" . 40))
+  "This should match the column order used in the format string in docker-volume-entries.")
+
 (defcustom docker-volume-default-sort-key '("Driver" . nil)
   "Sort key for docker volumes.
 
@@ -43,15 +48,18 @@ This should be a cons cell (NAME . FLIP) where
 NAME is a string matching one of the column names
 and FLIP is a boolean to specify the sort order."
   :group 'docker-volume
-  :type '(cons (choice (const "Driver")
-                       (const "Name"))
-               (choice (const :tag "Ascending" nil)
-                       (const :tag "Descending" t))))
+  :type (docker-utils-sort-key-customize-type docker-volume-default-column-order))
+
+(defcustom docker-volume-column-order docker-volume-default-column-order
+  "Column ordering and width for docker volumes."
+  :group 'docker-volume
+  :type (docker-utils-column-order-customize-type docker-volume-default-column-order))
 
 (defun docker-volume-parse (line)
   "Convert a LINE from \"docker volume ls\" to a `tabulated-list-entries' entry."
   (condition-case nil
-      (let ((data (json-read-from-string line)))
+      (let* ((raw-data (json-read-from-string line))
+             (data (docker-utils-reorder-data docker-volume-column-order docker-volume-default-column-order raw-data)))
         (list (aref data 1) data))
     (json-readtable-error
      (error "Could not read following string as json:\n%s" line))))
@@ -131,7 +139,7 @@ and FLIP is a boolean to specify the sort order."
 
 (define-derived-mode docker-volume-mode tabulated-list-mode "Volumes Menu"
   "Major mode for handling a list of docker volumes."
-  (setq tabulated-list-format [("Driver" 10 t)("Name" 10 t)])
+  (setq tabulated-list-format (seq-into (--map (list (car it) (cdr it) t) docker-volume-column-order) 'vector))
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key docker-volume-default-sort-key)
   (add-hook 'tabulated-list-revert-hook 'docker-volume-refresh nil t)
