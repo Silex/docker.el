@@ -139,7 +139,7 @@ and FLIP is a boolean to specify the sort order."
 
 (define-derived-mode docker-volume-mode tabulated-list-mode "Volumes Menu"
   "Major mode for handling a list of docker volumes."
-  (setq tabulated-list-format (seq-into (--map (list (car it) (cdr it) t) docker-volume-column-order) 'vector))
+  (setq tabulated-list-format (docker-utils-column-order-list-format docker-volume-column-order))
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key docker-volume-default-sort-key)
   (add-hook 'tabulated-list-revert-hook 'docker-volume-refresh nil t)
