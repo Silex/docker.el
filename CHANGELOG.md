@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.4.0 (2020-09-14)
+
+- Add colors to various listings.
+- docker:
+  - Add TLS flags.
+- images:
+  - Add ability to pull specific image.
+  - Add `--network` to image run.
+- containers:
+  - Add ability to run shell with environment.
+  - Add ability to open directories.
+  - Add since/tail/until to container logs.
+- compose:
+  - Make command customizable.
+  - Add `--quiet-pull` option to "docker-compose up".
+  - Support "docker-compose config".
+- Switch from magit-popup to transient.
+- Revert podman support due to complications.
+- Various interface tweaks / better completion.
+- Various bugfixes (windows, broken API/keybindings).
+
 ## 1.3.0 (2019-04-07)
 
 - Support podman.
