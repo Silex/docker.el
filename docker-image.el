@@ -36,27 +36,36 @@
   "Docker images customization group."
   :group 'docker)
 
-(defconst docker-image-default-column-order
-  '(("Repository" . 30)
-    ("Tag" . 20)
-    ("Id" . 16)
-    ("Created" . 23)
-    ("Size" . 10))
-  "This should match the column order used in the format string in docker-image-entries.")
+;; TODO this can just be given to defcustom rather than as a separate definition
+(defconst docker-image-default-columns
+  '((:name "Repository" :width 30 :template "{{json .Repository}}")
+    (:name "Tag" :width 20 :template "{{ json .Tag }}")
+    (:name "Id" :width 16 :template "{{ json .ID }}" :id t)
+    (:name "Created" :width 24 :template "{{ json .CreatedAt }}")
+    (:name "Size" :width 10 :template "{{ json .Size }}"))
+  "Default column specs for docker-images.")
 
+;; TODO default sort key may not exist?
 (defcustom docker-image-default-sort-key '("Repository" . nil)
   "Sort key for docker images.
 
 This should be a cons cell (NAME . FLIP) where
 NAME is a string matching one of the column names
 and FLIP is a boolean to specify the sort order."
-  :group 'docker-image
-  :type (docker-utils-sort-key-customize-type docker-image-default-column-order))
+  :group 'docker-image)
+  ;; TODO generate column choices from docker-image-column-order
+;;  :type (docker-utils-sort-key-customize-type docker-image-default-column-order))
 
-(defcustom docker-image-column-order docker-image-default-column-order
+;; TODO fix description
+(defcustom docker-image-column-order docker-image-default-columns
   "Column ordering and width for docker images."
   :group 'docker-image
-  :type (docker-utils-column-order-customize-type docker-image-default-column-order))
+  :set (lambda (sym xs)
+         (let ((res (--map (-interleave '(:name :width :template) it) xs)))
+           (set sym res)))
+  :get (lambda (sym)
+         (--map (list (plist-get it :name) (plist-get it :width) (plist-get it :template)) (symbol-value sym)))
+  :type '(repeat (list :tag "Column" (string :tag "Name") (integer :tag "Width") (string :tag "Template"))))
 
 (defcustom docker-run-default-args
   '("-i" "-t" "--rm")
