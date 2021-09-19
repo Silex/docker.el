@@ -42,11 +42,11 @@
 
 ;; TODO this can just be given to defcustom rather than as a separate definition
 (defconst docker-image-default-columns
-  '((:name "Repository" :width 30 :template "{{json .Repository}}")
-    (:name "Tag" :width 20 :template "{{ json .Tag }}")
-    (:name "Id" :width 16 :template "{{ json .ID }}")
-    (:name "Created" :width 24 :template "{{ json .CreatedAt }}")
-    (:name "Size" :width 10 :template "{{ json .Size }}"))
+  '((:name "Repository" :width 30 :template "{{json .Repository}}" :sort nil :format nil)
+    (:name "Tag" :width 20 :template "{{ json .Tag }}" :sort nil :format nil)
+    (:name "Id" :width 16 :template "{{ json .ID }}" :sort nil :format nil)
+    (:name "Created" :width 24 :template "{{ json .CreatedAt }}" :sort nil :format (lambda (x) (format-time-string "%F %T" (date-to-time x))))
+    (:name "Size" :width 10 :template "{{ json .Size }}" :sort docker-image-human-size-predicate :format nil))
   "Default column specs for docker-images.")
 
 ;; TODO default sort key may not exist?
@@ -68,18 +68,20 @@ The order of entries defines the displayed column order.
   :group 'docker-image
   ;; add plist symbols
   :set (lambda (sym xs)
-         (let ((res (--map (-interleave '(:name :width :template) it)
+         (let ((res (--map (-interleave '(:name :width :template :sort :format) it)
                            xs)))
            (set sym res)))
   ;; removes plist symbols
   :get (lambda (sym)
          (--map
-          (-map (-partial plist-get it) '(:name :width :template))
+          (-map (-partial #'plist-get it) '(:name :width :template :sort :format))
           (symbol-value sym)))
   :type '(repeat (list :tag "Column"
                        (string :tag "Name")
                        (integer :tag "Width")
-                       (string :tag "Template"))))
+                       (string :tag "Template")
+                       (sexp :tag "Sort function")
+                       (sexp :tag "Format function"))))
 
 (defcustom docker-run-default-args
   '("-i" "-t" "--rm")
@@ -101,17 +103,18 @@ corresponding to arguments.
 Also note if you do not specify `docker-run-default-args', they will be ignored."
   :type '(repeat (list string (repeat string))))
 
-(defun docker-image-parse (line)
+(defun docker-image-parse (column-specs line)
   "Convert a LINE from \"docker image ls\" to a `tabulated-list-entries' entry."
   (condition-case nil
       (let* ((data (json-read-from-string line)))
-             ;; (name (format "%s:%s" (aref data 0) (aref data 1))))
-             (list (aref data 0) (seq-drop data 1)))
-        ;; (aset data 3 (format-time-string "%F %T" (date-to-time (aref data 3))))
-        ;; (let ((ordered (docker-utils-reorder-data docker-image-column-order docker-image-default-column-order data)))
-          ;; if name is none, then use data 2? otherwise name
-          ;; (list (if (s-contains? "<none>" name) (aref data 2) name)
-          ;;       ordered)))
+        ;; apply format function, if any
+        (--each-indexed
+            column-specs
+          (let ((fmt-fn (plist-get it :format))
+                (data-index (+ it-index 1)))
+            (when fmt-fn (aset data data-index (apply fmt-fn (list (aref data data-index)))))))
+
+        (list (aref data 0) (seq-drop data 1)))
     (json-readtable-error
      (error "Could not read following string as json:\n%s" line))))
 
@@ -125,7 +128,7 @@ Also note if you do not specify `docker-run-default-args', they will be ignored.
   (let* ((fmt (docker-utils-make-format-string docker-image-id-template docker-image-column-order))
          (data (docker-run-docker "image ls" (docker-image-ls-arguments) (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
-    (-map #'docker-image-parse lines)))
+    (-map (-partial #'docker-image-parse docker-image-column-order) lines)))
 
 (defun docker-image-refresh ()
   "Refresh the images list."
@@ -278,17 +281,12 @@ Also note if you do not specify `docker-run-default-args', they will be ignored.
 (defun docker-utils-column-order-list-format (columns-spec)
   "Convert COLUMNS-SPEC (a list of plists) to 'tabulated-list-format' (a vector of (name width bool))."
   (seq-into
-   (--map (list (plist-get it :name) (plist-get it :width) t) columns-spec)
+   (--map (list (plist-get it :name) (plist-get it :width) (or (plist-get it :sort) t)) columns-spec)
    'vector))
 
 (define-derived-mode docker-image-mode tabulated-list-mode "Images Menu"
   "Major mode for handling a list of docker images."
   (setq tabulated-list-format (docker-utils-column-order-list-format docker-image-column-order))
-  ;; Manually set sort function of "Size" column
-  (let* ((size-pos (seq-position tabulated-list-format "Size" (lambda (x y) (equal (car x) y))))
-         (current-elt (aref tabulated-list-format size-pos)))
-    (aset tabulated-list-format size-pos (list "Size" (elt current-elt 1) 'docker-image-human-size-predicate)))
-
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key docker-image-default-sort-key)
   (add-hook 'tabulated-list-revert-hook 'docker-image-refresh nil t)
