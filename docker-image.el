@@ -60,16 +60,26 @@ and FLIP is a boolean to specify the sort order."
   ;; TODO generate column choices from docker-image-column-order
 ;;  :type (docker-utils-sort-key-customize-type docker-image-default-column-order))
 
-;; TODO fix description
 (defcustom docker-image-column-order docker-image-default-columns
-  "Column ordering and width for docker images."
+  "Column specification for docker images.
+
+The order of entries defines the displayed column order.
+'Template' is the Go template passed to docker-image-ls to generate the column data."
   :group 'docker-image
+  ;; add plist symbols
   :set (lambda (sym xs)
-         (let ((res (--map (-interleave '(:name :width :template) it) xs))) ;; add plist symbols
+         (let ((res (--map (-interleave '(:name :width :template) it)
+                           xs)))
            (set sym res)))
+  ;; removes plist symbols
   :get (lambda (sym)
-         (--map (list (plist-get it :name) (plist-get it :width) (plist-get it :template)) (symbol-value sym)))
-  :type '(repeat (list :tag "Column" (string :tag "Name") (integer :tag "Width") (string :tag "Template"))))
+         (--map
+          (-map (-partial plist-get it) '(:name :width :template))
+          (symbol-value sym)))
+  :type '(repeat (list :tag "Column"
+                       (string :tag "Name")
+                       (integer :tag "Width")
+                       (string :tag "Template"))))
 
 (defcustom docker-run-default-args
   '("-i" "-t" "--rm")
@@ -264,6 +274,12 @@ Also note if you do not specify `docker-run-default-args', they will be ignored.
   (docker-utils-pop-to-buffer "*docker-images*")
   (docker-image-mode)
   (tablist-revert))
+
+(defun docker-utils-column-order-list-format (columns-spec)
+  "Convert COLUMNS-SPEC (a list of plists) to 'tabulated-list-format' (a vector of (name width bool))."
+  (seq-into
+   (--map (list (plist-get it :name) (plist-get it :width) t) columns-spec)
+   'vector))
 
 (define-derived-mode docker-image-mode tabulated-list-mode "Images Menu"
   "Major mode for handling a list of docker images."
