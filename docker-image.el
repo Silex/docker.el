@@ -36,11 +36,15 @@
   "Docker images customization group."
   :group 'docker)
 
+(defconst docker-image-id-template
+  "{{ json .ID }}"
+  "This Go template extracts the image id which will be passed to transient commands.")
+
 ;; TODO this can just be given to defcustom rather than as a separate definition
 (defconst docker-image-default-columns
   '((:name "Repository" :width 30 :template "{{json .Repository}}")
     (:name "Tag" :width 20 :template "{{ json .Tag }}")
-    (:name "Id" :width 16 :template "{{ json .ID }}" :id t)
+    (:name "Id" :width 16 :template "{{ json .ID }}")
     (:name "Created" :width 24 :template "{{ json .CreatedAt }}")
     (:name "Size" :width 10 :template "{{ json .Size }}"))
   "Default column specs for docker-images.")
@@ -61,7 +65,7 @@ and FLIP is a boolean to specify the sort order."
   "Column ordering and width for docker images."
   :group 'docker-image
   :set (lambda (sym xs)
-         (let ((res (--map (-interleave '(:name :width :template) it) xs)))
+         (let ((res (--map (-interleave '(:name :width :template) it) xs))) ;; add plist symbols
            (set sym res)))
   :get (lambda (sym)
          (--map (list (plist-get it :name) (plist-get it :width) (plist-get it :template)) (symbol-value sym)))
@@ -90,17 +94,25 @@ Also note if you do not specify `docker-run-default-args', they will be ignored.
 (defun docker-image-parse (line)
   "Convert a LINE from \"docker image ls\" to a `tabulated-list-entries' entry."
   (condition-case nil
-      (let* ((data (json-read-from-string line))
-             (name (format "%s:%s" (aref data 0) (aref data 1))))
-        (aset data 3 (format-time-string "%F %T" (date-to-time (aref data 3))))
-        (let ((ordered (docker-utils-reorder-data docker-image-column-order docker-image-default-column-order data)))
-          (list (if (s-contains? "<none>" name) (aref data 2) name) ordered)))
+      (let* ((data (json-read-from-string line)))
+             ;; (name (format "%s:%s" (aref data 0) (aref data 1))))
+             (list (aref data 0) (seq-drop data 1)))
+        ;; (aset data 3 (format-time-string "%F %T" (date-to-time (aref data 3))))
+        ;; (let ((ordered (docker-utils-reorder-data docker-image-column-order docker-image-default-column-order data)))
+          ;; if name is none, then use data 2? otherwise name
+          ;; (list (if (s-contains? "<none>" name) (aref data 2) name)
+          ;;       ordered)))
     (json-readtable-error
      (error "Could not read following string as json:\n%s" line))))
 
+(defun docker-utils-make-format-string (id-template column-spec)
+  (let* ((templates (--map (plist-get it :template) column-spec))
+         (delimited (string-join templates ",")))
+    (format "[%s,%s]" id-template delimited)))
+
 (defun docker-image-entries ()
   "Return the docker images data for `tabulated-list-entries'."
-  (let* ((fmt "[{{json .Repository}},{{json .Tag}},{{json .ID}},{{json .CreatedAt}},{{json .Size}}]")
+  (let* ((fmt (docker-utils-make-format-string docker-image-id-template docker-image-column-order))
          (data (docker-run-docker "image ls" (docker-image-ls-arguments) (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
     (-map #'docker-image-parse lines)))
