@@ -147,6 +147,24 @@ Execute BODY in a buffer named with the help of NAME."
          (delimited (string-join templates ",")))
     (format "[%s,%s]" id-template delimited)))
 
+(defun docker-utils-parse (column-specs line)
+  "Convert a LINE from \"docker ls\" to a `tabulated-list-entries' entry.
+
+LINE is expected to be a JSON formatted array, and COLUMN-SPECS is the relevant
+defcustom (e.g. `docker-image-column-order`) used to apply any custom format functions."
+  (condition-case nil
+      (let* ((data (json-read-from-string line)))
+        ;; apply format function, if any
+        (--each-indexed
+            column-specs
+          (let ((fmt-fn (plist-get it :format))
+                (data-index (+ it-index 1)))
+            (when fmt-fn (aset data data-index (apply fmt-fn (list (aref data data-index)))))))
+
+        (list (aref data 0) (seq-drop data 1)))
+    (json-readtable-error
+     (error "Could not read following string as json:\n%s" line))))
+
 (provide 'docker-utils)
 
 ;;; docker-utils.el ends here
