@@ -56,9 +56,12 @@
 This should be a cons cell (NAME . FLIP) where
 NAME is a string matching one of the column names
 and FLIP is a boolean to specify the sort order."
-  :group 'docker-image)
-  ;; TODO generate column choices from docker-image-column-order
-;;  :type (docker-utils-sort-key-customize-type docker-image-default-column-order))
+  :group 'docker-image
+  ;; TODO could generate column choices from docker-image-column-order
+  :type '(cons (string :tag "Column Name")
+               (choice (const :tag "Ascending" nil)
+                       (const :tag "Descending" t))))
+
 
 (defcustom docker-image-column-order docker-image-default-columns
   "Column specification for docker images.
@@ -117,11 +120,6 @@ Also note if you do not specify `docker-run-default-args', they will be ignored.
         (list (aref data 0) (seq-drop data 1)))
     (json-readtable-error
      (error "Could not read following string as json:\n%s" line))))
-
-(defun docker-utils-make-format-string (id-template column-spec)
-  (let* ((templates (--map (plist-get it :template) column-spec))
-         (delimited (string-join templates ",")))
-    (format "[%s,%s]" id-template delimited)))
 
 (defun docker-image-entries ()
   "Return the docker images data for `tabulated-list-entries'."
@@ -277,12 +275,6 @@ Also note if you do not specify `docker-run-default-args', they will be ignored.
   (docker-utils-pop-to-buffer "*docker-images*")
   (docker-image-mode)
   (tablist-revert))
-
-(defun docker-utils-column-order-list-format (columns-spec)
-  "Convert COLUMNS-SPEC (a list of plists) to 'tabulated-list-format' (a vector of (name width bool))."
-  (seq-into
-   (--map (list (plist-get it :name) (plist-get it :width) (or (plist-get it :sort) t)) columns-spec)
-   'vector))
 
 (define-derived-mode docker-image-mode tabulated-list-mode "Images Menu"
   "Major mode for handling a list of docker images."
