@@ -36,12 +36,16 @@
   "Docker network customization group."
   :group 'docker)
 
-(defconst docker-network-default-column-order
-  '(("Network ID" . 20)
-    ("Name" . 50)
-    ("Driver" . 10)
-    ("Scope" . 10))
-  "This should match the column order used in the format string in docker-network-entries.")
+(defconst docker-network-id-template
+  "{{ json .ID }}"
+  "This Go template extracts the id which will be passed to transient commands.")
+
+(defconst docker-network-default-columns
+  '((:name "Network ID" :width 20 :template "{{json .ID}}" :sort nil :format nil)
+    (:name "Name" :width 50 :template "{{json .Name}}" :sort nil :format nil)
+    (:name "Driver" :width 10 :template "{{json .Driver}}" :sort nil :format nil)
+    (:name "Scope" :width 10 :template "{{json .Scope}}" :sort nil :format nil))
+  "Column spec for docker-network-entries.")
 
 (defcustom docker-network-default-sort-key '("Name" . nil)
   "Sort key for docker networks.
@@ -50,28 +54,54 @@ This should be a cons cell (NAME . FLIP) where
 NAME is a string matching one of the column names
 and FLIP is a boolean to specify the sort order."
   :group 'docker-network
-  :type (docker-utils-sort-key-customize-type docker-network-default-column-order))
+  :type '(cons (string :tag "Column Name")
+               (choice (const :tag "Ascending" nil)
+                       (const :tag "Descending" t))))
 
-(defcustom docker-network-column-order docker-network-default-column-order
-  "Column ordering and width for docker networks."
+(defcustom docker-network-column-order docker-network-default-columns
+  "Column specification for docker networks.
+
+The order of entries defines the displayed column order.
+'Template' is the Go template passed to docker-network-ls to generate the column data."
   :group 'docker-network
-  :type (docker-utils-column-order-customize-type docker-network-default-column-order))
+  ;; add plist symbols
+  :set (lambda (sym xs)
+         (let ((res (--map (-interleave '(:name :width :template :sort :format) it)
+                           xs)))
+           (set sym res)))
+  ;; removes plist symbols
+  :get (lambda (sym)
+         (--map
+          (-map (-partial #'plist-get it) '(:name :width :template :sort :format))
+          (symbol-value sym)))
+  :type '(repeat (list :tag "Column"
+                       (string :tag "Name")
+                       (integer :tag "Width")
+                       (string :tag "Template")
+                       (sexp :tag "Sort function")
+                       (sexp :tag "Format function"))))
 
-(defun docker-network-parse (line)
+(defun docker-network-parse (column-specs line)
   "Convert a LINE from \"docker network ls\" to a `tabulated-list-entries' entry."
   (condition-case nil
-      (let* ((raw-data (json-read-from-string line))
-             (data (docker-utils-reorder-data docker-network-column-order docker-network-default-column-order raw-data)))
-        (list (aref raw-data 1) data))
+      (let* ((data (json-read-from-string line)))
+        ;; apply format function, if any
+        (--each-indexed
+            column-specs
+          (let ((fmt-fn (plist-get it :format))
+                (data-index (+ it-index 1)))
+            (when fmt-fn (aset data data-index (apply fmt-fn (list (aref data data-index)))))))
+
+        (list (aref data 0) (seq-drop data 1)))
     (json-readtable-error
      (error "Could not read following string as json:\n%s" line))))
 
 (defun docker-network-entries ()
   "Return the docker networks data for `tabulated-list-entries'."
-  (let* ((fmt "[{{json .ID}},{{json .Name}},{{json .Driver}},{{json .Scope}}]")
+  (let* ((fmt (docker-utils-make-format-string docker-network-id-template docker-network-column-order))
          (data (docker-run-docker "network ls" (docker-network-ls-arguments) (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
-    (-map #'docker-network-parse lines)))
+    (-map (-partial #'docker-network-parse docker-network-column-order) lines)))
 
 (defun docker-network-refresh ()
   "Refresh the networks list."
