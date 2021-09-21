@@ -135,27 +135,17 @@ Execute BODY in a buffer named with the help of NAME."
 
   (seq-into (--keep (when it (aref data it)) indices) 'vector)))
 
-(defun docker-utils-sort-key-customize-type (columns-alist)
-  "Make the customize type descriptor from COLUMNS-ALIST, whose keys should be the column headers."
-  (let ((column-names (-map (lambda (x) (list 'const (car x))) columns-alist)))
-  `(cons
-    ,(cons 'choice column-names)
-    (choice (const :tag "Ascending" nil)
-            (const :tag "Descending" t)))))
-
-(defun docker-utils-column-order-customize-type (columns-alist)
-  "Make the customize type descriptor from COLUMNS-ALIST, whose keys should be the column headers."
-  (let ((column-names (cons '(const :tag "Hidden" nil)
-                            (-map (lambda (x) (list 'const (car x))) columns-alist))))
-    (cons
-     'list
-     (make-list (length columns-alist) `(cons ,(cons 'choice column-names) (integer))))))
-
-(defun docker-utils-column-order-list-format (columns-alist)
-  "Convert COLUMNS-ALIST to tabulated-list-format"
+(defun docker-utils-column-order-list-format (columns-spec)
+  "Convert COLUMNS-SPEC (a list of plists) to 'tabulated-list-format' (a vector of (name width bool))."
   (seq-into
-   (--keep (when (car it) (list (car it) (cdr it) t)) columns-alist)
+   (--map (list (plist-get it :name) (plist-get it :width) (or (plist-get it :sort) t)) columns-spec)
    'vector))
+
+(defun docker-utils-make-format-string (id-template column-spec)
+  "Make the format string to pass to docker-ls commands."
+  (let* ((templates (--map (plist-get it :template) column-spec))
+         (delimited (string-join templates ",")))
+    (format "[%s,%s]" id-template delimited)))
 
 (provide 'docker-utils)
 
