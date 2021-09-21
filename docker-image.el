@@ -46,7 +46,7 @@
     (:name "Tag" :width 20 :template "{{ json .Tag }}" :sort nil :format nil)
     (:name "Id" :width 16 :template "{{ json .ID }}" :sort nil :format nil)
     (:name "Created" :width 24 :template "{{ json .CreatedAt }}" :sort nil :format (lambda (x) (format-time-string "%F %T" (date-to-time x))))
-    (:name "Size" :width 10 :template "{{ json .Size }}" :sort docker-image-human-size-predicate :format nil))
+    (:name "Size" :width 10 :template "{{ json .Size }}" :sort docker-utils-human-size-predicate :format nil))
   "Default column specs for docker-images.")
 
 ;; TODO default sort key may not exist?
@@ -120,12 +120,6 @@ Also note if you do not specify `docker-run-default-args', they will be ignored.
 (defun docker-image-read-name ()
   "Read an image name."
   (completing-read "Image: " (-map #'car (docker-image-entries))))
-
-(defun docker-image-human-size-predicate (a b)
-  "Sort A and B by image size."
-  (let* ((a-size (elt (cadr a) 4))
-         (b-size (elt (cadr b) 4)))
-    (< (docker-utils-human-size-to-bytes a-size) (docker-utils-human-size-to-bytes b-size))))
 
 ;;;###autoload
 (defun docker-image-pull-one (name &optional all)

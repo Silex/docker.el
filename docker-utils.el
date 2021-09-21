@@ -126,14 +126,11 @@ Execute BODY in a buffer named with the help of NAME."
       (js-mode)
       (view-mode))))
 
-(defun docker-utils-reorder-data (order-alist default-order-alist data)
-  "Reorder the DATA vector from the order in DEFAULT-ORDER-ALIST to that in ORDER-ALIST."
-  (let* ((ordered-columns (-map 'car order-alist))
-         (indices (--map
-                   (seq-position default-order-alist it (lambda (x y) (equal (car x) y)))
-                   ordered-columns)))
-
-  (seq-into (--keep (when it (aref data it)) indices) 'vector)))
+(defun docker-utils-human-size-predicate (a b)
+  "Sort A and B by image size."
+  (let* ((a-size (elt (cadr a) 4))
+         (b-size (elt (cadr b) 4)))
+    (< (docker-utils-human-size-to-bytes a-size) (docker-utils-human-size-to-bytes b-size))))
 
 (defun docker-utils-column-order-list-format (columns-spec)
   "Convert COLUMNS-SPEC (a list of plists) to 'tabulated-list-format' (a vector of (name width bool))."
