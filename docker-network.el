@@ -81,27 +81,12 @@ The order of entries defines the displayed column order.
                        (sexp :tag "Sort function")
                        (sexp :tag "Format function"))))
 
-(defun docker-network-parse (column-specs line)
-  "Convert a LINE from \"docker network ls\" to a `tabulated-list-entries' entry."
-  (condition-case nil
-      (let* ((data (json-read-from-string line)))
-        ;; apply format function, if any
-        (--each-indexed
-            column-specs
-          (let ((fmt-fn (plist-get it :format))
-                (data-index (+ it-index 1)))
-            (when fmt-fn (aset data data-index (apply fmt-fn (list (aref data data-index)))))))
-
-        (list (aref data 0) (seq-drop data 1)))
-    (json-readtable-error
-     (error "Could not read following string as json:\n%s" line))))
-
 (defun docker-network-entries ()
   "Return the docker networks data for `tabulated-list-entries'."
   (let* ((fmt (docker-utils-make-format-string docker-network-id-template docker-network-column-order))
          (data (docker-run-docker "network ls" (docker-network-ls-arguments) (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
-    (-map (-partial #'docker-network-parse docker-network-column-order) lines)))
+    (-map (-partial #'docker-utils-parse docker-network-column-order) lines)))
 
 (defun docker-network-refresh ()
   "Refresh the networks list."

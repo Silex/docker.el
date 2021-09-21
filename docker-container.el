@@ -97,21 +97,6 @@ The order of entries defines the displayed column order.
   "Return `docker-container-shell-file-name' or read a shell name if READ-SHELL-NAME is truthy."
   (if read-shell-name (read-shell-command "Shell: ") docker-container-shell-file-name))
 
-(defun docker-container-parse (column-specs line)
-  "Convert a LINE from \"docker container ls\" to a `tabulated-list-entries' entry."
-  (condition-case nil
-      (let* ((data (json-read-from-string line)))
-        ;; apply format function, if any
-        (--each-indexed
-            column-specs
-          (let ((fmt-fn (plist-get it :format))
-                (data-index (+ it-index 1)))
-            (when fmt-fn (aset data data-index (apply fmt-fn (list (aref data data-index)))))))
-
-        (list (aref data 0) (seq-drop data 1)))
-    (json-readtable-error
-     (error "Could not read following string as json:\n%s" line))))
-
 (defun docker-container-status-face (status)
   "Return the correct face according to STATUS."
   (cond
@@ -129,7 +114,7 @@ The order of entries defines the displayed column order.
   (let* ((fmt (docker-utils-make-format-string docker-container-id-template docker-container-column-order))
          (data (docker-run-docker "container ls" (docker-container-ls-arguments) (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
-    (-map (-partial #'docker-container-parse docker-container-column-order) lines)))
+    (-map (-partial #'docker-utils-parse docker-container-column-order) lines)))
 
 (defun docker-container-refresh ()
   "Refresh the containers list."

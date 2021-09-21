@@ -106,27 +106,12 @@ corresponding to arguments.
 Also note if you do not specify `docker-run-default-args', they will be ignored."
   :type '(repeat (list string (repeat string))))
 
-(defun docker-image-parse (column-specs line)
-  "Convert a LINE from \"docker image ls\" to a `tabulated-list-entries' entry."
-  (condition-case nil
-      (let* ((data (json-read-from-string line)))
-        ;; apply format function, if any
-        (--each-indexed
-            column-specs
-          (let ((fmt-fn (plist-get it :format))
-                (data-index (+ it-index 1)))
-            (when fmt-fn (aset data data-index (apply fmt-fn (list (aref data data-index)))))))
-
-        (list (aref data 0) (seq-drop data 1)))
-    (json-readtable-error
-     (error "Could not read following string as json:\n%s" line))))
-
 (defun docker-image-entries ()
   "Return the docker images data for `tabulated-list-entries'."
   (let* ((fmt (docker-utils-make-format-string docker-image-id-template docker-image-column-order))
          (data (docker-run-docker "image ls" (docker-image-ls-arguments) (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
-    (-map (-partial #'docker-image-parse docker-image-column-order) lines)))
+    (-map (-partial #'docker-utils-parse docker-image-column-order) lines)))
 
 (defun docker-image-refresh ()
   "Refresh the images list."
