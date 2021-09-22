@@ -40,13 +40,6 @@
   "{{ json .ID }}"
   "This Go template extracts the id which will be passed to transient commands.")
 
-(defconst docker-network-default-columns
-  '((:name "Network ID" :width 20 :template "{{json .ID}}" :sort nil :format nil)
-    (:name "Name" :width 50 :template "{{json .Name}}" :sort nil :format nil)
-    (:name "Driver" :width 10 :template "{{json .Driver}}" :sort nil :format nil)
-    (:name "Scope" :width 10 :template "{{json .Scope}}" :sort nil :format nil))
-  "Column spec for docker-network-entries.")
-
 (defcustom docker-network-default-sort-key '("Name" . nil)
   "Sort key for docker networks.
 
@@ -58,22 +51,18 @@ and FLIP is a boolean to specify the sort order."
                (choice (const :tag "Ascending" nil)
                        (const :tag "Descending" t))))
 
-(defcustom docker-network-column-order docker-network-default-columns
+(defcustom docker-network-column-spec
+  '((:name "Network ID" :width 20 :template "{{json .ID}}" :sort nil :format nil)
+    (:name "Name" :width 50 :template "{{json .Name}}" :sort nil :format nil)
+    (:name "Driver" :width 10 :template "{{json .Driver}}" :sort nil :format nil)
+    (:name "Scope" :width 10 :template "{{json .Scope}}" :sort nil :format nil))
   "Column specification for docker networks.
 
 The order of entries defines the displayed column order.
 'Template' is the Go template passed to docker-network-ls to generate the column data."
   :group 'docker-network
-  ;; add plist symbols
-  :set (lambda (sym xs)
-         (let ((res (--map (-interleave '(:name :width :template :sort :format) it)
-                           xs)))
-           (set sym res)))
-  ;; removes plist symbols
-  :get (lambda (sym)
-         (--map
-          (-map (-partial #'plist-get it) '(:name :width :template :sort :format))
-          (symbol-value sym)))
+  :set 'docker-utils-column-spec-setter
+  :get 'docker-utils-column-spec-getter
   :type '(repeat (list :tag "Column"
                        (string :tag "Name")
                        (integer :tag "Width")
@@ -83,10 +72,10 @@ The order of entries defines the displayed column order.
 
 (defun docker-network-entries ()
   "Return the docker networks data for `tabulated-list-entries'."
-  (let* ((fmt (docker-utils-make-format-string docker-network-id-template docker-network-column-order))
+  (let* ((fmt (docker-utils-make-format-string docker-network-id-template docker-network-column-spec))
          (data (docker-run-docker "network ls" (docker-network-ls-arguments) (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
-    (-map (-partial #'docker-utils-parse docker-network-column-order) lines)))
+    (-map (-partial #'docker-utils-parse docker-network-column-spec) lines)))
 
 (defun docker-network-refresh ()
   "Refresh the networks list."
@@ -141,7 +130,7 @@ The order of entries defines the displayed column order.
 
 (define-derived-mode docker-network-mode tabulated-list-mode "Networks Menu"
   "Major mode for handling a list of docker networks."
-  (setq tabulated-list-format (docker-utils-column-order-list-format docker-network-column-order))
+  (setq tabulated-list-format (docker-utils-column-spec-list-format docker-network-column-spec))
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key docker-network-default-sort-key)
   (add-hook 'tabulated-list-revert-hook 'docker-network-refresh nil t)

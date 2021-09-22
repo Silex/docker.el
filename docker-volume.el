@@ -40,11 +40,6 @@
   "{{ json .Name }}"
   "This Go template extracts the volume id which will be passed to transient commands.")
 
-(defconst docker-volume-default-columns
-  '((:name "Driver" :width 10 :template "{{json .Driver}}" :sort nil :format nil)
-    (:name "Name" :width 40 :template "{{json .Name}}" :sort nil :format nil))
-  "Default columns for docker-volume.")
-
 (defcustom docker-volume-default-sort-key '("Driver" . nil)
   "Sort key for docker volumes.
 
@@ -52,28 +47,20 @@ This should be a cons cell (NAME . FLIP) where
 NAME is a string matching one of the column names
 and FLIP is a boolean to specify the sort order."
   :group 'docker-volume
-  ;; TODO could generate column choices from docker-image-column-order
   :type '(cons (string :tag "Column Name")
                (choice (const :tag "Ascending" nil)
                        (const :tag "Descending" t))))
 
-(defcustom docker-volume-column-order docker-volume-default-columns
+(defcustom docker-volume-column-spec
+  '((:name "Driver" :width 10 :template "{{json .Driver}}" :sort nil :format nil)
+    (:name "Name" :width 40 :template "{{json .Name}}" :sort nil :format nil))
   "Column specification for docker volumes.
 
 The order of entries defines the displayed column order.
 'Template' is the Go template passed to docker-image-ls to generate the column data."
   :group 'docker-volume
-
-  ;; add plist symbols
-  :set (lambda (sym xs)
-         (let ((res (--map (-interleave '(:name :width :template :sort :format) it)
-                           xs)))
-           (set sym res)))
-  ;; removes plist symbols
-  :get (lambda (sym)
-         (--map
-          (-map (-partial #'plist-get it) '(:name :width :template :sort :format))
-          (symbol-value sym)))
+  :set 'docker-utils-column-spec-setter
+  :get 'docker-utils-column-spec-getter
   :type '(repeat (list :tag "Column"
                        (string :tag "Name")
                        (integer :tag "Width")
@@ -83,10 +70,10 @@ The order of entries defines the displayed column order.
 
 (defun docker-volume-entries ()
   "Return the docker volumes data for `tabulated-list-entries'."
-  (let* ((fmt (docker-utils-make-format-string docker-volume-id-template docker-volume-column-order))
+  (let* ((fmt (docker-utils-make-format-string docker-volume-id-template docker-volume-column-spec))
          (data (docker-run-docker "volume ls" (docker-volume-ls-arguments) (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
-    (-map (-partial #'docker-utils-parse docker-volume-column-order) lines)))
+    (-map (-partial #'docker-utils-parse docker-volume-column-spec) lines)))
 
 (defun docker-volume-refresh ()
   "Refresh the volumes list."
@@ -156,7 +143,7 @@ The order of entries defines the displayed column order.
 
 (define-derived-mode docker-volume-mode tabulated-list-mode "Volumes Menu"
   "Major mode for handling a list of docker volumes."
-  (setq tabulated-list-format (docker-utils-column-order-list-format docker-volume-column-order))
+  (setq tabulated-list-format (docker-utils-column-spec-list-format docker-volume-column-spec))
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key docker-volume-default-sort-key)
   (add-hook 'tabulated-list-revert-hook 'docker-volume-refresh nil t)
