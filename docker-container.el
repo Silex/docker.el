@@ -43,16 +43,6 @@
   "{{ json .ID }}"
   "This Go template extracts the container id which will be passed to transient commands.")
 
-(defconst docker-container-default-columns
-  '((:name "Id" :width 16 :template "{{json .ID}}" :sort nil :format nil)
-    (:name "Image" :width 15 :template "{{json .Image}}" :sort nil :format nil)
-    (:name "Command" :width 30 :template "{{json .Command}}" :sort nil :format nil)
-    (:name "Created" :width 23 :template "{{json .CreatedAt}}" :sort nil :format (lambda (x) (format-time-string "%F %T" (date-to-time x))))
-    (:name "Status" :width 20 :template "{{json .Status}}" :sort nil :format (lambda (x) (propertize x 'font-lock-face (docker-container-status-face x))))
-    (:name "Ports" :width 10 :template "{{json .Ports}}" :sort nil :format nil)
-    (:name "Names" :width 10 :template "{{json .Names}}" :sort nil :format nil))
-  "Default column specs for docker-containers.")
-
 (defcustom docker-container-shell-file-name "/bin/sh"
   "Shell to use when entering containers."
   :group 'docker-container
@@ -70,22 +60,21 @@ and FLIP is a boolean to specify the sort order."
                (choice (const :tag "Ascending" nil)
                        (const :tag "Descending" t))))
 
-(defcustom docker-container-column-order docker-container-default-columns
+(defcustom docker-container-column-spec
+  '((:name "Id" :width 16 :template "{{json .ID}}" :sort nil :format nil)
+    (:name "Image" :width 15 :template "{{json .Image}}" :sort nil :format nil)
+    (:name "Command" :width 30 :template "{{json .Command}}" :sort nil :format nil)
+    (:name "Created" :width 23 :template "{{json .CreatedAt}}" :sort nil :format (lambda (x) (format-time-string "%F %T" (date-to-time x))))
+    (:name "Status" :width 20 :template "{{json .Status}}" :sort nil :format (lambda (x) (propertize x 'font-lock-face (docker-container-status-face x))))
+    (:name "Ports" :width 10 :template "{{json .Ports}}" :sort nil :format nil)
+    (:name "Names" :width 10 :template "{{json .Names}}" :sort nil :format nil))
   "Column specification for docker containers.
 
 The order of entries defines the displayed column order.
 'Template' is the Go template passed to docker-container-ls to generate the column data."
   :group 'docker-container
-  ;; add plist symbols
-  :set (lambda (sym xs)
-         (let ((res (--map (-interleave '(:name :width :template :sort :format) it)
-                           xs)))
-           (set sym res)))
-  ;; removes plist symbols
-  :get (lambda (sym)
-         (--map
-          (-map (-partial #'plist-get it) '(:name :width :template :sort :format))
-          (symbol-value sym)))
+  :set 'docker-utils-column-spec-setter
+  :get 'docker-utils-column-spec-getter
   :type '(repeat (list :tag "Column"
                        (string :tag "Name")
                        (integer :tag "Width")
@@ -111,10 +100,10 @@ The order of entries defines the displayed column order.
 
 (defun docker-container-entries ()
   "Return the docker containers data for `tabulated-list-entries'."
-  (let* ((fmt (docker-utils-make-format-string docker-container-id-template docker-container-column-order))
+  (let* ((fmt (docker-utils-make-format-string docker-container-id-template docker-container-column-spec))
          (data (docker-run-docker "container ls" (docker-container-ls-arguments) (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
-    (-map (-partial #'docker-utils-parse docker-container-column-order) lines)))
+    (-map (-partial #'docker-utils-parse docker-container-column-spec) lines)))
 
 (defun docker-container-refresh ()
   "Refresh the containers list."
@@ -422,7 +411,7 @@ nil, ask the user for it."
 
 (define-derived-mode docker-container-mode tabulated-list-mode "Containers Menu"
   "Major mode for handling a list of docker containers."
-  (setq tabulated-list-format (docker-utils-column-order-list-format docker-container-column-order))
+  (setq tabulated-list-format (docker-utils-column-spec-list-format docker-container-column-spec))
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key docker-container-default-sort-key)
   (add-hook 'tabulated-list-revert-hook 'docker-container-refresh nil t)

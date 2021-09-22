@@ -132,7 +132,7 @@ Execute BODY in a buffer named with the help of NAME."
          (b-size (elt (cadr b) 4)))
     (< (docker-utils-human-size-to-bytes a-size) (docker-utils-human-size-to-bytes b-size))))
 
-(defun docker-utils-column-order-list-format (columns-spec)
+(defun docker-utils-column-spec-list-format (columns-spec)
   "Convert COLUMNS-SPEC (a list of plists) to 'tabulated-list-format' (a vector of (name width bool))."
   (seq-into
    (--map (list (plist-get it :name) (plist-get it :width) (or (plist-get it :sort) t)) columns-spec)
@@ -148,7 +148,7 @@ Execute BODY in a buffer named with the help of NAME."
   "Convert a LINE from \"docker ls\" to a `tabulated-list-entries' entry.
 
 LINE is expected to be a JSON formatted array, and COLUMN-SPECS is the relevant
-defcustom (e.g. `docker-image-column-order`) used to apply any custom format functions."
+defcustom (e.g. `docker-image-column-spec`) used to apply any custom format functions."
   (condition-case nil
       (let* ((data (json-read-from-string line)))
         ;; apply format function, if any
@@ -161,6 +161,27 @@ defcustom (e.g. `docker-image-column-order`) used to apply any custom format fun
         (list (aref data 0) (seq-drop data 1)))
     (json-readtable-error
      (error "Could not read following string as json:\n%s" line))))
+
+(defun docker-utils-column-spec-setter (sym new-value)
+  "Convert NEW-VALUE into a list of plists, then assign to SYM.
+
+If NEW-VALUE already looks like a list of plists, no conversion is performed and
+ NEW-VALUE is assigned to SYM unchanged.  This is expected to be used as the
+value of :set in a defcustom."
+  (let ((is-plist (plist-member (car new-value) :name))
+        (new-value-plist (--map
+                          (-interleave '(:name :width :template :sort :format) it)
+                          new-value)))
+    (set sym (if is-plist new-value new-value-plist))))
+
+(defun docker-utils-column-spec-getter (sym)
+  "Convert the value of SYM for displaying in the customization menu.
+
+Just strips the plist symbols and returns only values.
+This has no effect on the actual value of the variable."
+  (--map
+   (-map (-partial #'plist-get it) '(:name :width :template :sort :format))
+   (symbol-value sym)))
 
 (provide 'docker-utils)
 
