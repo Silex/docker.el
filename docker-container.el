@@ -55,8 +55,11 @@ This should be a cons cell (NAME . FLIP) where
 NAME is a string matching one of the column names
 and FLIP is a boolean to specify the sort order."
   :group 'docker-container
-  ;; TODO could generate column choices from docker-image-column-order
-  :type '(cons (string :tag "Column Name")
+  :type '(cons (string :tag "Column Name"
+                       :validate (lambda (widget)
+                                   (unless (--any-p (equal (plist-get it :name) (widget-value widget)) docker-container-column-spec)
+                                     (widget-put widget :error "Default Sort Key must match a column name")
+                                     widget)))
                (choice (const :tag "Ascending" nil)
                        (const :tag "Descending" t))))
 
