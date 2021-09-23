@@ -40,7 +40,6 @@
   "{{ json .ID }}"
   "This Go template extracts the image id which will be passed to transient commands.")
 
-;; TODO default sort key may not exist?
 (defcustom docker-image-default-sort-key '("Repository" . nil)
   "Sort key for docker images.
 
@@ -48,11 +47,13 @@ This should be a cons cell (NAME . FLIP) where
 NAME is a string matching one of the column names
 and FLIP is a boolean to specify the sort order."
   :group 'docker-image
-  ;; TODO could generate column choices from docker-image-column-order
-  :type '(cons (string :tag "Column Name")
+  :type '(cons (string :tag "Column Name"
+                       :validate (lambda (widget)
+                                   (unless (--any-p (equal (plist-get it :name) (widget-value widget)) docker-image-column-spec)
+                                     (widget-put widget :error "Default Sort Key must match a column name")
+                                     widget)))
                (choice (const :tag "Ascending" nil)
                        (const :tag "Descending" t))))
-
 
 (defcustom docker-image-column-spec
   '((:name "Repository" :width 30 :template "{{json .Repository}}" :sort nil :format nil)
