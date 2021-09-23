@@ -38,9 +38,8 @@
   "Docker container customization group."
   :group 'docker)
 
-;; TODO previously from col 6 Names?
 (defconst docker-container-id-template
-  "{{ json .ID }}"
+  "{{ json .Names }}"
   "This Go template extracts the container id which will be passed to transient commands.")
 
 (defcustom docker-container-shell-file-name "/bin/sh"

@@ -37,8 +37,10 @@
   :group 'docker)
 
 (defconst docker-image-id-template
-  "{{ json .ID }}"
-  "This Go template extracts the image id which will be passed to transient commands.")
+  "{{if (eq \\\"<none>\\\" .Repository .Tag)}}{{ json .ID }}{{else}}\\\"{{ .Repository }}:{{ .Tag }}\\\"{{end}}"
+  "This Go template defines what will be passed to transient commands.
+
+The default value uses Repository:Tag unless either is <none>, then it uses Id.")
 
 (defcustom docker-image-default-sort-key '("Repository" . nil)
   "Sort key for docker images.
@@ -66,9 +68,7 @@ and FLIP is a boolean to specify the sort order."
 The order of entries defines the displayed column order.
 'Template' is the Go template passed to docker-image-ls to generate the column data."
   :group 'docker-image
-  ;; add plist symbols
   :set 'docker-utils-column-spec-setter
-  ;; removes plist symbols
   :get 'docker-utils-column-spec-getter
   :type '(repeat (list :tag "Column"
                        (string :tag "Name")
