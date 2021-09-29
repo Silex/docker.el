@@ -51,13 +51,13 @@ and FLIP is a boolean to specify the sort order."
   :group 'docker-image
   :type '(cons (string :tag "Column Name"
                        :validate (lambda (widget)
-                                   (unless (--any-p (equal (plist-get it :name) (widget-value widget)) docker-image-column-spec)
+                                   (unless (--any-p (equal (plist-get it :name) (widget-value widget)) docker-image-columns)
                                      (widget-put widget :error "Default Sort Key must match a column name")
                                      widget)))
                (choice (const :tag "Ascending" nil)
                        (const :tag "Descending" t))))
 
-(defcustom docker-image-column-spec
+(defcustom docker-image-columns
   '((:name "Repository" :width 30 :template "{{json .Repository}}" :sort nil :format nil)
     (:name "Tag" :width 20 :template "{{ json .Tag }}" :sort nil :format nil)
     (:name "Id" :width 16 :template "{{ json .ID }}" :sort nil :format nil)
@@ -66,10 +66,15 @@ and FLIP is a boolean to specify the sort order."
   "Column specification for docker images.
 
 The order of entries defines the displayed column order.
-'Template' is the Go template passed to docker-image-ls to generate the column data."
+'Template' is the Go template passed to docker-image-ls to create the column
+data.   It should return a string delimited with double quotes.
+'Sort function' is a binary predicate that should return true when the first
+argument should be sorted before the second.
+'Format function' is a function from string to string that transforms the
+displayed values in the column."
   :group 'docker-image
-  :set 'docker-utils-column-spec-setter
-  :get 'docker-utils-column-spec-getter
+  :set 'docker-utils-columns-setter
+  :get 'docker-utils-columns-getter
   :type '(repeat (list :tag "Column"
                        (string :tag "Name")
                        (integer :tag "Width")
@@ -99,10 +104,10 @@ Also note if you do not specify `docker-run-default-args', they will be ignored.
 
 (defun docker-image-entries ()
   "Return the docker images data for `tabulated-list-entries'."
-  (let* ((fmt (docker-utils-make-format-string docker-image-id-template docker-image-column-spec))
+  (let* ((fmt (docker-utils-make-format-string docker-image-id-template docker-image-columns))
          (data (docker-run-docker "image ls" (docker-image-ls-arguments) (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
-    (-map (-partial #'docker-utils-parse docker-image-column-spec) lines)))
+    (-map (-partial #'docker-utils-parse docker-image-columns) lines)))
 
 (defun docker-image-refresh ()
   "Refresh the images list."
@@ -248,7 +253,7 @@ Also note if you do not specify `docker-run-default-args', they will be ignored.
 
 (define-derived-mode docker-image-mode tabulated-list-mode "Images Menu"
   "Major mode for handling a list of docker images."
-  (setq tabulated-list-format (docker-utils-column-spec-list-format docker-image-column-spec))
+  (setq tabulated-list-format (docker-utils-columns-list-format docker-image-columns))
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key docker-image-default-sort-key)
   (add-hook 'tabulated-list-revert-hook 'docker-image-refresh nil t)
