@@ -56,13 +56,13 @@ and FLIP is a boolean to specify the sort order."
   :group 'docker-container
   :type '(cons (string :tag "Column Name"
                        :validate (lambda (widget)
-                                   (unless (--any-p (equal (plist-get it :name) (widget-value widget)) docker-container-column-spec)
+                                   (unless (--any-p (equal (plist-get it :name) (widget-value widget)) docker-container-columns)
                                      (widget-put widget :error "Default Sort Key must match a column name")
                                      widget)))
                (choice (const :tag "Ascending" nil)
                        (const :tag "Descending" t))))
 
-(defcustom docker-container-column-spec
+(defcustom docker-container-columns
   '((:name "Id" :width 16 :template "{{json .ID}}" :sort nil :format nil)
     (:name "Image" :width 15 :template "{{json .Image}}" :sort nil :format nil)
     (:name "Command" :width 30 :template "{{json .Command}}" :sort nil :format nil)
@@ -73,10 +73,15 @@ and FLIP is a boolean to specify the sort order."
   "Column specification for docker containers.
 
 The order of entries defines the displayed column order.
-'Template' is the Go template passed to docker-container-ls to generate the column data."
+'Template' is the Go template passed to docker-container-ls to create the column
+data.   It should return a string delimited with double quotes.
+'Sort function' is a binary predicate that should return true when the first
+argument should be sorted before the second.
+'Format function' is a function from string to string that transforms the
+displayed values in the column."
   :group 'docker-container
-  :set 'docker-utils-column-spec-setter
-  :get 'docker-utils-column-spec-getter
+  :set 'docker-utils-columns-setter
+  :get 'docker-utils-columns-getter
   :type '(repeat (list :tag "Column"
                        (string :tag "Name")
                        (integer :tag "Width")
@@ -102,10 +107,10 @@ The order of entries defines the displayed column order.
 
 (defun docker-container-entries ()
   "Return the docker containers data for `tabulated-list-entries'."
-  (let* ((fmt (docker-utils-make-format-string docker-container-id-template docker-container-column-spec))
+  (let* ((fmt (docker-utils-make-format-string docker-container-id-template docker-container-columns))
          (data (docker-run-docker "container ls" (docker-container-ls-arguments) (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
-    (-map (-partial #'docker-utils-parse docker-container-column-spec) lines)))
+    (-map (-partial #'docker-utils-parse docker-container-columns) lines)))
 
 (defun docker-container-refresh ()
   "Refresh the containers list."
@@ -413,7 +418,7 @@ nil, ask the user for it."
 
 (define-derived-mode docker-container-mode tabulated-list-mode "Containers Menu"
   "Major mode for handling a list of docker containers."
-  (setq tabulated-list-format (docker-utils-column-spec-list-format docker-container-column-spec))
+  (setq tabulated-list-format (docker-utils-columns-list-format docker-container-columns))
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key docker-container-default-sort-key)
   (add-hook 'tabulated-list-revert-hook 'docker-container-refresh nil t)
