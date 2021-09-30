@@ -73,15 +73,20 @@ Here is a list of other customizations you can set:
 
 | Variable                          | Description                           | Default              |
 |-----------------------------------|---------------------------------------|----------------------|
-| docker-command                    | The docker binary to use              | `docker`             |
-| docker-container-default-sort-key | Sort key for docker containers        | `("Image")`          |
+| docker-command                    | The binary to use                     | `docker`             |
+| docker-container-columns          | Columns definition for containers     | `/bin/sh`            |
+| docker-container-default-sort-key | Sort key for containers               | `("Image")`          |
 | docker-container-shell-file-name  | Shell to use when entering containers | `/bin/sh`            |
-| docker-image-default-sort-key     | Sort key for docker images            | `("Repository")`     |
-| docker-machine-default-sort-key   | Sort key for docker machines          | `("Name")`           |
-| docker-network-default-sort-key   | Sort key for docker networks          | `("Name")`           |
+| docker-image-columns              | Columns definition for images         | Too complex to show  |
+| docker-image-default-sort-key     | Sort key for images                   | `("Repository")`     |
+| docker-machine-columns            | Columns definition for machines       | Too complex to show  |
+| docker-machine-default-sort-key   | Sort key for machines                 | `("Name")`           |
+| docker-network-columns            | Columns definition for networks       | Too complex to show  |
+| docker-network-default-sort-key   | Sort key for networks                 | `("Name")`           |
 | docker-run-as-root                | Run docker as root                    | `nil`                |
-| docker-volume-default-sort-key    | Sort key for docker volumes           | `("Driver")`         |
 | docker-run-default-args           | Base arguments to use for docker run  | `("-i" "-t" "--rm")` |
+| docker-volume-columns             | Columns definition for volumes        | Too complex to show  |
+| docker-volume-default-sort-key    | Sort key for volumes                  | `("Driver")`         |
 
 ### Changing the Default Arguments for `docker run`
 
