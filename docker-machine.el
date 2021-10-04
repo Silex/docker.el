@@ -37,9 +37,15 @@
   :group 'docker)
 
 (defcustom docker-machine-command "docker-machine"
-  "The docker-machine binary"
+  "The docker-machine binary."
   :group 'docker-machine
   :type 'string)
+
+(defconst docker-machine-id-template
+  "{{ .Name }}"
+  "This Go template describes the id of rows; this will be passed to transients.
+
+docker-machine doesn't support the 'json' template function!")
 
 (defcustom docker-machine-default-sort-key '("Name" . nil)
   "Sort key for docker machines.
@@ -48,16 +54,41 @@ This should be a cons cell (NAME . FLIP) where
 NAME is a string matching one of the column names
 and FLIP is a boolean to specify the sort order."
   :group 'docker-machine
-  :type '(cons (choice (const "Name")
-                       (const "Active")
-                       (const "Driver")
-                       (const "State")
-                       (const "URL")
-                       (const "Swarm")
-                       (const "Docker")
-                       (const "Errors"))
+  :type '(cons (string :tag "Column Name"
+                       :validate (lambda (widget)
+                                   (unless (--any-p (equal (plist-get it :name) (widget-value widget)) docker-volume-columns)
+                                     (widget-put widget :error "Default Sort Key must match a column name")
+                                     widget)))
                (choice (const :tag "Ascending" nil)
                        (const :tag "Descending" t))))
+
+(defcustom docker-machine-columns
+  '((:name "Name" :width 16 :template "{{ .Name}}" :sort nil :format nil)
+    (:name "Active" :width 7 :template "{{ .Active}}" :sort nil :format nil)
+    (:name "Driver" :width 12 :template "{{ .DriverName}}" :sort nil :format nil)
+    (:name "State" :width 12 :template "{{ .State}}" :sort nil :format (lambda (x) (propertize x 'font-lock-face (docker-machine-status-face x))))
+    (:name "URL" :width 30 :template "{{ .URL}}" :sort nil :format nil)
+    (:name "Swarm" :width 10 :template "{{ .Swarm}}" :sort nil :format nil)
+    (:name "Docker" :width 10 :template "{{ .DockerVersion}}" :sort nil :format nil)
+    (:name "Errors" :width 10 :template "{{ .Error}}" :sort nil :format nil))
+  "Column specification for docker machines.
+
+The order of entries defines the displayed column order.
+'Template' is the Go template passed to docker-machine-ls to create the column
+data.   It should return a string delimited with double quotes.
+'Sort function' is a binary predicate that should return true when the first
+argument should be sorted before the second.
+'Format function' is a function from string to string that transforms the
+displayed values in the column."
+  :group 'docker-machine
+  :set 'docker-utils-columns-setter
+  :get 'docker-utils-columns-getter
+  :type '(repeat (list :tag "Column"
+                       (string :tag "Name")
+                       (integer :tag "Width")
+                       (string :tag "Template")
+                       (sexp :tag "Sort function")
+                       (sexp :tag "Format function"))))
 
 (defun docker-machine-parse (line)
   "Convert a LINE from \"docker machine ls\" to a `tabulated-list-entries' entry."
@@ -78,7 +109,8 @@ and FLIP is a boolean to specify the sort order."
 
 (defun docker-machine-entries ()
   "Return the docker machines data for `tabulated-list-entries'."
-  (let* ((fmt "{{.Name}}\\t{{.Active}}\\t{{.DriverName}}\\t{{.State}}\\t{{.URL}}\\t{{.Swarm}}\\t{{.DockerVersion}}\\t{{.Error}}")
+  (let* ((templates (--map (plist-get it :template) docker-machine-columns))
+         (fmt (format "%s\\t%s" docker-machine-id-template (string-join templates "\\t")))
          (data (docker-machine-run-docker-machine "ls" (docker-machine-ls-arguments) (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
     (-map #'docker-machine-parse lines)))
@@ -221,7 +253,7 @@ and FLIP is a boolean to specify the sort order."
 
 (define-derived-mode docker-machine-mode tabulated-list-mode "Machines Menu"
   "Major mode for handling a list of docker machines."
-  (setq tabulated-list-format [("Name" 16 t)("Active" 7 t)("Driver" 12 t)("State" 12 t)("URL" 30 t)("Swarm" 10 t)("Docker" 10 t)("Errors" 10 t)])
+  (setq tabulated-list-format (docker-utils-columns-list-format docker-machine-columns))
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key docker-machine-default-sort-key)
   (add-hook 'tabulated-list-revert-hook 'docker-machine-refresh nil t)
