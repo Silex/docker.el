@@ -102,17 +102,17 @@ corresponding to arguments.
 Also note if you do not specify `docker-run-default-args', they will be ignored."
   :type '(repeat (list string (repeat string))))
 
-(defun docker-image-raw-entries (&optional args)
+(defun docker-image-entries (&optional args)
   "Return the docker images data for `tabulated-list-entries'."
   (let* ((fmt (docker-utils-make-format-string docker-image-id-template docker-image-columns))
          (data (docker-run-docker "image ls" args (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
     (-map (-partial #'docker-utils-parse docker-image-columns) lines)))
 
-(defun docker-image-entries (&optional args)
-  "Return the docker images data for `tabulated-list-entries'."
-  (let ((all (docker-image-raw-entries args))
-        (dangling (docker-image-raw-entries "--filter dangling=true")))
+(defun docker-image-entries-propertized (&optional args)
+  "Return the docker images data for `tabulated-list-entries' with dangling images propertized."
+  (let ((all (docker-image-entries args))
+        (dangling (docker-image-entries "--filter dangling=true")))
     (--map-when (-contains? dangling it) (docker-image-set-dangling it) all)))
 
 (defun docker-image-dangling-p (entry)
@@ -126,7 +126,7 @@ Also note if you do not specify `docker-run-default-args', they will be ignored.
 
 (defun docker-image-description-with-stats ()
   "Return the images stats string."
-  (let* ((entries (docker-image-entries))
+  (let* ((entries (docker-image-entries-propertized))
          (dangling (-filter #'docker-image-dangling-p entries)))
     (format "Images (%s total, %s dangling)"
             (length entries)
@@ -134,7 +134,7 @@ Also note if you do not specify `docker-run-default-args', they will be ignored.
 
 (defun docker-image-refresh ()
   "Refresh the images list."
-  (setq tabulated-list-entries (docker-image-entries (docker-image-ls-arguments))))
+  (setq tabulated-list-entries (docker-image-entries-propertized (docker-image-ls-arguments))))
 
 (defun docker-image-read-name ()
   "Read an image name."

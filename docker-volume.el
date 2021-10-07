@@ -77,17 +77,17 @@ displayed values in the column."
                        (sexp :tag "Sort function")
                        (sexp :tag "Format function"))))
 
-(defun docker-volume-raw-entries (&optional args)
+(defun docker-volume-entries (&optional args)
   "Return the docker volumes data for `tabulated-list-entries'."
   (let* ((fmt (docker-utils-make-format-string docker-volume-id-template docker-volume-columns))
          (data (docker-run-docker "volume ls" args (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
     (-map (-partial #'docker-utils-parse docker-volume-columns) lines)))
 
-(defun docker-volume-entries (&optional args)
-  "Return the docker volumes data for `tabulated-list-entries'."
-  (let ((all (docker-volume-raw-entries args))
-        (dangling (docker-volume-raw-entries "--filter dangling=true")))
+(defun docker-volume-entries-propertized (&optional args)
+  "Return the docker volumes data for `tabulated-list-entries' with dangling volumes propertized."
+  (let ((all (docker-volume-entries args))
+        (dangling (docker-volume-entries "--filter dangling=true")))
     (--map-when (-contains? dangling it) (docker-volume-set-dangling it) all)))
 
 (defun docker-volume-dangling-p (entry)
@@ -101,7 +101,7 @@ displayed values in the column."
 
 (defun docker-volume-description-with-stats ()
   "Return the volumes stats string."
-  (let* ((entries (docker-volume-entries))
+  (let* ((entries (docker-volume-entries-propertized))
          (dangling (-filter #'docker-volume-dangling-p entries)))
     (format "Volumes (%s total, %s dangling)"
             (length entries)
@@ -109,7 +109,7 @@ displayed values in the column."
 
 (defun docker-volume-refresh ()
   "Refresh the volumes list."
-  (setq tabulated-list-entries (docker-volume-entries (docker-volume-ls-arguments))))
+  (setq tabulated-list-entries (docker-volume-entries-propertized (docker-volume-ls-arguments))))
 
 (defun docker-volume-read-name ()
   "Read a volume name."
