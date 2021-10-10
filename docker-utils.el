@@ -38,7 +38,7 @@
 
 (defun docker-utils-ensure-items ()
   (when (null (docker-utils-get-marked-items-ids))
-    (user-error "This action cannot be used en an empty list")))
+    (user-error "This action cannot be used in an empty list")))
 
 (defmacro docker-utils-with-buffer (name &rest body)
   "Wrapper around `with-current-buffer'.
