@@ -5,7 +5,7 @@
 
 Emacs integration for [Docker](https://www.docker.com)!
 
-Supports docker containers, images, volumes, networks, docker-machine and docker-compose.
+Supports docker containers, images, volumes, networks and docker-compose.
 
 ## Screenshots
 
@@ -56,7 +56,6 @@ Then select an action and follow the instructions.
 - docker image: inspect, pull, push, rm, run, tag
 - docker network: rm
 - docker volume: rm
-- docker-machine: create, env, restart, rm, start, stop
 - docker-compose: build, config, create, down, exec, logs, pull, push, remove, restart, run, start, stop, up
 
 You can also enter `dired` or open a file inside a container or volume.
@@ -79,8 +78,6 @@ Here is a list of other customizations you can set:
 | docker-container-shell-file-name  | Shell to use when entering containers | `/bin/sh`            |
 | docker-image-columns              | Columns definition for images         | Too complex to show  |
 | docker-image-default-sort-key     | Sort key for images                   | `("Repository")`     |
-| docker-machine-columns            | Columns definition for machines       | Too complex to show  |
-| docker-machine-default-sort-key   | Sort key for machines                 | `("Name")`           |
 | docker-network-columns            | Columns definition for networks       | Too complex to show  |
 | docker-network-default-sort-key   | Sort key for networks                 | `("Name")`           |
 | docker-run-as-root                | Run docker as root                    | `nil`                |
@@ -99,28 +96,6 @@ You can match on the repository name for an image to customize the initial infix
 ```
 
 So when `docker run` is called on an image whose repository name matches the regular expression `^postgres`, the option `"-e POSTGRES_PASSWORD=postgres"` will appear as set along with the defaults specified by `docker-run-default-args`.
-
-## FAQ
-
-### How to use docker-machine under OSX / MacOS?
-
-The following configuration is required (some of it can probably be simplified by using
-https://github.com/purcell/exec-path-from-shell).
-
-``` elisp
-(setenv "PATH" (concat (getenv "PATH") ":/usr/local/bin"))
-(setq exec-path (append exec-path '("/usr/local/bin")))
-;; Use "docker-machine env box" command to find out your environment variables
-(setenv "DOCKER_TLS_VERIFY" "1")
-(setenv "DOCKER_HOST" "tcp://10.11.12.13:2376")
-(setenv "DOCKER_CERT_PATH" "/Users/foo/.docker/machine/machines/box")
-(setenv "DOCKER_MACHINE_NAME" "box")
-```
-
-This is necessary and useful if you use `docker-machine`.
-Notice though that there is also a native MacOS Docker implementation
-(now called Docker Desktop)
-which does not depend on VirtualBox and which does not require these tweaks.
 
 ## Contributions
 

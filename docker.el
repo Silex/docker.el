@@ -32,7 +32,6 @@
 (require 'docker-compose)
 (require 'docker-container)
 (require 'docker-image)
-(require 'docker-machine)
 (require 'docker-network)
 (require 'docker-volume)
 
@@ -62,8 +61,7 @@
    ("n" "Networks"   docker-networks)
    ("v" "Volumes"    docker-volumes)]
   ["Other"
-   ("C" "Compose"    docker-compose)
-   ("M" "Machines"   docker-machines)])
+   ("C" "Compose"    docker-compose)])
 
 (provide 'docker)
 
