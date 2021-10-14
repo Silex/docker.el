@@ -88,7 +88,7 @@ displayed values in the column."
   "Return the docker volumes data for `tabulated-list-entries' with dangling volumes propertized."
   (let ((all (docker-volume-entries args))
         (dangling (docker-volume-entries "--filter dangling=true")))
-    (--map-when (-contains? dangling it) (docker-volume-set-dangling it) all)))
+    (--map-when (-contains? dangling it) (docker-volume-entry-set-dangling it) all)))
 
 (defun docker-volume-dangling-p (entry-id)
   "Predicate for if ENTRY-ID is dangling.
@@ -96,10 +96,13 @@ displayed values in the column."
 For example (docker-volume-dangling-p (tabulated-list-get-id)) is t when the entry under point is dangling."
   (get-text-property 0 'docker-volume-dangling entry-id))
 
-(defun docker-volume-set-dangling (entry)
-  "Set ENTRY as dangling."
-  (list (propertize (car entry) 'docker-volume-dangling t)
-        (apply #'vector (--map (propertize it 'font-lock-face 'docker-face-dangling) (cadr entry)))))
+(defun docker-volume-entry-set-dangling (parsed-entry)
+  "Mark PARSED-ENTRY (output of `docker-volume-entries') as dangling.
+
+The result is the tabulated list id for an entry is propertized with
+'docker-volume-dangling and the entry is fontified with 'docker-face-dangling."
+  (list (propertize (car parsed-entry) 'docker-volume-dangling t)
+        (apply #'vector (--map (propertize it 'font-lock-face 'docker-face-dangling) (cadr parsed-entry)))))
 
 (defun docker-volume-description-with-stats ()
   "Return the volumes stats string."

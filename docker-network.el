@@ -90,7 +90,7 @@ displayed values in the column."
   "Return the docker networks data for `tabulated-list-entries'."
   (let ((all (docker-network-entries args))
         (dangling (docker-network-entries "--filter dangling=true")))
-    (--map-when (-contains? dangling it) (docker-network-set-dangling it) all)))
+    (--map-when (-contains? dangling it) (docker-network-entry-set-dangling it) all)))
 
 (defun docker-network-dangling-p (entry-id)
   "Predicate for if ENTRY-ID is dangling.
@@ -98,10 +98,13 @@ displayed values in the column."
 For example (docker-network-dangling-p (tabulated-list-get-id)) is t when the entry under point is dangling."
   (get-text-property 0 'docker-network-dangling entry-id))
 
-(defun docker-network-set-dangling (entry)
-  "Set ENTRY as dangling."
-  (list (propertize (car entry) 'docker-network-dangling t)
-        (apply #'vector (--map (propertize it 'font-lock-face 'docker-face-dangling) (cadr entry)))))
+(defun docker-network-entry-set-dangling (parsed-entry)
+  "Mark PARSED-ENTRY (output of `docker-network-entries') as dangling.
+
+The result is the tabulated list id for an entry is propertized with
+'docker-network-dangling and the entry is fontified with 'docker-face-dangling."
+  (list (propertize (car parsed-entry) 'docker-network-dangling t)
+        (apply #'vector (--map (propertize it 'font-lock-face 'docker-face-dangling) (cadr parsed-entry)))))
 
 (defun docker-network-description-with-stats ()
   "Return the networks stats string."

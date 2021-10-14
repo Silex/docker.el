@@ -113,7 +113,7 @@ Also note if you do not specify `docker-run-default-args', they will be ignored.
   "Return the docker images data for `tabulated-list-entries' with dangling images propertized."
   (let ((all (docker-image-entries args))
         (dangling (docker-image-entries "--filter dangling=true")))
-    (--map-when (-contains? dangling it) (docker-image-set-dangling it) all)))
+    (--map-when (-contains? dangling it) (docker-image-entry-set-dangling it) all)))
 
 (defun docker-image-dangling-p (entry-id)
   "Predicate for if ENTRY-ID is dangling.
@@ -121,10 +121,13 @@ Also note if you do not specify `docker-run-default-args', they will be ignored.
 For example (docker-image-dangling-p (tabulated-list-get-id)) is t when the entry under point is dangling."
   (get-text-property 0 'docker-image-dangling entry-id))
 
-(defun docker-image-set-dangling (entry)
-  "Set ENTRY as dangling."
-  (list (propertize (car entry) 'docker-image-dangling t)
-        (apply #'vector (--map (propertize it 'font-lock-face 'docker-face-dangling) (cadr entry)))))
+(defun docker-image-entry-set-dangling (parsed-entry)
+  "Mark PARSED-ENTRY (output of `docker-image-entries') as dangling.
+
+The result is the tabulated list id for an entry is propertized with
+'docker-image-dangling and the entry is fontified with 'docker-face-dangling."
+  (list (propertize (car parsed-entry) 'docker-image-dangling t)
+        (apply #'vector (--map (propertize it 'font-lock-face 'docker-face-dangling) (cadr parsed-entry)))))
 
 (defun docker-image-description-with-stats ()
   "Return the images stats string."
