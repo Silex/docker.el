@@ -92,9 +92,11 @@ displayed values in the column."
         (dangling (docker-network-entries "--filter dangling=true")))
     (--map-when (-contains? dangling it) (docker-network-set-dangling it) all)))
 
-(defun docker-network-dangling-p (entry)
-  "Predicate for if ENTRY is dangling."
-  (get-text-property 0 'docker-network-dangling (car entry)))
+(defun docker-network-dangling-p (entry-id)
+  "Predicate for if ENTRY-ID is dangling.
+
+For example (docker-network-dangling-p (tabulated-list-get-id)) is t when the entry under point is dangling."
+  (get-text-property 0 'docker-network-dangling entry-id))
 
 (defun docker-network-set-dangling (entry)
   "Set ENTRY as dangling."
@@ -104,7 +106,7 @@ displayed values in the column."
 (defun docker-network-description-with-stats ()
   "Return the networks stats string."
   (let* ((entries (docker-network-entries-propertized))
-         (dangling (-filter #'docker-network-dangling-p entries)))
+         (dangling (-filter (-compose #'docker-network-dangling-p 'car) entries)))
     (format "Networks (%s total, %s dangling)"
             (length entries)
             (propertize (number-to-string (length dangling)) 'face 'docker-face-dangling))))

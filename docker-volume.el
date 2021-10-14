@@ -90,9 +90,11 @@ displayed values in the column."
         (dangling (docker-volume-entries "--filter dangling=true")))
     (--map-when (-contains? dangling it) (docker-volume-set-dangling it) all)))
 
-(defun docker-volume-dangling-p (entry)
-  "Predicate for if ENTRY is dangling."
-  (get-text-property 0 'docker-volume-dangling (car entry)))
+(defun docker-volume-dangling-p (entry-id)
+  "Predicate for if ENTRY-ID is dangling.
+
+For example (docker-volume-dangling-p (tabulated-list-get-id)) is t when the entry under point is dangling."
+  (get-text-property 0 'docker-volume-dangling entry-id))
 
 (defun docker-volume-set-dangling (entry)
   "Set ENTRY as dangling."
@@ -102,7 +104,7 @@ displayed values in the column."
 (defun docker-volume-description-with-stats ()
   "Return the volumes stats string."
   (let* ((entries (docker-volume-entries-propertized))
-         (dangling (-filter #'docker-volume-dangling-p entries)))
+         (dangling (-filter (-compose #'docker-volume-dangling-p 'car) entries)))
     (format "Volumes (%s total, %s dangling)"
             (length entries)
             (propertize (number-to-string (length dangling)) 'face 'docker-face-dangling))))

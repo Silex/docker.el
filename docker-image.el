@@ -115,9 +115,11 @@ Also note if you do not specify `docker-run-default-args', they will be ignored.
         (dangling (docker-image-entries "--filter dangling=true")))
     (--map-when (-contains? dangling it) (docker-image-set-dangling it) all)))
 
-(defun docker-image-dangling-p (entry)
-  "Predicate for if ENTRY is dangling."
-  (get-text-property 0 'docker-image-dangling (car entry)))
+(defun docker-image-dangling-p (entry-id)
+  "Predicate for if ENTRY-ID is dangling.
+
+For example (docker-image-dangling-p (tabulated-list-get-id)) is t when the entry under point is dangling."
+  (get-text-property 0 'docker-image-dangling entry-id))
 
 (defun docker-image-set-dangling (entry)
   "Set ENTRY as dangling."
@@ -127,7 +129,7 @@ Also note if you do not specify `docker-run-default-args', they will be ignored.
 (defun docker-image-description-with-stats ()
   "Return the images stats string."
   (let* ((entries (docker-image-entries-propertized))
-         (dangling (-filter #'docker-image-dangling-p entries)))
+         (dangling (-filter (-compose #'docker-image-dangling-p 'car) entries)))
     (format "Images (%s total, %s dangling)"
             (length entries)
             (propertize (number-to-string (length dangling)) 'face 'docker-face-dangling))))
