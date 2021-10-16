@@ -142,6 +142,7 @@ The result is the tabulated list id for an entry is propertized with
   "Transient for listing volumes."
   :man-page "docker-volume-ls"
   ["Arguments"
+   ("d" "Dangling" "--filter dangling=true")
    ("f" "Filter" "--filter " read-string)]
   ["Actions"
    ("l" "List" tablist-revert)])

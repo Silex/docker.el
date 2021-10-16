@@ -130,6 +130,7 @@ The result is the tabulated list id for an entry is propertized with
   "Transient for listing networks."
   :man-page "docker-network-ls"
   ["Arguments"
+   ("d" "Dangling" "--filter dangling=true")
    ("f" "Filter" "--filter " read-string)
    ("n" "Don't truncate" "--no-trunc")]
   ["Actions"

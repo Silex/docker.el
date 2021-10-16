@@ -177,7 +177,7 @@ The result is the tabulated list id for an entry is propertized with
   :man-page "docker-image-ls"
   ["Arguments"
    ("a" "All" "--all")
-   ("d" "Dangling" "-f dangling=true")
+   ("d" "Dangling" "--filter dangling=true")
    ("f" "Filter" "--filter" read-string)
    ("n" "Don't truncate" "--no-trunc")]
   ["Actions"
