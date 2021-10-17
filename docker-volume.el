@@ -77,16 +77,45 @@ displayed values in the column."
                        (sexp :tag "Sort function")
                        (sexp :tag "Format function"))))
 
-(defun docker-volume-entries ()
+(defun docker-volume-entries (&optional args)
   "Return the docker volumes data for `tabulated-list-entries'."
   (let* ((fmt (docker-utils-make-format-string docker-volume-id-template docker-volume-columns))
-         (data (docker-run-docker "volume ls" (docker-volume-ls-arguments) (format "--format=\"%s\"" fmt)))
+         (data (docker-run-docker "volume ls" args (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
     (-map (-partial #'docker-utils-parse docker-volume-columns) lines)))
 
+(defun docker-volume-entries-propertized (&optional args)
+  "Return the docker volumes data for `tabulated-list-entries' with dangling volumes propertized."
+  (let ((all (docker-volume-entries args))
+        (dangling (docker-volume-entries "--filter dangling=true")))
+    (--map-when (-contains? dangling it) (docker-volume-entry-set-dangling it) all)))
+
+(defun docker-volume-dangling-p (entry-id)
+  "Predicate for if ENTRY-ID is dangling.
+
+For example (docker-volume-dangling-p (tabulated-list-get-id)) is t when the entry under point is dangling."
+  (get-text-property 0 'docker-volume-dangling entry-id))
+
+(defun docker-volume-entry-set-dangling (parsed-entry)
+  "Mark PARSED-ENTRY (output of `docker-volume-entries') as dangling.
+
+The result is the tabulated list id for an entry is propertized with
+'docker-volume-dangling and the entry is fontified with 'docker-face-dangling."
+  (list (propertize (car parsed-entry) 'docker-volume-dangling t)
+        (apply #'vector (--map (propertize it 'font-lock-face 'docker-face-dangling) (cadr parsed-entry)))))
+
+(defun docker-volume-description-with-stats ()
+  "Return the volumes stats string."
+  (let* ((inhibit-message t)
+         (entries (docker-volume-entries-propertized))
+         (dangling (-filter (-compose #'docker-volume-dangling-p 'car) entries)))
+    (format "Volumes (%s total, %s dangling)"
+            (length entries)
+            (propertize (number-to-string (length dangling)) 'face 'docker-face-dangling))))
+
 (defun docker-volume-refresh ()
   "Refresh the volumes list."
-  (setq tabulated-list-entries (docker-volume-entries)))
+  (setq tabulated-list-entries (docker-volume-entries-propertized (docker-volume-ls-arguments))))
 
 (defun docker-volume-read-name ()
   "Read a volume name."
@@ -114,6 +143,7 @@ displayed values in the column."
   "Transient for listing volumes."
   :man-page "docker-volume-ls"
   ["Arguments"
+   ("d" "Dangling" "--filter dangling=true")
    ("f" "Filter" "--filter " read-string)]
   ["Actions"
    ("l" "List" tablist-revert)])

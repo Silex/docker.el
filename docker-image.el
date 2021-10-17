@@ -102,16 +102,45 @@ corresponding to arguments.
 Also note if you do not specify `docker-run-default-args', they will be ignored."
   :type '(repeat (list string (repeat string))))
 
-(defun docker-image-entries ()
+(defun docker-image-entries (&optional args)
   "Return the docker images data for `tabulated-list-entries'."
   (let* ((fmt (docker-utils-make-format-string docker-image-id-template docker-image-columns))
-         (data (docker-run-docker "image ls" (docker-image-ls-arguments) (format "--format=\"%s\"" fmt)))
+         (data (docker-run-docker "image ls" args (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
     (-map (-partial #'docker-utils-parse docker-image-columns) lines)))
 
+(defun docker-image-entries-propertized (&optional args)
+  "Return the docker images data for `tabulated-list-entries' with dangling images propertized."
+  (let ((all (docker-image-entries args))
+        (dangling (docker-image-entries "--filter dangling=true")))
+    (--map-when (-contains? dangling it) (docker-image-entry-set-dangling it) all)))
+
+(defun docker-image-dangling-p (entry-id)
+  "Predicate for if ENTRY-ID is dangling.
+
+For example (docker-image-dangling-p (tabulated-list-get-id)) is t when the entry under point is dangling."
+  (get-text-property 0 'docker-image-dangling entry-id))
+
+(defun docker-image-entry-set-dangling (parsed-entry)
+  "Mark PARSED-ENTRY (output of `docker-image-entries') as dangling.
+
+The result is the tabulated list id for an entry is propertized with
+'docker-image-dangling and the entry is fontified with 'docker-face-dangling."
+  (list (propertize (car parsed-entry) 'docker-image-dangling t)
+        (apply #'vector (--map (propertize it 'font-lock-face 'docker-face-dangling) (cadr parsed-entry)))))
+
+(defun docker-image-description-with-stats ()
+  "Return the images stats string."
+  (let* ((inhibit-message t)
+         (entries (docker-image-entries-propertized))
+         (dangling (-filter (-compose #'docker-image-dangling-p 'car) entries)))
+    (format "Images (%s total, %s dangling)"
+            (length entries)
+            (propertize (number-to-string (length dangling)) 'face 'docker-face-dangling))))
+
 (defun docker-image-refresh ()
   "Refresh the images list."
-  (setq tabulated-list-entries (docker-image-entries)))
+  (setq tabulated-list-entries (docker-image-entries-propertized (docker-image-ls-arguments))))
 
 (defun docker-image-read-name ()
   "Read an image name."
@@ -149,7 +178,7 @@ Also note if you do not specify `docker-run-default-args', they will be ignored.
   :man-page "docker-image-ls"
   ["Arguments"
    ("a" "All" "--all")
-   ("d" "Dangling" "-f dangling=true")
+   ("d" "Dangling" "--filter dangling=true")
    ("f" "Filter" "--filter" read-string)
    ("n" "Don't truncate" "--no-trunc")]
   ["Actions"
