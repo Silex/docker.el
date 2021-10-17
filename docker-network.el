@@ -108,7 +108,8 @@ The result is the tabulated list id for an entry is propertized with
 
 (defun docker-network-description-with-stats ()
   "Return the networks stats string."
-  (let* ((entries (docker-network-entries-propertized))
+  (let* ((inhibit-message t)
+         (entries (docker-network-entries-propertized))
          (dangling (-filter (-compose #'docker-network-dangling-p 'car) entries)))
     (format "Networks (%s total, %s dangling)"
             (length entries)

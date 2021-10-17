@@ -106,7 +106,8 @@ The result is the tabulated list id for an entry is propertized with
 
 (defun docker-volume-description-with-stats ()
   "Return the volumes stats string."
-  (let* ((entries (docker-volume-entries-propertized))
+  (let* ((inhibit-message t)
+         (entries (docker-volume-entries-propertized))
          (dangling (-filter (-compose #'docker-volume-dangling-p 'car) entries)))
     (format "Volumes (%s total, %s dangling)"
             (length entries)

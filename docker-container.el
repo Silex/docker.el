@@ -114,7 +114,8 @@ displayed values in the column."
 
 (defun docker-container-description-with-stats ()
   "Return the containers stats string."
-  (let* ((up (length (docker-container-entries "--filter status=running")))
+  (let* ((inhibit-message t)
+         (up (length (docker-container-entries "--filter status=running")))
          (down (length (docker-container-entries "--filter status=exited")))
          (all (length (docker-container-entries "--all")))
          (other (- all up down)))
