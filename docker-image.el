@@ -169,6 +169,21 @@ The result is the tabulated list id for an entry is propertized with
     (docker-run-docker "tag" it (read-string (format "Tag for %s: " it))))
   (tablist-revert))
 
+(defun docker-image-mark-dangling ()
+  "Mark only the dangling images listed in *docker-images*.
+
+This clears any user marks first and respects any tablist filters
+applied to the buffer."
+  (interactive)
+  (switch-to-buffer "*docker-images*")
+  (tablist-unmark-all-marks)
+  (save-excursion
+    (goto-char (point-min))
+    (while (not (eobp))
+      (when (docker-image-dangling-p (tabulated-list-get-id))
+        (tablist-put-mark))
+      (forward-line))))
+
 (defun docker-image-ls-arguments ()
   "Return the latest used arguments in the `docker-image-ls' transient."
   (car (alist-get 'docker-image-ls transient-history)))
@@ -251,13 +266,14 @@ The result is the tabulated list id for an entry is propertized with
 (transient-define-prefix docker-image-help ()
   "Help transient for docker images."
   ["Docker images help"
-   ("D" "Remove"  docker-image-rm)
-   ("F" "Pull"    docker-image-pull)
-   ("I" "Inspect" docker-utils-inspect)
-   ("P" "Push"    docker-image-push)
-   ("R" "Run"     docker-image-run)
-   ("T" "Tag"     docker-image-tag-selection)
-   ("l" "List"    docker-image-ls)])
+   ("D" "Remove"        docker-image-rm)
+   ("F" "Pull"          docker-image-pull)
+   ("I" "Inspect"       docker-utils-inspect)
+   ("P" "Push"          docker-image-push)
+   ("R" "Run"           docker-image-run)
+   ("T" "Tag"           docker-image-tag-selection)
+   ("d" "Mark Dangling" docker-image-mark-dangling)
+   ("l" "List"          docker-image-ls)])
 
 (defvar docker-image-mode-map
   (let ((map (make-sparse-keymap)))
@@ -268,6 +284,7 @@ The result is the tabulated list id for an entry is propertized with
     (define-key map "P" 'docker-image-push)
     (define-key map "R" 'docker-image-run)
     (define-key map "T" 'docker-image-tag-selection)
+    (define-key map "d" 'docker-image-mark-dangling)
     (define-key map "l" 'docker-image-ls)
     map)
   "Keymap for `docker-image-mode'.")

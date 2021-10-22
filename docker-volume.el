@@ -135,6 +135,21 @@ The result is the tabulated list id for an entry is propertized with
   (--each (docker-utils-get-marked-items-ids)
     (docker-volume-dired it)))
 
+(defun docker-volume-mark-dangling ()
+  "Mark only the dangling volumes listed in *docker-volumes*.
+
+This clears any user marks first and respects any tablist filters
+applied to the buffer."
+  (interactive)
+  (switch-to-buffer "*docker-volumes*")
+  (tablist-unmark-all-marks)
+  (save-excursion
+    (goto-char (point-min))
+    (while (not (eobp))
+      (when (docker-volume-dangling-p (tabulated-list-get-id))
+        (tablist-put-mark))
+      (forward-line))))
+
 (defun docker-volume-ls-arguments ()
   "Return the latest used arguments in the `docker-volume-ls' transient."
   (car (alist-get 'docker-volume-ls transient-history)))
@@ -157,18 +172,20 @@ The result is the tabulated list id for an entry is propertized with
 (transient-define-prefix docker-volume-help ()
   "Help transient for docker volumes."
   ["Docker volumes help"
-   ("D" "Remove"     docker-volume-rm)
-   ("d" "Dired"      docker-volume-dired-selection)
-   ("I" "Inspect"    docker-utils-inspect)
-   ("l" "List"       docker-volume-ls)])
+   ("D" "Remove"        docker-volume-rm)
+   ("I" "Inspect"       docker-utils-inspect)
+   ("d" "Mark Dangling" docker-volume-mark-dangling)
+   ("f" "Dired"         docker-volume-dired-selection)
+   ("l" "List"          docker-volume-ls)])
 
 (defvar docker-volume-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "?" 'docker-volume-help)
     (define-key map "D" 'docker-volume-rm)
-    (define-key map "d" 'docker-volume-dired-selection)
-    (define-key map "l" 'docker-volume-ls)
     (define-key map "I" 'docker-utils-inspect)
+    (define-key map "d" 'docker-volume-mark-dangling)
+    (define-key map "f" 'docker-volume-dired-selection)
+    (define-key map "l" 'docker-volume-ls)
     map)
   "Keymap for `docker-volume-mode'.")
 

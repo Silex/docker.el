@@ -123,6 +123,21 @@ The result is the tabulated list id for an entry is propertized with
   "Read a network name."
   (completing-read "Network: " (-map #'car (docker-network-entries))))
 
+(defun docker-network-mark-dangling ()
+  "Mark only the dangling networks listed in *docker-networks*.
+
+This clears any user marks first and respects any tablist filters
+applied to the buffer."
+  (interactive)
+  (switch-to-buffer "*docker-networks*")
+  (tablist-unmark-all-marks)
+  (save-excursion
+    (goto-char (point-min))
+    (while (not (eobp))
+      (when (docker-network-dangling-p (tabulated-list-get-id))
+        (tablist-put-mark))
+      (forward-line))))
+
 (defun docker-network-ls-arguments ()
   "Return the latest used arguments in the `docker-network-ls' transient."
   (car (alist-get 'docker-network-ls transient-history)))
@@ -146,16 +161,18 @@ The result is the tabulated list id for an entry is propertized with
 (transient-define-prefix docker-network-help ()
   "Help transient for docker networks."
   ["Docker networks help"
-   ("D" "Remove"     docker-network-rm)
-   ("I" "Inspect"    docker-utils-inspect)
-   ("l" "List"       docker-network-ls)])
+   ("D" "Remove"        docker-network-rm)
+   ("I" "Inspect"       docker-utils-inspect)
+   ("d" "Mark Dangling" docker-network-mark-dangling)
+   ("l" "List"          docker-network-ls)])
 
 (defvar docker-network-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "?" 'docker-network-help)
     (define-key map "D" 'docker-network-rm)
-    (define-key map "l" 'docker-network-ls)
     (define-key map "I" 'docker-utils-inspect)
+    (define-key map "d" 'docker-network-mark-dangling)
+    (define-key map "l" 'docker-network-ls)
     map)
   "Keymap for `docker-network-mode'.")
 
