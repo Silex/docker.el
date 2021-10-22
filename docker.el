@@ -33,6 +33,7 @@
 (require 'docker-container)
 (require 'docker-image)
 (require 'docker-network)
+(require 'docker-search)
 (require 'docker-volume)
 
 (provide 'docker)

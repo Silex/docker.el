@@ -128,7 +128,8 @@
    ("n" (lambda ()(plist-get docker-status-strings :networks))   docker-networks)
    ("v" (lambda ()(plist-get docker-status-strings :volumes))    docker-volumes)]
   ["Other"
-   ("C" "Compose" docker-compose)]
+   ("C" "Compose" docker-compose)
+   ("S" "Search"  docker-search)]
   (interactive)
   (run-hooks 'docker-open-hook)
   (transient-setup 'docker))
