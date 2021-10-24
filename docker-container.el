@@ -112,18 +112,27 @@ displayed values in the column."
          (lines (s-split "\n" data t)))
     (-map (-partial #'docker-utils-parse docker-container-columns) lines)))
 
-(defun docker-container-description-with-stats ()
-  "Return the containers stats string."
-  (let* ((inhibit-message t)
-         (up (length (docker-container-entries "--filter status=running")))
-         (down (length (docker-container-entries "--filter status=exited")))
-         (all (length (docker-container-entries "--all")))
-         (other (- all up down)))
-    (format "Containers (%s total, %s up, %s down, %s other)"
-            all
-            (propertize (number-to-string up) 'face 'docker-face-status-up)
-            (propertize (number-to-string down) 'face 'docker-face-status-down)
-            (propertize (number-to-string other) 'face 'docker-face-status-other))))
+(defun docker-container-fetch-status-async ()
+   "Write the status to `docker-status-strings'."
+   (docker-run-async
+    (list "container" "ls" "--all" "--format={{ .State }}")
+    (lambda (data-buffer)
+      (let* ((inhibit-message t)
+             (lines (with-current-buffer data-buffer (s-split "\n" (buffer-string) t)))
+             (up (seq-count (-partial #'equal "running") lines))
+             (down (seq-count (-partial #'equal "exited") lines))
+             (all (length lines))
+             (other (- all up down)))
+        (push `(container . ,(format "%s total, %s up, %s down, %s other"
+                                     all
+                                     (propertize (number-to-string up) 'face 'docker-face-status-up)
+                                     (propertize (number-to-string down) 'face 'docker-face-status-down)
+                                     (propertize (number-to-string other) 'face 'docker-face-status-other)))
+              docker-status-strings)
+        (kill-buffer data-buffer)
+        (transient--redisplay)))))
+
+(add-hook 'docker-open-hook #'docker-container-fetch-status-async)
 
 (defun docker-container-refresh ()
   "Refresh the containers list."
@@ -212,14 +221,14 @@ nil, ask the user for it."
   (interactive "sContainer path: \nFHost path: ")
   (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
-    (docker-run-docker "cp" (concat it ":" container-path) host-path)))
+    (docker-run-async (list "cp" (concat it ":" container-path) host-path))))
 
 (defun docker-container-cp-to-selection (host-path container-path)
   "Run \"docker cp\" from HOST-PATH to CONTAINER-PATH for selected containers."
   (interactive "fHost path: \nsContainer path: ")
   (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
-    (docker-run-docker "cp" host-path (concat it ":" container-path))))
+    (docker-run-async (list "cp" host-path (concat it ":" container-path)))))
 
 (defun docker-container-eshell-selection ()
   "Run `docker-container-eshell' on the containers selection."
@@ -268,9 +277,7 @@ nil, ask the user for it."
   "Run `docker-container-unpause' on the containers selection."
   (interactive)
   (docker-utils-ensure-items)
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-run-docker "unpause" it))
-  (tablist-revert))
+  (docker-utils-generic-action-async-with-multiple-ids "unpause" (transient-args transient-current-command)))
 
 (docker-utils-transient-define-prefix docker-container-attach ()
   "Transient for attaching to containers."
@@ -279,7 +286,7 @@ nil, ask the user for it."
    ("n" "No STDIN" "--no-stdin")
    ("d" "Key sequence for detaching" "--detach-keys=" read-string)]
   [:description docker-utils-generic-actions-heading
-   ("a" "Attach" docker-utils-generic-action-async)])
+   ("a" "Attach" docker-utils-generic-action-with-buffer)])
 
 (docker-utils-transient-define-prefix docker-container-cp ()
   "Transient for copying files from/to containers."
@@ -306,7 +313,7 @@ nil, ask the user for it."
   ["Arguments"
    ("s" "Signal" "-s " read-string)]
   [:description docker-utils-generic-actions-heading
-   ("K" "Kill" docker-utils-generic-action)])
+   ("K" "Kill" docker-utils-generic-action-async-with-multiple-ids)])
 
 (docker-utils-transient-define-prefix docker-container-logs ()
   "Transient for showing containers logs."
@@ -317,7 +324,7 @@ nil, ask the user for it."
    ("t" "Tail" "--tail " read-string)
    ("u" "Until" "--until " read-string)]
   [:description docker-utils-generic-actions-heading
-   ("L" "Logs" docker-utils-generic-action-async)])
+   ("L" "Logs" docker-utils-generic-action-with-buffer)])
 
 (defun docker-container-ls-arguments ()
   "Return the latest used arguments in the `docker-container-ls' transient."
@@ -337,10 +344,10 @@ nil, ask the user for it."
    ("l" "List" tablist-revert)])
 
 (docker-utils-transient-define-prefix docker-container-pause ()
-  "Transient for pauseing containers."
+  "Transient for pausing containers."
   :man-page "docker-container-pause"
   [:description docker-utils-generic-actions-heading
-   ("P" "Pause" docker-utils-generic-action)
+   ("P" "Pause" docker-utils-generic-action-async-with-multiple-ids)
    ("U" "Unpause" docker-container-unpause-selection)])
 
 (docker-utils-transient-define-prefix docker-container-restart ()
@@ -349,7 +356,7 @@ nil, ask the user for it."
   ["Arguments"
    ("t" "Timeout" "-t " transient-read-number-N0)]
   [:description docker-utils-generic-actions-heading
-   ("R" "Restart" docker-utils-generic-action)])
+   ("R" "Restart" docker-utils-generic-action-async-with-multiple-ids)])
 
 (docker-utils-transient-define-prefix docker-container-rm ()
   "Transient for removing containers."
@@ -358,7 +365,7 @@ nil, ask the user for it."
    ("f" "Force" "-f")
    ("v" "Volumes" "-v")]
   [:description docker-utils-generic-actions-heading
-   ("D" "Remove" docker-utils-generic-action)])
+   ("D" "Remove" docker-utils-generic-action-async-with-multiple-ids)])
 
 (docker-utils-transient-define-prefix docker-container-shells ()
   "Transient for doing M-x `shell'/`eshell' to containers."
@@ -371,7 +378,7 @@ nil, ask the user for it."
   "Transient for starting containers."
   :man-page "docker-container-start"
   [:description docker-utils-generic-actions-heading
-   ("S" "Start" docker-utils-generic-action)])
+   ("S" "Start" docker-utils-generic-action-async-with-multiple-ids)])
 
 (docker-utils-transient-define-prefix docker-container-stop ()
   "Transient for stoping containers."
@@ -379,29 +386,32 @@ nil, ask the user for it."
   ["Arguments"
    ("t" "Timeout" "-t " transient-read-number-N0)]
   [:description docker-utils-generic-actions-heading
-   ("O" "Stop" docker-utils-generic-action)])
+   ("O" "Stop" docker-utils-generic-action-async-with-multiple-ids)])
 
 (transient-define-prefix docker-container-help ()
   "Help transient for docker containers."
-  ["Docker containers help"
-   ("C" "Copy"       docker-container-cp)
-   ("D" "Remove"     docker-container-rm)
-   ("I" "Inspect"    docker-utils-inspect)
-   ("K" "Kill"       docker-container-kill)
-   ("L" "Logs"       docker-container-logs)
-   ("O" "Stop"       docker-container-stop)
-   ("P" "Pause"      docker-container-pause)
-   ("R" "Restart"    docker-container-restart)
-   ("S" "Start"      docker-container-start)
-   ("a" "Attach"     docker-container-attach)
-   ("b" "Shell"      docker-container-shells)
-   ("d" "Diff"       docker-container-diff)
-   ("f" "Find file"  docker-container-open)
-   ("l" "List"       docker-container-ls)
-   ("r" "Rename"     docker-container-rename-selection)])
+  ["Docker Containers"
+   ["Lifecycle"
+    ("K" "Kill"       docker-container-kill)
+    ("O" "Stop"       docker-container-stop)
+    ("P" "Pause"      docker-container-pause)
+    ("R" "Restart"    docker-container-restart)
+    ("S" "Start"      docker-container-start)]
+   ["Admin"
+    ("C" "Copy"       docker-container-cp)
+    ("D" "Remove"     docker-container-rm)
+    ("I" "Inspect"    docker-utils-inspect)
+    ("L" "Logs"       docker-container-logs)
+    ("a" "Attach"     docker-container-attach)
+    ("b" "Shell"      docker-container-shells)
+    ("d" "Diff"       docker-container-diff)
+    ("f" "Find file"  docker-container-open)
+    ("l" "List"       docker-container-ls)
+    ("r" "Rename"     docker-container-rename-selection)]])
 
 (defvar docker-container-mode-map
   (let ((map (make-sparse-keymap)))
+    (define-key map "$" 'docker-utils-visit-error-buffer)
     (define-key map "?" 'docker-container-help)
     (define-key map "C" 'docker-container-cp)
     (define-key map "D" 'docker-container-rm)

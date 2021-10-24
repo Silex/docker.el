@@ -75,29 +75,33 @@ Execute BODY in a buffer named with the help of NAME."
     (docker-run-docker action args it))
   (tablist-revert))
 
-(defun docker-utils-generic-action-async (action args)
-  (interactive (list (docker-utils-get-transient-action)
-                     (transient-args transient-current-command)))
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-run-docker-async action args it))
-  (tablist-revert))
-
 (defun docker-utils-generic-action-with-buffer (action args)
+  "Run \"docker ACTION ARGS\" asynchronously, printing output to a new buffer."
   (interactive (list (docker-utils-get-transient-action)
                      (transient-args transient-current-command)))
   (--each (docker-utils-get-marked-items-ids)
-    (docker-utils-with-buffer (format "%s %s" action it)
-      (insert (docker-run-docker action args it))))
-  (tablist-revert))
+    (docker-run-with-buffer (s-split " " action) args it)))
 
-(defun docker-utils-generic-action-with-buffer:json (action args)
+(defun docker-utils-generic-action-async (action args)
+  "Run \"docker ACTION ARGS\" asynchronously and refresh the tablist."
   (interactive (list (docker-utils-get-transient-action)
                      (transient-args transient-current-command)))
   (--each (docker-utils-get-marked-items-ids)
-    (docker-utils-with-buffer (format "%s %s" action it)
-      (insert (docker-run-docker action args it))
-      (json-mode)))
-  (tablist-revert))
+    (let ((calling-buffer (current-buffer)))
+      (docker-run-async (list (s-split " " action) args (list it))
+                        (lambda (data-buffer)
+                          (with-current-buffer calling-buffer (tablist-revert))
+                          (kill-buffer data-buffer))))))
+
+(defun docker-utils-generic-action-async-with-multiple-ids (action args)
+  "As for `docker-utils-generic-action-async', but group selection ids into a single command."
+  (interactive (list (docker-utils-get-transient-action)
+                     (transient-args transient-current-command)))
+  (let ((calling-buffer (current-buffer)))
+    (docker-run-async (list (s-split " " action) args (docker-utils-get-marked-items-ids))
+                      (lambda (data-buffer)
+                        (with-current-buffer calling-buffer (tablist-revert))
+                        (kill-buffer data-buffer)))))
 
 (defun docker-utils-pop-to-buffer (name)
   "Like `pop-to-buffer', but suffix NAME with the host if on a remote host."
@@ -192,6 +196,39 @@ This has no effect on the actual value of the variable."
   (--map
    (-map (-partial #'plist-get it) '(:name :width :template :sort :format))
    (symbol-value sym)))
+
+(defun docker-utils-cleanup-error-buffers ()
+  "Remove killed error buffers."
+  (setq docker-error-buffers (-filter #'buffer-live-p docker-error-buffers)))
+
+(defun docker-utils-next-error-buffer ()
+  "Cycle through error buffers, skipping killed ones."
+  (interactive)
+  (let* ((index (or (-elem-index (current-buffer) docker-error-buffers)
+                    (error "Must be called from a docker output buffer")))
+         (search-list (nthcdr (1+ index) docker-error-buffers))
+         (next (-find #'buffer-live-p (or search-list docker-error-buffers))))
+
+    (switch-to-buffer next)
+    (if search-list
+        (message "Press $ to see next error buffer")
+      (message "Visiting first error buffer. Press $ to see next error buffer"))))
+
+(defun docker-utils-visit-error-buffer ()
+  "Call from a docker tablist to begin cycling error buffers."
+  (interactive)
+  (docker-utils-cleanup-error-buffers)
+  (if docker-error-buffers
+      (let (($-map (make-sparse-keymap)))
+        (switch-to-buffer (car docker-error-buffers))
+        (define-key $-map "$" (lambda ()
+                                (interactive)
+                                (docker-utils-next-error-buffer)
+                                (set-transient-map $-map t)))
+        (set-transient-map $-map t)
+        (when (cdr docker-error-buffers)
+          (message "Press $ to see next error buffer")))
+    (message "No active error buffers")))
 
 (provide 'docker-utils)
 

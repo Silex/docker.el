@@ -41,6 +41,9 @@
   :group 'docker
   :type 'boolean)
 
+(defvar docker-error-buffers ()
+  "Buffers with error output from Docker commands.")
+
 (defun docker-arguments ()
   "Return the latest used arguments in the `docker' transient."
   (car (alist-get 'docker transient-history)))
@@ -69,13 +72,56 @@ Wrap the function `shell-command-to-string', ensuring variable `shell-file-name'
       (message command)
       (s-trim-right (docker-shell-command-to-string command)))))
 
-(defun docker-run-docker-async (&rest args)
-  "Execute \"`docker-command' ARGS\" using `async-shell-command'."
+(defun docker-run-async (args &optional callback)
+  "Run \"`docker-command' ARGS\" in an external process then call CALLBACK.
+
+ARGS is a list of arguments to the 'docker' command.
+CALLBACK should accept the output buffer.  It is called only when the process is
+finished."
   (docker-with-sudo
     (let* ((flat-args (-remove 's-blank? (-flatten (list (docker-arguments) args))))
-           (command (s-join " " (-insert-at 0 docker-command flat-args))))
-      (message command)
-      (async-shell-command command (docker-generate-new-buffer-name (s-join " " flat-args))))))
+           (command-list (cons docker-command flat-args))
+           (command-string (s-join " " command-list))
+           (output-buffer (docker-generate-new-buffer (s-join " " flat-args))))
+      (message command-string)
+      ;; Use shell-mode to interpret special char codes
+      (with-current-buffer output-buffer
+        (shell-mode))
+      ;; Default to discarding output buffer
+      (unless callback
+        (setq callback #'kill-buffer))
+      (make-process
+       :name command-string
+       :buffer output-buffer
+       :command command-list
+       :filter #'docker-process-filter
+       :sentinel (-partial #'docker-process-sentinel callback)
+       :noquery t))))
+
+(defun docker-process-filter (proc text)
+  "Just print output to process buffer which remains read-only."
+  (setq buffer-read-only nil)
+  (internal-default-process-filter proc text)
+  (setq buffer-read-only t))
+
+(defun docker-process-sentinel (callback proc status)
+  "Passes command output buffer to CALLBACK."
+  (pcase status
+    ('"finished\n"
+     (apply callback (list (process-buffer proc))))
+    (_
+     (message (format "%s: %s\nPress $ or visit buffer %s" (process-name proc) status (buffer-name (process-buffer proc))))
+     (push (process-buffer proc) docker-error-buffers))))
+
+(defun docker-run-with-buffer (&rest args)
+  "Execute \"`docker-command' ARGS\" displaying output in a new buffer.
+
+See `docker-run-async'."
+  (let ((process (docker-run-async
+                  args
+                  (lambda (_) (message "Docker process Finished")))))
+    (switch-to-buffer-other-window (process-buffer process))
+    process))
 
 (defun docker-generate-new-buffer-name (&rest args)
   "Wrapper around `generate-new-buffer-name'."

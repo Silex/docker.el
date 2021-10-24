@@ -143,14 +143,23 @@ The result is the tabulated list id for an entry is propertized with
   (list (propertize (car parsed-entry) 'docker-image-dangling t)
         (apply #'vector (--map (propertize it 'font-lock-face 'docker-face-dangling) (cadr parsed-entry)))))
 
-(defun docker-image-description-with-stats ()
-  "Return the images stats string."
-  (let* ((inhibit-message t)
-         (entries (docker-image-entries-propertized))
-         (dangling (-filter (-compose #'docker-image-dangling-p 'car) entries)))
-    (format "Images (%s total, %s dangling)"
-            (length entries)
-            (propertize (number-to-string (length dangling)) 'face 'docker-face-dangling))))
+(defun docker-image-fetch-status-async ()
+  "Write the status to `docker-status-strings'."
+  (docker-run-async
+   ;; According to CLI source code an image is dangling if this outputs "<none><none>"
+    (list "image" "ls" "--format={{ .Tag }}{{ .Digest }}")
+    (lambda (data-buffer)
+      (let* ((lines (with-current-buffer data-buffer (s-split "\n" (buffer-string) t)))
+             (dangling (seq-count (-partial #'equal "<none><none>") lines))
+             (total (length lines)))
+        (push `(image . ,(format "%s total, %s dangling"
+                (number-to-string total)
+                (propertize (number-to-string dangling) 'face 'docker-face-dangling)))
+              docker-status-strings)
+        (kill-buffer data-buffer)
+        (transient--redisplay)))))
+
+(add-hook 'docker-open-hook #'docker-image-fetch-status-async)
 
 (defun docker-image-refresh ()
   "Refresh the images list."
@@ -164,16 +173,24 @@ The result is the tabulated list id for an entry is propertized with
 (defun docker-image-pull-one (name &optional all)
   "Pull the image named NAME.  If ALL is set, use \"-a\"."
   (interactive (list (docker-image-read-name) current-prefix-arg))
-  (docker-run-docker "pull" (when all "-a ") name)
-  (tablist-revert))
+  (let ((calling-buffer (current-buffer)))
+    ;; Note docker-utils-generic-action-async runs all marked lines by default
+    (docker-run-async (list "pull" (when all "-a") name)
+                      (lambda (data-buffer)
+                        (with-current-buffer calling-buffer (tablist-revert)
+                                             (kill-buffer data-buffer))))))
 
 (defun docker-image-run-selection (command)
   "Run \"docker image run\" with COMMAND on the images selection."
   (interactive "sCommand: ")
   (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
-    (docker-run-docker-async "container run" (transient-args 'docker-image-run) it command))
-  (tablist-revert))
+    (let ((calling-buffer (current-buffer)))
+      ;; Can't use generic-action as 'command' must be the last arg not 'it'
+      (docker-run-async (list "run" (transient-args 'docker-image-run) it command)
+                        (lambda (data-buffer)
+                          (with-current-buffer calling-buffer (tablist-revert))
+                          (kill-buffer data-buffer))))))
 
 (defun docker-image-tag-selection ()
   "Tag images."
@@ -219,14 +236,14 @@ applied to the buffer."
   ["Arguments"
    ("a" "All" "-a")]
   [:description docker-utils-generic-actions-heading
-   ("F" "Pull selection" docker-utils-generic-action)
+   ("F" "Pull selection" docker-utils-generic-action-async)
    ("N" "Pull a new image" docker-image-pull-one)])
 
 (docker-utils-transient-define-prefix docker-image-push ()
   "Transient for pushing images."
   :man-page "docker-image-push"
   [:description docker-utils-generic-actions-heading
-   ("P" "Push" docker-utils-generic-action)])
+   ("P" "Push" docker-utils-generic-action-async)])
 
 (docker-utils-transient-define-prefix docker-image-rm ()
   "Transient for removing images."
@@ -235,7 +252,7 @@ applied to the buffer."
    ("-f" "Force" "-f")
    ("-n" "Don't prune" "--no-prune")]
   [:description docker-utils-generic-actions-heading
-   ("D" "Remove" docker-utils-generic-action)])
+   ("D" "Remove" docker-utils-generic-action-async-with-multiple-ids)])
 
 (defclass docker-run-prefix (transient-prefix) nil)
 
@@ -291,6 +308,7 @@ applied to the buffer."
 
 (defvar docker-image-mode-map
   (let ((map (make-sparse-keymap)))
+    (define-key map "$" 'docker-utils-visit-error-buffer)
     (define-key map "?" 'docker-image-help)
     (define-key map "D" 'docker-image-rm)
     (define-key map "F" 'docker-image-pull)
