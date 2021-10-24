@@ -77,6 +77,27 @@ Wrap the function `shell-command-to-string', ensuring variable `shell-file-name'
       (message command)
       (async-shell-command command (docker-generate-new-buffer-name (s-join " " flat-args))))))
 
+(defun docker-run-async (args callback)
+  "ARGS is a list of arguments to the 'docker' command."
+  (docker-with-sudo
+    (let* ((flat-args (-remove 's-blank? (-flatten (list (docker-arguments) args))))
+           (command-list (cons docker-command flat-args))
+           (command-string (s-join " " command-list))
+           (output-buffer-name (docker-generate-new-buffer-name (s-join " " flat-args))))
+      (message command-string)
+      (make-process
+       :name command-string
+       :buffer output-buffer-name
+       :command command-list
+       :sentinel (-partial #'docker-process-sentinel callback)
+       :noquery t))))
+
+(defun docker-process-sentinel (callback proc status)
+  "Passes command output buffer to CALLBACK"
+  (pcase status
+    ('"finished\n" (apply callback (list (process-buffer proc)))) ;; TODO cleanup?
+    (_ (message (format "%s: %s" (process-name proc) status)))))
+
 (defun docker-generate-new-buffer-name (&rest args)
   "Wrapper around `generate-new-buffer-name'."
   (generate-new-buffer-name (format "* docker %s *" (s-join " " args))))
