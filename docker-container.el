@@ -212,14 +212,14 @@ nil, ask the user for it."
   (interactive "sContainer path: \nFHost path: ")
   (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
-    (docker-run-docker "cp" (concat it ":" container-path) host-path)))
+    (docker-run-async (list "cp" (concat it ":" container-path) host-path))))
 
 (defun docker-container-cp-to-selection (host-path container-path)
   "Run \"docker cp\" from HOST-PATH to CONTAINER-PATH for selected containers."
   (interactive "fHost path: \nsContainer path: ")
   (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
-    (docker-run-docker "cp" host-path (concat it ":" container-path))))
+    (docker-run-async (list "cp" host-path (concat it ":" container-path)))))
 
 (defun docker-container-eshell-selection ()
   "Run `docker-container-eshell' on the containers selection."
@@ -246,9 +246,7 @@ nil, ask the user for it."
   "Rename containers."
   (interactive)
   (docker-utils-ensure-items)
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-run-docker "rename" it (read-string (format "Rename \"%s\" to: " it))))
-  (tablist-revert))
+  (docker-utils-generic-action-async (format "rename %s" it) (read-string (format "Rename \"%s\" to: " it))))
 
 (defun docker-container-shell-selection (prefix)
   "Run `docker-container-shell' on the containers selection."
@@ -268,9 +266,7 @@ nil, ask the user for it."
   "Run `docker-container-unpause' on the containers selection."
   (interactive)
   (docker-utils-ensure-items)
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-run-docker "unpause" it))
-  (tablist-revert))
+  (docker-utils-generic-action-async (format "unpause %s" it) ()))
 
 (docker-utils-transient-define-prefix docker-container-attach ()
   "Transient for attaching to containers."
@@ -306,7 +302,7 @@ nil, ask the user for it."
   ["Arguments"
    ("s" "Signal" "-s " read-string)]
   [:description docker-utils-generic-actions-heading
-   ("K" "Kill" docker-utils-generic-action)])
+   ("K" "Kill" docker-utils-generic-action-async)])
 
 (docker-utils-transient-define-prefix docker-container-logs ()
   "Transient for showing containers logs."
@@ -340,7 +336,7 @@ nil, ask the user for it."
   "Transient for pauseing containers."
   :man-page "docker-container-pause"
   [:description docker-utils-generic-actions-heading
-   ("P" "Pause" docker-utils-generic-action)
+   ("P" "Pause" docker-utils-generic-action-async)
    ("U" "Unpause" docker-container-unpause-selection)])
 
 (docker-utils-transient-define-prefix docker-container-restart ()
@@ -349,7 +345,7 @@ nil, ask the user for it."
   ["Arguments"
    ("t" "Timeout" "-t " transient-read-number-N0)]
   [:description docker-utils-generic-actions-heading
-   ("R" "Restart" docker-utils-generic-action)])
+   ("R" "Restart" docker-utils-generic-action-async)])
 
 (docker-utils-transient-define-prefix docker-container-rm ()
   "Transient for removing containers."
@@ -358,7 +354,7 @@ nil, ask the user for it."
    ("f" "Force" "-f")
    ("v" "Volumes" "-v")]
   [:description docker-utils-generic-actions-heading
-   ("D" "Remove" docker-utils-generic-action)])
+   ("D" "Remove" docker-utils-generic-action-async)])
 
 (docker-utils-transient-define-prefix docker-container-shells ()
   "Transient for doing M-x `shell'/`eshell' to containers."
@@ -371,7 +367,7 @@ nil, ask the user for it."
   "Transient for starting containers."
   :man-page "docker-container-start"
   [:description docker-utils-generic-actions-heading
-   ("S" "Start" docker-utils-generic-action)])
+   ("S" "Start" docker-utils-generic-action-async)])
 
 (docker-utils-transient-define-prefix docker-container-stop ()
   "Transient for stoping containers."
@@ -379,7 +375,7 @@ nil, ask the user for it."
   ["Arguments"
    ("t" "Timeout" "-t " transient-read-number-N0)]
   [:description docker-utils-generic-actions-heading
-   ("O" "Stop" docker-utils-generic-action)])
+   ("O" "Stop" docker-utils-generic-action-async)])
 
 (transient-define-prefix docker-container-help ()
   "Help transient for docker containers."
