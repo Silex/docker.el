@@ -93,15 +93,6 @@ Execute BODY in a buffer named with the help of NAME."
                           (with-current-buffer calling-buffer (tablist-revert))
                           (kill-buffer data-buffer))))))
 
-(defun docker-utils-generic-action-with-buffer:json (action args)
-  (interactive (list (docker-utils-get-transient-action)
-                     (transient-args transient-current-command)))
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-utils-with-buffer (format "%s %s" action it)
-      (insert (docker-run-docker action args it))
-      (json-mode)))
-  (tablist-revert))
-
 (defun docker-utils-pop-to-buffer (name)
   "Like `pop-to-buffer', but suffix NAME with the host if on a remote host."
   (pop-to-buffer
