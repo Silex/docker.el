@@ -243,7 +243,7 @@ applied to the buffer."
    ("-f" "Force" "-f")
    ("-n" "Don't prune" "--no-prune")]
   [:description docker-utils-generic-actions-heading
-   ("D" "Remove" docker-utils-generic-action-async)])
+   ("D" "Remove" docker-utils-generic-action-merged)])
 
 (defclass docker-run-prefix (transient-prefix) nil)
 

@@ -93,6 +93,16 @@ Execute BODY in a buffer named with the help of NAME."
                           (with-current-buffer calling-buffer (tablist-revert))
                           (kill-buffer data-buffer))))))
 
+(defun docker-utils-generic-action-merged (action args)
+  "As for `docker-utils-generic-action-async', but group selection ids into a single command."
+  (interactive (list (docker-utils-get-transient-action)
+                     (transient-args transient-current-command)))
+  (let ((calling-buffer (current-buffer)))
+    (docker-run-async (list (s-split " " action) args (docker-utils-get-marked-items-ids))
+                      (lambda (data-buffer)
+                        (with-current-buffer calling-buffer (tablist-revert))
+                        (kill-buffer data-buffer)))))
+
 (defun docker-utils-pop-to-buffer (name)
   "Like `pop-to-buffer', but suffix NAME with the host if on a remote host."
   (pop-to-buffer
