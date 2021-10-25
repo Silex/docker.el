@@ -333,7 +333,7 @@ nil, ask the user for it."
    ("l" "List" tablist-revert)])
 
 (docker-utils-transient-define-prefix docker-container-pause ()
-  "Transient for pauseing containers."
+  "Transient for pausing containers."
   :man-page "docker-container-pause"
   [:description docker-utils-generic-actions-heading
    ("P" "Pause" docker-utils-generic-action-async)
@@ -379,22 +379,24 @@ nil, ask the user for it."
 
 (transient-define-prefix docker-container-help ()
   "Help transient for docker containers."
-  ["Docker containers help"
-   ("C" "Copy"       docker-container-cp)
-   ("D" "Remove"     docker-container-rm)
-   ("I" "Inspect"    docker-utils-inspect)
-   ("K" "Kill"       docker-container-kill)
-   ("L" "Logs"       docker-container-logs)
-   ("O" "Stop"       docker-container-stop)
-   ("P" "Pause"      docker-container-pause)
-   ("R" "Restart"    docker-container-restart)
-   ("S" "Start"      docker-container-start)
-   ("a" "Attach"     docker-container-attach)
-   ("b" "Shell"      docker-container-shells)
-   ("d" "Diff"       docker-container-diff)
-   ("f" "Find file"  docker-container-open)
-   ("l" "List"       docker-container-ls)
-   ("r" "Rename"     docker-container-rename-selection)])
+  ["Docker Containers"
+   ["Lifecycle"
+    ("K" "Kill"       docker-container-kill)
+    ("O" "Stop"       docker-container-stop)
+    ("P" "Pause"      docker-container-pause)
+    ("R" "Restart"    docker-container-restart)
+    ("S" "Start"      docker-container-start)]
+   ["Admin"
+    ("C" "Copy"       docker-container-cp)
+    ("D" "Remove"     docker-container-rm)
+    ("I" "Inspect"    docker-utils-inspect)
+    ("L" "Logs"       docker-container-logs)
+    ("a" "Attach"     docker-container-attach)
+    ("b" "Shell"      docker-container-shells)
+    ("d" "Diff"       docker-container-diff)
+    ("f" "Find file"  docker-container-open)
+    ("l" "List"       docker-container-ls)
+    ("r" "Rename"     docker-container-rename-selection)]])
 
 (defvar docker-container-mode-map
   (let ((map (make-sparse-keymap)))
