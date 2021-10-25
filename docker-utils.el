@@ -83,6 +83,16 @@ Execute BODY in a buffer named with the help of NAME."
     (docker-run-attached action args it))
   (tablist-revert))
 
+(defun docker-utils-generic-action-async (action args)
+  (interactive (list (docker-utils-get-transient-action)
+                     (transient-args transient-current-command)))
+  (--each (docker-utils-get-marked-items-ids)
+    (let ((calling-buffer (current-buffer)))
+      (docker-run-async (list (s-split " " action) args (list it))
+                        (lambda (data-buffer)
+                          (with-current-buffer calling-buffer (tablist-revert))
+                          (kill-buffer data-buffer))))))
+
 (defun docker-utils-generic-action-with-buffer:json (action args)
   (interactive (list (docker-utils-get-transient-action)
                      (transient-args transient-current-command)))
