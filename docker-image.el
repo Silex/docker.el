@@ -164,16 +164,24 @@ The result is the tabulated list id for an entry is propertized with
 (defun docker-image-pull-one (name &optional all)
   "Pull the image named NAME.  If ALL is set, use \"-a\"."
   (interactive (list (docker-image-read-name) current-prefix-arg))
-  (docker-run-docker "pull" (when all "-a ") name)
-  (tablist-revert))
+  (let ((calling-buffer (current-buffer)))
+    ;; Note docker-utils-generic-action-async runs all marked lines by default
+    (docker-run-async (list "pull" (when all " -a") name)
+                      (lambda (data-buffer)
+                        (with-current-buffer calling-buffer (tablist-revert)
+                                             (kill-buffer data-buffer))))))
 
 (defun docker-image-run-selection (command)
-  "Run \"docker image run\" with COMMAND on the images selection."
+  "Run \"docker run image\" with COMMAND on the images selection."
   (interactive "sCommand: ")
   (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
-    (docker-run-docker-async "container run" (transient-args 'docker-image-run) it command))
-  (tablist-revert))
+    (let ((calling-buffer (current-buffer)))
+      ;; Can't use generic-action as 'command' must be the last arg not 'it'
+      (docker-run-async (list "run" (transient-args 'docker-image-run) it command)
+                        (lambda (data-buffer)
+                          (with-current-buffer calling-buffer (tablist-revert))
+                          (kill-buffer data-buffer))))))
 
 (defun docker-image-tag-selection ()
   "Tag images."
@@ -219,14 +227,14 @@ applied to the buffer."
   ["Arguments"
    ("a" "All" "-a")]
   [:description docker-utils-generic-actions-heading
-   ("F" "Pull selection" docker-utils-generic-action)
+   ("F" "Pull selection" docker-utils-generic-action-async)
    ("N" "Pull a new image" docker-image-pull-one)])
 
 (docker-utils-transient-define-prefix docker-image-push ()
   "Transient for pushing images."
   :man-page "docker-image-push"
   [:description docker-utils-generic-actions-heading
-   ("P" "Push" docker-utils-generic-action)])
+   ("P" "Push" docker-utils-generic-action-async)])
 
 (docker-utils-transient-define-prefix docker-image-rm ()
   "Transient for removing images."
@@ -235,7 +243,7 @@ applied to the buffer."
    ("-f" "Force" "-f")
    ("-n" "Don't prune" "--no-prune")]
   [:description docker-utils-generic-actions-heading
-   ("D" "Remove" docker-utils-generic-action)])
+   ("D" "Remove" docker-utils-generic-action-async)])
 
 (defclass docker-run-prefix (transient-prefix) nil)
 
