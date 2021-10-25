@@ -69,11 +69,11 @@ Wrap the function `shell-command-to-string', ensuring variable `shell-file-name'
       (message command)
       (s-trim-right (docker-shell-command-to-string command)))))
 
-(defun docker-run-docker-async (&rest args)
+(defun docker-run-attached (&rest args)
   "Execute \"`docker-command' ARGS\" using `async-shell-command'."
   (docker-with-sudo
     (let* ((flat-args (-remove 's-blank? (-flatten (list (docker-arguments) args))))
-           (command (s-join " " (-insert-at 0 docker-command flat-args))))
+           (command (s-join " " (cons docker-command flat-args))))
       (message command)
       (async-shell-command command (docker-generate-new-buffer-name (s-join " " flat-args))))))
 

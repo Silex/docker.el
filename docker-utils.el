@@ -75,19 +75,12 @@ Execute BODY in a buffer named with the help of NAME."
     (docker-run-docker action args it))
   (tablist-revert))
 
-(defun docker-utils-generic-action-async (action args)
-  (interactive (list (docker-utils-get-transient-action)
-                     (transient-args transient-current-command)))
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-run-docker-async action args it))
-  (tablist-revert))
-
 (defun docker-utils-generic-action-with-buffer (action args)
+  "Run 'docker ACTION ARGS' asynchronously, printing output to a new buffer."
   (interactive (list (docker-utils-get-transient-action)
                      (transient-args transient-current-command)))
   (--each (docker-utils-get-marked-items-ids)
-    (docker-utils-with-buffer (format "%s %s" action it)
-      (insert (docker-run-docker action args it))))
+    (docker-run-attached action args it))
   (tablist-revert))
 
 (defun docker-utils-generic-action-with-buffer:json (action args)

@@ -279,7 +279,7 @@ nil, ask the user for it."
    ("n" "No STDIN" "--no-stdin")
    ("d" "Key sequence for detaching" "--detach-keys=" read-string)]
   [:description docker-utils-generic-actions-heading
-   ("a" "Attach" docker-utils-generic-action-async)])
+   ("a" "Attach" docker-utils-generic-action-with-buffer)])
 
 (docker-utils-transient-define-prefix docker-container-cp ()
   "Transient for copying files from/to containers."
@@ -317,7 +317,7 @@ nil, ask the user for it."
    ("t" "Tail" "--tail " read-string)
    ("u" "Until" "--until " read-string)]
   [:description docker-utils-generic-actions-heading
-   ("L" "Logs" docker-utils-generic-action-async)])
+   ("L" "Logs" docker-utils-generic-action-with-buffer)])
 
 (defun docker-container-ls-arguments ()
   "Return the latest used arguments in the `docker-container-ls' transient."
