@@ -37,10 +37,10 @@
   :group 'docker)
 
 (defconst docker-image-id-template
-  "{{if (eq \\\"<none>\\\" .Repository .Tag)}}{{ json .ID }}{{else}}\\\"{{ .Repository }}:{{ .Tag }}\\\"{{end}}"
+  "[{{ json .Repository }},{{ json .Tag }},{{ json .ID }}]"
   "This Go template defines what will be passed to transient commands.
 
-The default value uses Repository:Tag unless either is <none>, then it uses Id.")
+This value is processed by `docker-image-make-id'.")
 
 (defcustom docker-image-default-sort-key '("Repository" . nil)
   "Sort key for docker images.
@@ -102,12 +102,26 @@ corresponding to arguments.
 Also note if you do not specify `docker-run-default-args', they will be ignored."
   :type '(repeat (list string (repeat string))))
 
+
+(defun docker-image-make-id (parsed-line)
+  "Fix the id string of the entry and return the fixed entry.
+
+PARSED-LINE is the output of `docker-utils-parse', the car is expected to
+be the list (repository tag id).  See `docker-image-id-template'."
+  ;; This could be written as a complex go template,
+  ;; however the literal '<none>' causes havoc in the windows shell.
+  (-let* ((([repo tag id] rest) parsed-line)
+          (new-id (if (or (equal repo "<none>") (equal tag "<none>"))
+                      id
+                    (format "%s:%s" repo tag))))
+    (list new-id rest)))
+
 (defun docker-image-entries (&optional args)
   "Return the docker images data for `tabulated-list-entries'."
   (let* ((fmt (docker-utils-make-format-string docker-image-id-template docker-image-columns))
          (data (docker-run-docker "image ls" args (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
-    (-map (-partial #'docker-utils-parse docker-image-columns) lines)))
+    (--map (docker-image-make-id (docker-utils-parse docker-image-columns it)) lines)))
 
 (defun docker-image-entries-propertized (&optional args)
   "Return the docker images data for `tabulated-list-entries' with dangling images propertized."
@@ -115,7 +129,7 @@ Also note if you do not specify `docker-run-default-args', they will be ignored.
         (dangling (docker-image-entries "--filter dangling=true")))
     (--map-when (-contains? dangling it) (docker-image-entry-set-dangling it) all)))
 
-(defun docker-image-dangling-p (entry-id)
+(defun docker-image-dangling-p (entry-id)           ;
   "Predicate for if ENTRY-ID is dangling.
 
 For example (docker-image-dangling-p (tabulated-list-get-id)) is t when the entry under point is dangling."
