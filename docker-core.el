@@ -83,16 +83,27 @@ Wrap the function `shell-command-to-string', ensuring variable `shell-file-name'
     (let* ((flat-args (-remove 's-blank? (-flatten (list (docker-arguments) args))))
            (command-list (cons docker-command flat-args))
            (command-string (s-join " " command-list))
-           (output-buffer-name (docker-generate-new-buffer-name (s-join " " flat-args))))
+           (output-buffer (docker-generate-new-buffer (s-join " " flat-args))))
       (message command-string)
+      ;; Use shell-mode to interpret special char codes
+      (with-current-buffer output-buffer
+        (shell-mode))
+      ;; Default to discarding output buffer
       (unless callback
         (setq callback #'kill-buffer))
       (make-process
        :name command-string
-       :buffer output-buffer-name
+       :buffer output-buffer
        :command command-list
+       :filter #'docker-process-filter
        :sentinel (-partial #'docker-process-sentinel callback)
        :noquery t))))
+
+(defun docker-process-filter (proc text)
+  "Just print output to process buffer which remains read-only."
+  (setq buffer-read-only nil)
+  (internal-default-process-filter proc text)
+  (setq buffer-read-only t))
 
 (defun docker-process-sentinel (callback proc status)
   "Passes command output buffer to CALLBACK."
