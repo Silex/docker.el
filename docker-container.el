@@ -112,18 +112,27 @@ displayed values in the column."
          (lines (s-split "\n" data t)))
     (-map (-partial #'docker-utils-parse docker-container-columns) lines)))
 
-(defun docker-container-description-with-stats ()
-  "Return the containers stats string."
-  (let* ((inhibit-message t)
-         (up (length (docker-container-entries "--filter status=running")))
-         (down (length (docker-container-entries "--filter status=exited")))
-         (all (length (docker-container-entries "--all")))
-         (other (- all up down)))
-    (format "Containers (%s total, %s up, %s down, %s other)"
-            all
-            (propertize (number-to-string up) 'face 'docker-face-status-up)
-            (propertize (number-to-string down) 'face 'docker-face-status-down)
-            (propertize (number-to-string other) 'face 'docker-face-status-other))))
+(defun docker-container-fetch-status-async ()
+   "Write the status to `docker-status-strings'."
+   (docker-run-async
+    (list "container" "ls" "--all" "--format={{ .State }}")
+    (lambda (data-buffer)
+      (let* ((inhibit-message t)
+             (lines (with-current-buffer data-buffer (s-split "\n" (buffer-string) t)))
+             (up (seq-count (-partial #'equal "running") lines))
+             (down (seq-count (-partial #'equal "exited") lines))
+             (all (length lines))
+             (other (- all up down)))
+        (push `(container . ,(format "%s total, %s up, %s down, %s other"
+                                     all
+                                     (propertize (number-to-string up) 'face 'docker-face-status-up)
+                                     (propertize (number-to-string down) 'face 'docker-face-status-down)
+                                     (propertize (number-to-string other) 'face 'docker-face-status-other)))
+              docker-status-strings)
+        (kill-buffer data-buffer)
+        (transient--redisplay)))))
+
+(add-hook 'docker-open-hook #'docker-container-fetch-status-async)
 
 (defun docker-container-refresh ()
   "Refresh the containers list."
@@ -246,6 +255,7 @@ nil, ask the user for it."
   "Rename containers."
   (interactive)
   (docker-utils-ensure-items)
+  ;; TODO I assume since renaming is interactive, that it doesn't need to be async
   (--each (docker-utils-get-marked-items-ids)
     (docker-run-docker "rename" it (read-string (format "Rename \"%s\" to: " it))))
   (tablist-revert))
