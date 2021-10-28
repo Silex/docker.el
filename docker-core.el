@@ -69,16 +69,21 @@ Wrap the function `shell-command-to-string', ensuring variable `shell-file-name'
       (message command)
       (s-trim-right (docker-shell-command-to-string command)))))
 
-(defun docker-run-attached (&rest args)
-  "Execute \"`docker-command' ARGS\" using `async-shell-command'."
-  (docker-with-sudo
-    (let* ((flat-args (-remove 's-blank? (-flatten (list (docker-arguments) args))))
-           (command (s-join " " (cons docker-command flat-args))))
-      (message command)
-      (async-shell-command command (docker-generate-new-buffer-name (s-join " " flat-args))))))
+(defun docker-run-with-buffer (&rest args)
+  "Execute \"`docker-command' ARGS\" displaying output in a new buffer.
+
+See `docker-run-async'."
+  (docker-run-async
+   args
+   (lambda (data-buffer)
+     (switch-to-buffer data-buffer))))
 
 (defun docker-run-async (args &optional callback)
-  "ARGS is a list of arguments to the 'docker' command."
+  "Run \"`docker-command' ARGS\" in an external process then call CALLBACK.
+
+ARGS is a list of arguments to the 'docker' command.
+CALLBACK should accept the output buffer.  It is called only when the process is
+finished."
   (docker-with-sudo
     (let* ((flat-args (-remove 's-blank? (-flatten (list (docker-arguments) args))))
            (command-list (cons docker-command flat-args))
