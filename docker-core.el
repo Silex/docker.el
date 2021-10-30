@@ -41,6 +41,9 @@
   :group 'docker
   :type 'boolean)
 
+(defvar docker-error-buffers ()
+  "Buffers with error output from Docker commands.")
+
 (defun docker-arguments ()
   "Return the latest used arguments in the `docker' transient."
   (car (alist-get 'docker transient-history)))
@@ -113,8 +116,11 @@ finished."
 (defun docker-process-sentinel (callback proc status)
   "Passes command output buffer to CALLBACK."
   (pcase status
-    ('"finished\n" (apply callback (list (process-buffer proc))))
-    (_ (message (format "%s: %s" (process-name proc) status)))))
+    ('"finished\n"
+     (apply callback (list (process-buffer proc))))
+    (_
+     (message (format "%s: %s\nSee buffer %s" (process-name proc) status (buffer-name (process-buffer proc))))
+     (push (process-buffer proc) docker-error-buffers))))
 
 (defun docker-generate-new-buffer-name (&rest args)
   "Wrapper around `generate-new-buffer-name'."
