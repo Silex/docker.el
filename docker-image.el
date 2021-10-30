@@ -299,6 +299,7 @@ applied to the buffer."
 
 (defvar docker-image-mode-map
   (let ((map (make-sparse-keymap)))
+    (define-key map "$" 'docker-utils-visit-error-buffer)
     (define-key map "?" 'docker-image-help)
     (define-key map "D" 'docker-image-rm)
     (define-key map "F" 'docker-image-pull)

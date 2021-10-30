@@ -197,6 +197,39 @@ This has no effect on the actual value of the variable."
    (-map (-partial #'plist-get it) '(:name :width :template :sort :format))
    (symbol-value sym)))
 
+(defun docker-utils-cleanup-error-buffers ()
+  "Remove killed error buffers."
+  (setq docker-error-buffers (-filter #'buffer-live-p docker-error-buffers)))
+
+(defun docker-utils-next-error-buffer ()
+  "Cycle through error buffers, skipping killed ones."
+  (interactive)
+  (let* ((index (or (-elem-index (current-buffer) docker-error-buffers)
+                    (error "Must be called from a docker output buffer")))
+         (search-list (nthcdr (1+ index) docker-error-buffers))
+         (next (-find #'buffer-live-p (or search-list docker-error-buffers))))
+
+    (switch-to-buffer next)
+    (if search-list
+        (message "Press $ to see next error buffer")
+      (message "Visiting first error buffer. Press $ to see next error buffer"))))
+
+(defun docker-utils-visit-error-buffer ()
+  "Call from a docker tablist to begin cycling error buffers."
+  (interactive)
+  (docker-utils-cleanup-error-buffers)
+  (if docker-error-buffers
+      (let (($-map (make-sparse-keymap)))
+        (switch-to-buffer (car docker-error-buffers))
+        (define-key $-map "$" (lambda ()
+                                (interactive)
+                                (docker-utils-next-error-buffer)
+                                (set-transient-map $-map t)))
+        (set-transient-map $-map t)
+        (when (cdr docker-error-buffers)
+          (message "Press $ to see next error buffer")))
+    (message "No active error bufffers")))
+
 (provide 'docker-utils)
 
 ;;; docker-utils.el ends here

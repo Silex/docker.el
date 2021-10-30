@@ -119,7 +119,7 @@ finished."
     ('"finished\n"
      (apply callback (list (process-buffer proc))))
     (_
-     (message (format "%s: %s\nSee buffer %s" (process-name proc) status (buffer-name (process-buffer proc))))
+     (message (format "%s: %s\nPress $ or visit buffer %s" (process-name proc) status (buffer-name (process-buffer proc))))
      (push (process-buffer proc) docker-error-buffers))))
 
 (defun docker-generate-new-buffer-name (&rest args)

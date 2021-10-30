@@ -180,6 +180,7 @@ applied to the buffer."
 
 (defvar docker-volume-mode-map
   (let ((map (make-sparse-keymap)))
+    (define-key map "$" 'docker-utils-visit-error-buffer)
     (define-key map "?" 'docker-volume-help)
     (define-key map "D" 'docker-volume-rm)
     (define-key map "I" 'docker-utils-inspect)
