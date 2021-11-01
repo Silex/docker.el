@@ -100,6 +100,10 @@
   "Wrapper around `read-directory-name'."
   (read-directory-name prompt nil nil t initial-input))
 
+(defun docker-compose-read-environment-file (prompt &optional initial-input _history)
+  "Wrapper around `read-file-name'."
+  (read-file-name prompt nil nil t initial-input))
+
 (defun docker-compose-read-compose-file (prompt &optional initial-input _history)
   "Wrapper around `read-file-name'."
   (read-file-name prompt nil nil t initial-input (apply-partially 'string-match ".*\\.yml\\|.*\\.yaml")))
@@ -309,6 +313,7 @@
    ("a" "No ANSI" "--no-ansi")
    ("c" "Compatibility" "--compatibility")
    ("d" "Project directory" "--project-directory " docker-compose-read-directory)
+   ("e" "Environment file" "--env-file " docker-compose-read-environment-file)
    ("f" "Compose file" "--file " docker-compose-read-compose-file)
    ("h" "Host" "--host " read-string)
    ("l" "Log level" "--log-level " docker-compose-read-log-level)
