@@ -128,15 +128,21 @@ Execute BODY in a buffer named with the help of NAME."
 
 (defun docker-utils-human-size-predicate (a b)
   "Sort A and B by image size."
-  (let* ((a-size (elt (cadr a) 4))
-         (b-size (elt (cadr b) 4)))
-    (< (docker-utils-human-size-to-bytes a-size) (docker-utils-human-size-to-bytes b-size))))
+    (< (docker-utils-human-size-to-bytes a) (docker-utils-human-size-to-bytes b)))
 
 (defun docker-utils-columns-list-format (columns-spec)
-  "Convert COLUMNS-SPEC (a list of plists) to 'tabulated-list-format', i.e. a vector of (name width bool)."
-  (seq-into
-   (--map (list (plist-get it :name) (plist-get it :width) (or (plist-get it :sort) t)) columns-spec)
-   'vector))
+  "Convert COLUMNS-SPEC (a list of plists) to 'tabulated-list-format', i.e. a vector of (name width sort-fn)."
+  (apply 'vector
+  (--map-indexed
+   (-let* (((&plist :name name :width width :sort sort-fn-inner) it)
+           (sort-fn (if sort-fn-inner
+                        (let ((idx it-index)) ;; Rebind the closure var!
+                          ;; Sort fn is called with (id [entries..])
+                          ;; Extract the column value and pass to inner function
+                          (-on sort-fn-inner (lambda (x) (elt (cadr x) idx))))
+                      t)))
+     (list name width sort-fn))
+   columns-spec)))
 
 (defun docker-utils-make-format-string (id-template column-spec)
   "Make the format string to pass to docker-ls commands.
