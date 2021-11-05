@@ -96,9 +96,13 @@ Execute BODY in a buffer named with the help of NAME."
          (multiplier (docker-utils-unit-multiplier (-third-item parts))))
     (* value multiplier)))
 
-(defun docker-utils-human-size-predicate (a b)
+(defun docker-utils-human-size-sort (a b)
   "Sort A and B by image size."
     (< (docker-utils-human-size-to-bytes a) (docker-utils-human-size-to-bytes b)))
+
+(defun docker-utils-numeric-sort (a b)
+  "Sort A and B numerically."
+    (> (string-to-number a) (string-to-number b)))
 
 (defun docker-utils-columns-list-format (columns-spec)
   "Convert COLUMNS-SPEC (a list of plists) to 'tabulated-list-format', i.e. a vector of (name width sort-fn)."

@@ -58,7 +58,7 @@ and FLIP is a boolean to specify the sort order."
 (defcustom docker-search-columns
   '((:name "Name" :width 30 :template "{{json .Name}}" :sort nil :format nil)
     (:name "Description" :width 60 :template "{{ json .Description }}" :sort nil :format nil)
-    (:name "Stars" :width 10 :template "{{ json .StarCount }}" :sort nil :format nil)
+    (:name "Stars" :width 10 :template "{{ json .StarCount }}" :sort docker-utils-numeric-sort :format nil)
     (:name "Official" :width 10 :template "{{ json .IsOfficial }}" :sort nil :format nil)
     (:name "Automated" :width 10 :template "{{ json .IsAutomated }}" :sort nil :format nil))
   "Column specification for docker search.
