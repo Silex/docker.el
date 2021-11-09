@@ -83,6 +83,7 @@ displayed values in the column."
 (defvar docker-search-string
   ""
   "Last search string used with docker-search.")
+(make-variable-buffer-local 'docker-search-string)
 
 (aio-defun docker-search-entries (&optional args)
   "Return the docker search data for `tabulated-list-entries'."
@@ -165,11 +166,13 @@ displayed values in the column."
 
 (defun docker-search-submit (search)
   "Run docker-search on string SEARCH and display results in an interactive buffer."
-  (interactive "Msearch: ")
-  (docker-utils-pop-to-buffer "*docker-search*")
-  (setq docker-search-string search)
-  (docker-search-mode)
-  (tablist-revert))
+  (interactive `(,(read-string "Search: " docker-search-string)))
+  (let ((search-buffer (format "*docker-search %s*" search)))
+    (docker-utils-pop-to-buffer search-buffer)
+    (docker-search-mode)
+    (with-current-buffer search-buffer
+      (setq docker-search-string search)
+      (tablist-revert))))
 
 (define-derived-mode docker-search-mode tabulated-list-mode "Search Menu"
   "Major mode for handling docker search results."
