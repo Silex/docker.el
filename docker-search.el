@@ -57,7 +57,7 @@ and FLIP is a boolean to specify the sort order."
 
 (defcustom docker-search-columns
   '((:name "Name" :width 30 :template "{{json .Name}}" :sort nil :format nil)
-    (:name "Description" :width 60 :template "{{ json .Description }}" :sort nil :format nil)
+    (:name "Description" :width 80 :template "{{ json .Description }}" :sort nil :format nil)
     (:name "Stars" :width 10 :template "{{ json .StarCount }}" :sort docker-utils-numeric-sort :format nil)
     (:name "Official" :width 10 :template "{{ json .IsOfficial }}" :sort nil :format nil)
     (:name "Automated" :width 10 :template "{{ json .IsAutomated }}" :sort nil :format nil))
@@ -108,25 +108,58 @@ displayed values in the column."
   "Transient for searches."
   :man-page "docker-search"
   ["Arguments"
-   ("o" "Official" "--filter=is-official=true")
    ("a" "Automated" "--filter=is-automated=true")
-   ("s" "Min Stars" "--filter=stars=" read-string)
-   ;; TODO default is 25
-   ("l" "Limit Results" "--limit=" read-string)]
+   ("l" "Limit Results" "--limit=" read-string)
+   ("o" "Official" "--filter=is-official=true")
+   ("s" "Min Stars" "--filter=stars=" read-string)]
   ["Actions"
    ("S" "Search" docker-search-submit)])
+
+(defun docker-search-browse (repository)
+  "Open Docker Hub REPOSITORY with web browser."
+  (interactive `(,(read-string "Repository: " (tabulated-list-get-id))))
+  (let ((user-repo (s-split "/" repository)))
+    (if (eq 1 (length user-repo))
+        ;; special format for official ones
+        (browse-url (format "https://hub.docker.com/_/%s" repository))
+        (browse-url (format "https://hub.docker.com/r/%s/%s" (car user-repo) (cadr user-repo))))))
+
+(defun docker-search-show-description ()
+  "Echo description of entry at point."
+  (interactive)
+  (message (elt (tabulated-list-get-entry) 1)))
+
+(defun docker-search-pull-action ()
+  "Run 'docker pull' on search selection displaying progress in new buffers."
+  (interactive)
+  (docker-utils-generic-action-with-buffer "pull" (transient-args transient-current-command)))
+
+(transient-define-prefix docker-search-pull ()
+  "Transient for pulling Docker Hub images."
+  :man-page "docker-image-pull"
+  ["Arguments"
+   ("a" "Download all tags" "-a")]
+  [:description docker-utils-generic-actions-heading
+   ("F" "Pull selection" docker-search-pull-action)])
 
 (transient-define-prefix docker-search-help ()
   "Transient for searches."
   :man-page "docker-search"
   ["Docker Search"
+   ("F" "Pull Image" docker-search-pull)
+   ("S" "New Search" docker-search)
    ("g" "Revert" tablist-revert)
-   ("S" "New Search" docker-search)])
+   ("o" "Open in Browser" docker-search-browse)
+   ("v" "Show description" docker-search-show-description)])
 
 (defvar docker-search-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "S" 'docker-search)
     (define-key map "?" 'docker-search-help)
+    (define-key map "F" 'docker-search-pull)
+    (define-key map "S" 'docker-search)
+    (define-key map "g" 'tablist-revert)
+    (define-key map "o" 'docker-search-browse)
+    (define-key map "v" 'docker-search-show-description)
     map)
   "Keymap for `docker-search-mode'.")
 
