@@ -76,10 +76,11 @@ Wrap the function `shell-command-to-string', ensuring variable `shell-file-name'
   "Execute \"`docker-command' ARGS\" displaying output in a new buffer.
 
 See `docker-run-async'."
-  (docker-run-async
-   args
-   (lambda (data-buffer)
-     (switch-to-buffer data-buffer))))
+  (let ((process (docker-run-async
+                  args
+                  (lambda (_) (message "Docker process Finished")))))
+    (switch-to-buffer-other-window (process-buffer process))
+    process))
 
 (defun docker-run-async (args &optional callback)
   "Run \"`docker-command' ARGS\" in an external process then call CALLBACK.
