@@ -80,8 +80,7 @@ Execute BODY in a buffer named with the help of NAME."
   (interactive (list (docker-utils-get-transient-action)
                      (transient-args transient-current-command)))
   (--each (docker-utils-get-marked-items-ids)
-    (docker-run-with-buffer (s-split " " action) args it))
-  (tablist-revert))
+    (docker-run-with-buffer (s-split " " action) args it)))
 
 (defun docker-utils-generic-action-async (action args)
   (interactive (list (docker-utils-get-transient-action)
