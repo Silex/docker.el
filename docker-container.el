@@ -255,7 +255,6 @@ nil, ask the user for it."
   "Rename containers."
   (interactive)
   (docker-utils-ensure-items)
-  ;; TODO I assume since renaming is interactive, that it doesn't need to be async
   (--each (docker-utils-get-marked-items-ids)
     (docker-run-docker "rename" it (read-string (format "Rename \"%s\" to: " it))))
   (tablist-revert))

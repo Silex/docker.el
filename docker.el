@@ -56,7 +56,13 @@
 ;;;###autoload (autoload 'docker "docker" nil t)
 (defun docker ()
   (interactive)
-  ;; TODO perhaps reset status-strings here
+  ;; remove old status strings
+  (setq docker-status-strings
+        `((container . ,(or (alist-get 'container docker-status-strings) ""))
+          (image . ,(or (alist-get 'image docker-status-strings) ""))
+          (network . ,(or (alist-get 'network docker-status-strings) ""))
+          (volume . ,(or (alist-get 'volume docker-status-strings) ""))))
+
   (run-hooks 'docker-open-hook)
   (docker-transient))
 
