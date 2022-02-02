@@ -58,7 +58,7 @@ and FLIP is a boolean to specify the sort order."
                        (const :tag "Descending" t))))
 
 (defcustom docker-image-columns
-  '((:name "Repository" :width 30 :template "{{json .Repository}}" :sort nil :format nil)
+  '((:name "Repository" :width 30 :template "{{ json .Repository }}" :sort nil :format nil)
     (:name "Tag" :width 20 :template "{{ json .Tag }}" :sort nil :format nil)
     (:name "Id" :width 16 :template "{{ json .ID }}" :sort nil :format nil)
     (:name "Created" :width 24 :template "{{ json .CreatedAt }}" :sort nil :format (lambda (x) (format-time-string "%F %T" (date-to-time x))))

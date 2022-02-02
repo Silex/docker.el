@@ -56,10 +56,10 @@ and FLIP is a boolean to specify the sort order."
                        (const :tag "Descending" t))))
 
 (defcustom docker-network-columns
-  '((:name "Network ID" :width 20 :template "{{json .ID}}" :sort nil :format nil)
-    (:name "Name" :width 50 :template "{{json .Name}}" :sort nil :format nil)
-    (:name "Driver" :width 10 :template "{{json .Driver}}" :sort nil :format nil)
-    (:name "Scope" :width 10 :template "{{json .Scope}}" :sort nil :format nil))
+  '((:name "Network ID" :width 20 :template "{{ json .ID }}" :sort nil :format nil)
+    (:name "Name" :width 50 :template "{{ json .Name }}" :sort nil :format nil)
+    (:name "Driver" :width 10 :template "{{ json .Driver }}" :sort nil :format nil)
+    (:name "Scope" :width 10 :template "{{ json .Scope }}" :sort nil :format nil))
   "Column specification for docker networks.
 
 The order of entries defines the displayed column order.

@@ -56,8 +56,8 @@ and FLIP is a boolean to specify the sort order."
                        (const :tag "Descending" t))))
 
 (defcustom docker-volume-columns
-  '((:name "Driver" :width 10 :template "{{json .Driver}}" :sort nil :format nil)
-    (:name "Name" :width 40 :template "{{json .Name}}" :sort nil :format nil))
+  '((:name "Driver" :width 10 :template "{{ json .Driver }}" :sort nil :format nil)
+    (:name "Name" :width 40 :template "{{ json .Name }}" :sort nil :format nil))
   "Column specification for docker volumes.
 
 The order of entries defines the displayed column order.
