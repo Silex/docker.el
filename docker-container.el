@@ -25,6 +25,7 @@
 ;;; Code:
 
 (require 's)
+(require 'aio)
 (require 'dash)
 (require 'json)
 (require 'tablist)
@@ -67,7 +68,7 @@ and FLIP is a boolean to specify the sort order."
     (:name "Image" :width 15 :template "{{ json .Image }}" :sort nil :format nil)
     (:name "Command" :width 30 :template "{{ json .Command }}" :sort nil :format nil)
     (:name "Created" :width 23 :template "{{ json .CreatedAt }}" :sort nil :format (lambda (x) (format-time-string "%F %T" (date-to-time x))))
-    (:name "Status" :width 20 :template "{{ json .Status }}" :sort nil :format (lambda (x) (propertize x 'font-lock-face (docker-container-status-face x))))
+    (:name "Status" :width 20 :template "{{ json .Status }}" :sort nil :format nil)
     (:name "Ports" :width 10 :template "{{ json .Ports }}" :sort nil :format nil)
     (:name "Names" :width 10 :template "{{ json .Names }}" :sort nil :format nil))
   "Column specification for docker containers.
@@ -96,8 +97,6 @@ displayed values in the column."
 (defun docker-container-status-face (status)
   "Return the correct face according to STATUS."
   (cond
-   ((s-contains? "(Paused)" status)
-    'docker-face-status-other)
    ((s-starts-with? "Up" status)
     'docker-face-status-up)
    ((s-starts-with? "Exited" status)
@@ -105,38 +104,50 @@ displayed values in the column."
    (t
     'docker-face-status-other)))
 
-(defun docker-container-entries (&optional args)
+(aio-defun docker-container-entries (&rest args)
   "Return the docker containers data for `tabulated-list-entries'."
   (let* ((fmt (docker-utils-make-format-string docker-container-id-template docker-container-columns))
-         (data (docker-run-docker "container ls" args (format "--format=\"%s\"" fmt)))
+         (data (aio-await (docker-run-docker-async "container" "ls" args (format "--format=\"%s\"" fmt))))
          (lines (s-split "\n" data t)))
     (-map (-partial #'docker-utils-parse docker-container-columns) lines)))
 
-(defun docker-container-fetch-status-async ()
-   "Write the status to `docker-status-strings'."
-   (docker-run-async
-    (list "container" "ls" "--all" "--format={{ .State }}")
-    (lambda (data-buffer)
-      (let* ((inhibit-message t)
-             (lines (with-current-buffer data-buffer (s-split "\n" (buffer-string) t)))
-             (up (seq-count (-partial #'equal "running") lines))
-             (down (seq-count (-partial #'equal "exited") lines))
-             (all (length lines))
-             (other (- all up down)))
-        (push `(container . ,(format "%s total, %s up, %s down, %s other"
-                                     all
-                                     (propertize (number-to-string up) 'face 'docker-face-status-up)
-                                     (propertize (number-to-string down) 'face 'docker-face-status-down)
-                                     (propertize (number-to-string other) 'face 'docker-face-status-other)))
-              docker-status-strings)
-        (kill-buffer data-buffer)
-        (transient--redisplay)))))
+(aio-defun docker-container-entries-propertized (&rest args)
+  "Return the propertized docker containers data for `tabulated-list-entries'."
+  (let ((entries (aio-await (docker-container-entries args))))
+    (-map #'docker-container-propertize-entry entries)))
 
-(add-hook 'docker-open-hook #'docker-container-fetch-status-async)
+(defun docker-container-propertize-entry (entry)
+  "Propertize ENTRY so status uses the right face."
+  (let* ((index (--find-index (string-equal "Status" (plist-get it :name)) docker-container-columns))
+         (data (cadr entry))
+         (status (aref data index)))
+    (aset data index (propertize status 'font-lock-face (docker-container-status-face status)))
+    entry))
 
-(defun docker-container-refresh ()
+(aio-defun docker-container-update-status-async ()
+  "Write the status to `docker-status-strings'."
+  (let* ((entries (aio-await (docker-container-entries-propertized (docker-container-ls-arguments))))
+         (index (--find-index (string-equal "Status" (plist-get it :name)) docker-container-columns))
+         (statuses (--map (aref (cadr it) index) entries))
+         (faces (--map (get-text-property 0 'font-lock-face it) statuses))
+         (all (length faces))
+         (up (-count (-partial #'equal 'docker-face-status-up) faces))
+         (down (-count (-partial #'equal 'docker-face-status-down) faces))
+         (other (- all up down)))
+    (push `(container . ,(format "%s total, %s up, %s down, %s other"
+                                 all
+                                 (propertize (number-to-string up) 'face 'docker-face-status-up)
+                                 (propertize (number-to-string down) 'face 'docker-face-status-down)
+                                 (propertize (number-to-string other) 'face 'docker-face-status-other)))
+          docker-status-strings)
+    (transient--redisplay)))
+
+(add-hook 'docker-open-hook #'docker-container-update-status-async)
+
+(aio-defun docker-container-refresh ()
   "Refresh the containers list."
-  (setq tabulated-list-entries (docker-container-entries (docker-container-ls-arguments))))
+  (setq tabulated-list-entries (aio-await (docker-container-entries-propertized (docker-container-ls-arguments))))
+  (tabulated-list-print t))
 
 (defun docker-container-read-name ()
   "Read an container name."
@@ -144,7 +155,7 @@ displayed values in the column."
 
 (defvar eshell-buffer-name)
 
-;;;###autoload
+;;;###autoload (autoload 'docker-container-eshell "docker-container" nil t)
 (defun docker-container-eshell (container)
   "Open `eshell' in CONTAINER."
   (interactive (list (docker-container-read-name)))
@@ -157,7 +168,7 @@ displayed values in the column."
          (eshell-buffer-name (docker-generate-new-buffer-name "eshell" default-directory)))
     (eshell)))
 
-;;;###autoload
+;;;###autoload (autoload 'docker-container-find-directory "docker-container" nil t)
 (defun docker-container-find-directory (container directory)
   "Inside CONTAINER open DIRECTORY."
   (interactive
@@ -169,7 +180,7 @@ displayed values in the column."
 
 (defalias 'docker-container-dired 'docker-container-find-directory)
 
-;;;###autoload
+;;;###autoload (autoload 'docker-container-find-file "docker-container" nil t)
 (defun docker-container-find-file (container file)
   "Open FILE inside CONTAINER."
   (interactive
@@ -179,7 +190,7 @@ displayed values in the column."
        (list host localname))))
   (find-file (format "/docker:%s:%s" container file)))
 
-;;;###autoload
+;;;###autoload (autoload 'docker-container-shell "docker-container" nil t)
 (defun docker-container-shell (container &optional read-shell)
   "Open `shell' in CONTAINER.  When READ-SHELL is not nil, ask the user for it."
   (interactive (list
@@ -194,8 +205,8 @@ displayed values in the column."
          (default-directory (format "%s%s" file-prefix container-address)))
     (shell (docker-generate-new-buffer "shell" default-directory))))
 
-;;;###autoload
-(defun docker-container-shell-env (container &optional read-shell)
+;;;###autoload (autoload 'docker-container-shell-env "docker-container" nil t)
+(aio-defun docker-container-shell-env (container &optional read-shell)
   "Open `shell' in CONTAINER with the environment variable set
 and default directory set to workdir. When READ-SHELL is not
 nil, ask the user for it."
@@ -208,7 +219,7 @@ nil, ask the user for it."
                         (if prefix
                             (format "%s|" (s-chop-suffix ":" prefix))
                           "/")))
-         (container-config (cdr (assq 'Config (aref (json-read-from-string (docker-run-docker "inspect" container)) 0))))
+         (container-config (cdr (assq 'Config (aref (json-read-from-string (aio-await (docker-run-docker-async "inspect" container))) 0))))
          (container-workdir (cdr (assq 'WorkingDir container-config)))
          (container-env (cdr (assq 'Env container-config)))
          (default-directory (format "%s%s%s" file-prefix container-address container-workdir))
@@ -221,14 +232,14 @@ nil, ask the user for it."
   (interactive "sContainer path: \nFHost path: ")
   (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
-    (docker-run-async (list "cp" (concat it ":" container-path) host-path))))
+    (docker-run-docker-async "cp" (concat it ":" container-path) host-path)))
 
 (defun docker-container-cp-to-selection (host-path container-path)
   "Run \"docker cp\" from HOST-PATH to CONTAINER-PATH for selected containers."
   (interactive "fHost path: \nsContainer path: ")
   (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
-    (docker-run-async (list "cp" host-path (concat it ":" container-path)))))
+    (docker-run-docker-async "cp" host-path (concat it ":" container-path))))
 
 (defun docker-container-eshell-selection ()
   "Run `docker-container-eshell' on the containers selection."
@@ -251,12 +262,12 @@ nil, ask the user for it."
   (--each (docker-utils-get-marked-items-ids)
     (docker-container-find-file it path)))
 
-(defun docker-container-rename-selection ()
+(aio-defun docker-container-rename-selection ()
   "Rename containers."
   (interactive)
   (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
-    (docker-run-docker "rename" it (read-string (format "Rename \"%s\" to: " it))))
+    (aio-await (docker-run-docker-async "rename" it (read-string (format "Rename \"%s\" to: " it)))))
   (tablist-revert))
 
 (defun docker-container-shell-selection (prefix)
@@ -277,7 +288,7 @@ nil, ask the user for it."
   "Run `docker-container-unpause' on the containers selection."
   (interactive)
   (docker-utils-ensure-items)
-  (docker-utils-generic-action-async-with-multiple-ids "unpause" (transient-args transient-current-command)))
+  (docker-utils-generic-action-async-multiple-ids "unpause" (transient-args transient-current-command)))
 
 (docker-utils-transient-define-prefix docker-container-attach ()
   "Transient for attaching to containers."
@@ -313,7 +324,7 @@ nil, ask the user for it."
   ["Arguments"
    ("s" "Signal" "-s " read-string)]
   [:description docker-utils-generic-actions-heading
-   ("K" "Kill" docker-utils-generic-action-async-with-multiple-ids)])
+   ("K" "Kill" docker-utils-generic-action-async-multiple-ids)])
 
 (docker-utils-transient-define-prefix docker-container-logs ()
   "Transient for showing containers logs."
@@ -347,7 +358,7 @@ nil, ask the user for it."
   "Transient for pausing containers."
   :man-page "docker-container-pause"
   [:description docker-utils-generic-actions-heading
-   ("P" "Pause" docker-utils-generic-action-async-with-multiple-ids)
+   ("P" "Pause" docker-utils-generic-action-async-multiple-ids)
    ("U" "Unpause" docker-container-unpause-selection)])
 
 (docker-utils-transient-define-prefix docker-container-restart ()
@@ -356,7 +367,7 @@ nil, ask the user for it."
   ["Arguments"
    ("t" "Timeout" "-t " transient-read-number-N0)]
   [:description docker-utils-generic-actions-heading
-   ("R" "Restart" docker-utils-generic-action-async-with-multiple-ids)])
+   ("R" "Restart" docker-utils-generic-action-async-multiple-ids)])
 
 (docker-utils-transient-define-prefix docker-container-rm ()
   "Transient for removing containers."
@@ -365,7 +376,7 @@ nil, ask the user for it."
    ("f" "Force" "-f")
    ("v" "Volumes" "-v")]
   [:description docker-utils-generic-actions-heading
-   ("D" "Remove" docker-utils-generic-action-async-with-multiple-ids)])
+   ("D" "Remove" docker-utils-generic-action-async-multiple-ids)])
 
 (docker-utils-transient-define-prefix docker-container-shells ()
   "Transient for doing M-x `shell'/`eshell' to containers."
@@ -378,7 +389,7 @@ nil, ask the user for it."
   "Transient for starting containers."
   :man-page "docker-container-start"
   [:description docker-utils-generic-actions-heading
-   ("S" "Start" docker-utils-generic-action-async-with-multiple-ids)])
+   ("S" "Start" docker-utils-generic-action-async-multiple-ids)])
 
 (docker-utils-transient-define-prefix docker-container-stop ()
   "Transient for stoping containers."
@@ -386,7 +397,7 @@ nil, ask the user for it."
   ["Arguments"
    ("t" "Timeout" "-t " transient-read-number-N0)]
   [:description docker-utils-generic-actions-heading
-   ("O" "Stop" docker-utils-generic-action-async-with-multiple-ids)])
+   ("O" "Stop" docker-utils-generic-action-async-multiple-ids)])
 
 (transient-define-prefix docker-container-help ()
   "Help transient for docker containers."
@@ -431,7 +442,7 @@ nil, ask the user for it."
     map)
   "Keymap for `docker-container-mode'.")
 
-;;;###autoload
+;;;###autoload (autoload 'docker-containers "docker-container" nil t)
 (defun docker-containers ()
   "List docker containers."
   (interactive)

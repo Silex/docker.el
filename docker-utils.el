@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 's)
+(require 'aio)
 (require 'dash)
 (require 'tramp)
 (require 'tablist)
@@ -68,11 +69,19 @@ Execute BODY in a buffer named with the help of NAME."
             (propertize "Actions on" 'face 'transient-heading)
             (propertize items        'face 'transient-value))))
 
-(defun docker-utils-generic-action (action args)
+(aio-defun docker-utils-generic-action-async (action args)
   (interactive (list (docker-utils-get-transient-action)
                      (transient-args transient-current-command)))
-  (--each (docker-utils-get-marked-items-ids)
-    (docker-run-docker action args it))
+  (let* ((ids (docker-utils-get-marked-items-ids))
+         (promises (--map (docker-run-docker-async action args it) ids)))
+    (aio-await (aio-all promises))
+    (tablist-revert)))
+
+(aio-defun docker-utils-generic-action-async-multiple-ids (action args)
+  "Same as `docker-utils-generic-action-async', but group selection ids into a single command."
+  (interactive (list (docker-utils-get-transient-action)
+                     (transient-args transient-current-command)))
+  (aio-await (docker-run-docker-async action args (docker-utils-get-marked-items-ids)))
   (tablist-revert))
 
 (defun docker-utils-generic-action-with-buffer (action args)
@@ -80,28 +89,7 @@ Execute BODY in a buffer named with the help of NAME."
   (interactive (list (docker-utils-get-transient-action)
                      (transient-args transient-current-command)))
   (--each (docker-utils-get-marked-items-ids)
-    (docker-run-with-buffer (s-split " " action) args it)))
-
-(defun docker-utils-generic-action-async (action args)
-  "Run \"docker ACTION ARGS\" asynchronously and refresh the tablist."
-  (interactive (list (docker-utils-get-transient-action)
-                     (transient-args transient-current-command)))
-  (--each (docker-utils-get-marked-items-ids)
-    (let ((calling-buffer (current-buffer)))
-      (docker-run-async (list (s-split " " action) args (list it))
-                        (lambda (data-buffer)
-                          (with-current-buffer calling-buffer (tablist-revert))
-                          (kill-buffer data-buffer))))))
-
-(defun docker-utils-generic-action-async-with-multiple-ids (action args)
-  "As for `docker-utils-generic-action-async', but group selection ids into a single command."
-  (interactive (list (docker-utils-get-transient-action)
-                     (transient-args transient-current-command)))
-  (let ((calling-buffer (current-buffer)))
-    (docker-run-async (list (s-split " " action) args (docker-utils-get-marked-items-ids))
-                      (lambda (data-buffer)
-                        (with-current-buffer calling-buffer (tablist-revert))
-                        (kill-buffer data-buffer)))))
+    (docker-run-docker-async-with-buffer (s-split " " action) args it)))
 
 (defun docker-utils-pop-to-buffer (name)
   "Like `pop-to-buffer', but suffix NAME with the host if on a remote host."
@@ -121,12 +109,13 @@ Execute BODY in a buffer named with the help of NAME."
          (multiplier (docker-utils-unit-multiplier (-third-item parts))))
     (* value multiplier)))
 
-(defun docker-utils-inspect ()
+(aio-defun docker-utils-inspect ()
   "Docker Inspect the tablist entry under point."
   (interactive)
-  (let ((entry-id (tabulated-list-get-id)))
-    (docker-utils-with-buffer (format "inspect %s" entry-id)
-      (insert (docker-run-docker "inspect" () entry-id))
+  (let* ((id (tabulated-list-get-id))
+         (data (aio-await (docker-run-docker-async "inspect" id))))
+    (docker-utils-with-buffer (format "inspect %s" id)
+      (insert data)
       (js-mode)
       (view-mode))))
 

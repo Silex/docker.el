@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 's)
+(require 'aio)
 (require 'dash)
 (require 'json)
 (require 'tablist)
@@ -79,18 +80,18 @@ displayed values in the column."
                        (sexp :tag "Sort function")
                        (sexp :tag "Format function"))))
 
-(defun docker-network-entries (&optional args)
+(aio-defun docker-network-entries (&rest args)
   "Return the docker networks data for `tabulated-list-entries'."
   (let* ((fmt (docker-utils-make-format-string docker-network-id-template docker-network-columns))
-         (data (docker-run-docker "network ls" args (format "--format=\"%s\"" fmt)))
+         (data (aio-await (docker-run-docker-async "network" "ls" args (format "--format=\"%s\"" fmt))))
          (lines (s-split "\n" data t)))
     (-map (-partial #'docker-utils-parse docker-network-columns) lines)))
 
-(defun docker-network-entries-propertized (&optional args)
-  "Return the docker networks data for `tabulated-list-entries'."
-  (let ((all (docker-network-entries args))
-        (dangling (docker-network-entries "--filter dangling=true")))
-    (--map-when (-contains? dangling it) (docker-network-entry-set-dangling it) all)))
+(aio-defun docker-network-entries-propertized (&rest args)
+  "Return the propertized docker networks data for `tabulated-list-entries'."
+  (let ((entries (aio-await (docker-network-entries args)))
+        (dangling (aio-await (docker-network-entries "--filter dangling=true"))))
+    (--map-when (-contains? dangling it) (docker-network-entry-set-dangling it) entries)))
 
 (defun docker-network-dangling-p (entry-id)
   "Predicate for if ENTRY-ID is dangling.
@@ -106,30 +107,22 @@ The result is the tabulated list id for an entry is propertized with
   (list (propertize (car entry) 'docker-network-dangling t)
         (apply #'vector (--map (propertize it 'font-lock-face 'docker-face-dangling) (cadr entry)))))
 
-(defun docker-network-fetch-status-async ()
+(aio-defun docker-network-update-status-async ()
   "Write the status to `docker-status-strings'."
-  (docker-run-async
-    '("network" "ls" "-q" "--filter=\ dangling=true")
-    (lambda (data-buffer)
-      (let* ((dangling (with-current-buffer data-buffer (length (s-split "\n" (buffer-string) t)))))
-        (kill-buffer data-buffer)
-        ;; now it gets crazy...
-        (docker-run-async
-         '("network" "ls" "-q")
-         (lambda (data-buffer)
-           (let* ((all (with-current-buffer data-buffer (length (s-split "\n" (buffer-string) t)))))
-             (push `(network . ,(format "%s total, %s dangling"
-                                      (number-to-string all)
-                                      (propertize (number-to-string dangling) 'face 'docker-face-dangling)))
-                   docker-status-strings)
-             (kill-buffer data-buffer)
-             (transient--redisplay))))))))
+  (let* ((entries (aio-await (docker-network-entries-propertized (docker-network-ls-arguments))))
+         (dangling (--filter (docker-network-dangling-p (car it)) entries)))
+    (push `(network . ,(format "%s total, %s dangling"
+                              (number-to-string (length entries))
+                              (propertize (number-to-string (length dangling)) 'face 'docker-face-dangling)))
+          docker-status-strings)
+    (transient--redisplay)))
 
-(add-hook 'docker-open-hook #'docker-network-fetch-status-async)
+(add-hook 'docker-open-hook #'docker-network-update-status-async)
 
-(defun docker-network-refresh ()
+(aio-defun docker-network-refresh ()
   "Refresh the networks list."
-  (setq tabulated-list-entries (docker-network-entries-propertized (docker-network-ls-arguments))))
+  (setq tabulated-list-entries (aio-await (docker-network-entries-propertized (docker-network-ls-arguments))))
+  (tabulated-list-print t))
 
 (defun docker-network-read-name ()
   "Read a network name."
@@ -168,7 +161,7 @@ applied to the buffer."
   "Transient for removing networks."
   :man-page "docker-network-rm"
   [:description docker-utils-generic-actions-heading
-   ("D" "Remove" docker-utils-generic-action-async-with-multiple-ids)])
+   ("D" "Remove" docker-utils-generic-action-async-multiple-ids)])
 
 (transient-define-prefix docker-network-help ()
   "Help transient for docker networks."
@@ -189,7 +182,7 @@ applied to the buffer."
     map)
   "Keymap for `docker-network-mode'.")
 
-;;;###autoload
+;;;###autoload (autoload 'docker-networks "docker-network" nil t)
 (defun docker-networks ()
   "List docker networks."
   (interactive)

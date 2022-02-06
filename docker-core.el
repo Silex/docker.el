@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 's)
+(require 'aio)
 (require 'dash)
 (require 'transient)
 
@@ -41,9 +42,6 @@
   :group 'docker
   :type 'boolean)
 
-(defvar docker-error-buffers ()
-  "Buffers with error output from Docker commands.")
-
 (defun docker-arguments ()
   "Return the latest used arguments in the `docker' transient."
   (car (alist-get 'docker transient-history)))
@@ -55,73 +53,53 @@
                               default-directory)))
      ,@body))
 
-(defun docker-shell-command-to-string (command)
-  "Execute shell command COMMAND and return its output as a string.
-Wrap the function `shell-command-to-string', ensuring variable `shell-file-name' behaves properly."
-  (let ((shell-file-name (if (and (eq system-type 'windows-nt)
-                                  (not (file-remote-p default-directory)))
-                             "cmdproxy.exe"
-                           "/bin/sh")))
-    (shell-command-to-string command)))
-
-(defun docker-run-docker (&rest args)
-  "Execute \"`docker-command' ARGS\" and return the results."
+(defun docker-run-start-file-process-shell-command (program &rest args)
+  "Execute \"PROGRAM ARGS\" and return the process."
   (docker-with-sudo
-    (let* ((flat-args (-remove 's-blank? (-flatten (list (docker-arguments) args))))
-           (command (s-join " " (-insert-at 0 docker-command flat-args))))
-      (message command)
-      (s-trim-right (docker-shell-command-to-string command)))))
+    (let* ((process-args (-remove 's-blank? (-flatten args)))
+           (command (s-join " " (-insert-at 0 program process-args))))
+      (message "Running: %s" command)
+      (start-file-process-shell-command command (apply #'docker-generate-new-buffer-name process-args) command))))
 
-(defun docker-run-async (args &optional callback)
-  "Run \"`docker-command' ARGS\" in an external process then call CALLBACK.
+(defun docker-run-async (program &rest args)
+  "Execute \"PROGRAM ARGS\" and return a promise with the results."
+  (let* ((process (apply #'docker-run-start-file-process-shell-command program args))
+         (promise (aio-promise)))
+    (set-process-query-on-exit-flag process nil)
+    (set-process-sentinel process (-partial #'docker-process-sentinel promise))
+    promise))
 
-ARGS is a list of arguments to the 'docker' command.
-CALLBACK should accept the output buffer.  It is called only when the process is
-finished."
-  (docker-with-sudo
-    (let* ((flat-args (-remove 's-blank? (-flatten (list (docker-arguments) args))))
-           (command-list (cons docker-command flat-args))
-           (command-string (s-join " " command-list))
-           (output-buffer (docker-generate-new-buffer (s-join " " flat-args))))
-      (message command-string)
-      ;; Use shell-mode to interpret special char codes
-      (with-current-buffer output-buffer
-        (shell-mode))
-      ;; Default to discarding output buffer
-      (unless callback
-        (setq callback #'kill-buffer))
-      (make-process
-       :name command-string
-       :buffer output-buffer
-       :command command-list
-       :filter #'docker-process-filter
-       :sentinel (-partial #'docker-process-sentinel callback)
-       :noquery t))))
+(defun docker-run-async-with-buffer (program &rest args)
+  "Execute \"PROGRAM ARGS\" and display output in a new buffer."
+  (let* ((process (apply #'docker-run-start-file-process-shell-command program args))
+         (buffer (process-buffer process)))
+    (set-process-query-on-exit-flag process nil)
+    (with-current-buffer buffer (shell-mode))
+    (set-process-filter process 'comint-output-filter)
+    (switch-to-buffer-other-window buffer)))
 
-(defun docker-process-filter (proc text)
-  "Just print output to process buffer which remains read-only."
-  (setq buffer-read-only nil)
-  (internal-default-process-filter proc text)
-  (setq buffer-read-only t))
+(defun docker-run-docker-async (&rest args)
+  "Execute \"`docker-command' ARGS\" and return a promise with the results."
+  (apply #'docker-run-async docker-command (docker-arguments) args))
 
-(defun docker-process-sentinel (callback proc status)
-  "Passes command output buffer to CALLBACK."
-  (pcase status
-    ('"finished\n"
-     (apply callback (list (process-buffer proc))))
-    (_
-     (message (format "%s: %s\nPress $ or visit buffer %s" (process-name proc) status (buffer-name (process-buffer proc))))
-     (push (process-buffer proc) docker-error-buffers))))
+(defun docker-run-docker-async-with-buffer (&rest args)
+  "Execute \"`docker-command' ARGS\" and display the results in a buffer."
+  (apply #'docker-run-async-with-buffer docker-command (docker-arguments) args))
 
-(defun docker-run-with-buffer (&rest args)
-  "Execute \"`docker-command' ARGS\" displaying output in a new buffer.
-
-See `docker-run-async'."
-  (let ((process (docker-run-async
-                  args
-                  (lambda (_) (message "Docker process Finished")))))
-    (switch-to-buffer-other-window (process-buffer process))
-    process))
+(defun docker-process-sentinel (promise process event)
+  "Sentinel that resolves the PROMISE using PROCESS and EVENT."
+  (when (memq (process-status process) '(exit signal))
+    (setq event (substring event 0 -1))
+    (if (not (string-equal event "finished"))
+        (error "Error running: \"%s\" (%s)" (process-name process) event)
+      (aio-resolve promise
+                   (lambda ()
+                     (message nil)
+                     (message "Finished: %s" (process-name process))
+                     (run-with-timer 2 nil (lambda () (message nil)))
+                     (with-current-buffer (process-buffer process)
+                       (prog1 (buffer-substring-no-properties (point-min) (point-max))
+                         (kill-buffer))))))))
 
 (defun docker-generate-new-buffer-name (&rest args)
   "Wrapper around `generate-new-buffer-name'."

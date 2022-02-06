@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 's)
+(require 'aio)
 (require 'dash)
 (require 'tablist)
 (require 'transient)
@@ -45,52 +46,25 @@
   :group 'docker-compose
   :type 'function)
 
-(defun docker-compose-run-docker-compose (action &rest args)
-  "Execute \"`docker-compose-command' ACTION ARGS\"."
-  (let ((command (format "%s %s %s %s"
-                         docker-compose-command
-                         (s-join " " (docker-compose-arguments))
-                         action
-                         (s-join " " (-flatten (-non-nil args))))))
-    (message command)
-    (docker-shell-command-to-string command)))
-
 (defun docker-compose-run-docker-compose-async (action &rest args)
-  "Execute \"`docker-compose-command' ACTION ARGS\"."
-  (let ((command (format "%s %s %s %s"
-                         docker-compose-command
-                         (s-join " " (docker-compose-arguments))
-                         action
-                         (s-join " " (-flatten (-non-nil args))))))
-    (message command)
-    (async-shell-command command (funcall docker-compose-run-buffer-name-function action (-flatten args)))))
+  "Execute \"`docker-compose-command' ACTION ARGS\" and return a promise with the results."
+  (apply #'docker-run-async docker-compose-command (docker-compose-arguments) action args))
 
-(defun docker-compose-parse (line)
-  "Convert a LINE from \"docker-compose ps\" to a `tabulated-list-entries' entry."
-  (let ((data (s-split " \\{3,\\}" line)))
-    (list (car data) (apply #'vector data))))
+(defun docker-compose-run-docker-compose-async-with-buffer (action &rest args)
+  "Execute \"`docker-compose-command' ACTION ARGS\" and display output in a new buffer."
+  (apply #'docker-run-async-with-buffer docker-compose-command (docker-compose-arguments) action args))
 
-(defun docker-compose-entries ()
-  "Return the docker compose data for `tabulated-list-entries'."
-  (let* ((data (docker-compose-run-docker-compose "ps"))
-         (lines (-slice (s-split "\n" data t) 2)))
-    (-map #'docker-compose-parse lines)))
-
-(defun docker-compose-refresh ()
-  "Refresh the docker-compose entries."
-  (setq tabulated-list-entries (docker-compose-entries)))
-
-(defun docker-compose-services ()
+(aio-defun docker-compose-services ()
   "Return the list of services."
-  (s-split "\n" (docker-compose-run-docker-compose "config" "--services" "2>/dev/null") t))
+  (s-split "\n" (aio-await (docker-compose-run-docker-compose-async "config" "--services" "2>/dev/null")) t))
 
-(defun docker-compose-read-services-names ()
+(aio-defun docker-compose-read-services-names ()
   "Read the services names."
-  (completing-read-multiple "Services: " (docker-compose-services)))
+  (completing-read-multiple "Services: " (aio-await (docker-compose-services))))
 
-(defun docker-compose-read-service-name ()
+(aio-defun docker-compose-read-service-name ()
   "Read one service name."
-  (completing-read "Service: " (docker-compose-services)))
+  (completing-read "Service: " (aio-await (docker-compose-services))))
 
 (defun docker-compose-read-log-level (prompt &rest _args)
   "Read the docker-compose log level."
@@ -112,29 +86,31 @@
   "Make a buffer name based on ACTION and ARGS."
   (format "*docker-compose %s %s*" action (s-join " " (-non-nil args))))
 
-(defun docker-compose-run-action-for-one-service (action args services)
+(aio-defun docker-compose-run-action-for-one-service (action args services)
   "Run \"docker-compose ACTION ARGS SERVICES\"."
   (interactive (list
                 (-last-item (s-split "-" (symbol-name transient-current-command)))
                 (transient-args transient-current-command)
-                (docker-compose-read-services-names)))
-  (docker-compose-run-docker-compose-async action args services))
+                nil))
+  (setq services (aio-await (docker-compose-read-services-names)))
+  (docker-compose-run-docker-compose-async-with-buffer action args services))
 
 (defun docker-compose-run-action-for-all-services (action args)
   "Run \"docker-compose ACTION ARGS\"."
   (interactive (list
                 (-last-item (s-split "-" (symbol-name transient-current-command)))
                 (transient-args transient-current-command)))
-  (docker-compose-run-docker-compose-async action args))
+  (docker-compose-run-docker-compose-async-with-buffer action args))
 
-(defun docker-compose-run-action-with-command (action args service command)
+(aio-defun docker-compose-run-action-with-command (action args service command)
   "Run \"docker-compose ACTION ARGS SERVICE COMMAND\"."
   (interactive (list
                 (-last-item (s-split "-" (symbol-name transient-current-command)))
                 (transient-args transient-current-command)
-                (docker-compose-read-service-name)
+                nil
                 (read-string "Command: ")))
-  (docker-compose-run-docker-compose-async action args service command))
+  (setq service (aio-await (docker-compose-read-service-name)))
+  (docker-compose-run-docker-compose-async-with-buffer action args service command))
 
 (transient-define-prefix docker-compose-build ()
   "Transient for \"docker-compose build\"."
