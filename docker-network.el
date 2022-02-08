@@ -98,13 +98,13 @@ displayed values in the column."
 For example (docker-network-dangling-p (tabulated-list-get-id)) is t when the entry under point is dangling."
   (get-text-property 0 'docker-network-dangling entry-id))
 
-(defun docker-network-entry-set-dangling (parsed-entry)
-  "Mark PARSED-ENTRY (output of `docker-network-entries') as dangling.
+(defun docker-network-entry-set-dangling (entry)
+  "Mark ENTRY (output of `docker-network-entries') as dangling.
 
 The result is the tabulated list id for an entry is propertized with
 'docker-network-dangling and the entry is fontified with 'docker-face-dangling."
-  (list (propertize (car parsed-entry) 'docker-network-dangling t)
-        (apply #'vector (--map (propertize it 'font-lock-face 'docker-face-dangling) (cadr parsed-entry)))))
+  (list (propertize (car entry) 'docker-network-dangling t)
+        (apply #'vector (--map (propertize it 'font-lock-face 'docker-face-dangling) (cadr entry)))))
 
 (defun docker-network-fetch-status-async ()
   "Write the status to `docker-status-strings'."
