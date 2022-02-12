@@ -126,6 +126,7 @@ displayed values in the column."
 
 (aio-defun docker-container-update-status-async ()
   "Write the status to `docker-status-strings'."
+  (plist-put docker-status-strings :containers "Containers")
   (let* ((entries (aio-await (docker-container-entries-propertized (docker-container-ls-arguments))))
          (index (--find-index (string-equal "Status" (plist-get it :name)) docker-container-columns))
          (statuses (--map (aref (cadr it) index) entries))
@@ -134,12 +135,13 @@ displayed values in the column."
          (up (-count (-partial #'equal 'docker-face-status-up) faces))
          (down (-count (-partial #'equal 'docker-face-status-down) faces))
          (other (- all up down)))
-    (push `(container . ,(format "%s total, %s up, %s down, %s other"
-                                 all
-                                 (propertize (number-to-string up) 'face 'docker-face-status-up)
-                                 (propertize (number-to-string down) 'face 'docker-face-status-down)
-                                 (propertize (number-to-string other) 'face 'docker-face-status-other)))
-          docker-status-strings)
+    (plist-put docker-status-strings
+               :containers
+               (format "Containers (%s total, %s up, %s down, %s other)"
+                       all
+                       (propertize (number-to-string up) 'face 'docker-face-status-up)
+                       (propertize (number-to-string down) 'face 'docker-face-status-down)
+                       (propertize (number-to-string other) 'face 'docker-face-status-other)))
     (transient--redisplay)))
 
 (add-hook 'docker-open-hook #'docker-container-update-status-async)

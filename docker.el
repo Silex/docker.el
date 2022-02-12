@@ -46,17 +46,11 @@
 (defvar docker-open-hook ()
   "Called when Docker transient is openened.")
 
-(defvar docker-status-strings ()
-  "Alist of status reports for `docker-transient'.")
+(defvar docker-status-strings '(:containers "" :images "" :networks "" :volumes "")
+  "Plist of statuses for `docker-transient'.")
 
 ;;;###autoload (autoload 'docker "docker" nil t)
-(defun docker ()
-  (interactive)
-  (setq docker-status-strings nil)
-  (run-hooks 'docker-open-hook)
-  (docker-transient))
-
-(transient-define-prefix docker-transient ()
+(transient-define-prefix docker ()
   "Transient for docker."
   :man-page "docker"
   ["Arguments"
@@ -68,12 +62,15 @@
    (5 "Tk" "TLS key" "--tlskey" docker-read-certificate)
    (5 "l" "Log level" "--log-level " docker-read-log-level)]
   ["Docker"
-   ("c" (lambda ()(format "Containers (%s)" (alist-get 'container docker-status-strings "")))    docker-containers)
-   ("i" (lambda ()(format "Images (%s)"     (alist-get 'image     docker-status-strings "")))    docker-images)
-   ("n" (lambda ()(format "Networks (%s)"   (alist-get 'network   docker-status-strings "")))    docker-networks)
-   ("v" (lambda ()(format "Volumes (%s)"    (alist-get 'volume    docker-status-strings "")))    docker-volumes)]
+   ("c" (lambda ()(plist-get docker-status-strings :containers)) docker-containers)
+   ("i" (lambda ()(plist-get docker-status-strings :images))     docker-images)
+   ("n" (lambda ()(plist-get docker-status-strings :networks))   docker-networks)
+   ("v" (lambda ()(plist-get docker-status-strings :volumes))    docker-volumes)]
   ["Other"
-   ("C" "Compose"    docker-compose)])
+   ("C" "Compose"    docker-compose)]
+  (interactive)
+  (run-hooks 'docker-open-hook)
+  (transient-setup 'docker))
 
 (provide 'docker)
 
