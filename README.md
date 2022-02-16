@@ -72,7 +72,8 @@ Here is a list of other customizations you can set:
 
 | Variable                          | Description                           | Default              |
 |-----------------------------------|---------------------------------------|----------------------|
-| docker-command                    | The binary to use                     | `docker`             |
+| docker-command                    | The docker binary to use              | `docker`             |
+| docker-compose-command            | The docker-compose binary to use      | `docker-compose`     |
 | docker-container-columns          | Columns definition for containers     | `/bin/sh`            |
 | docker-container-default-sort-key | Sort key for containers               | `("Image")`          |
 | docker-container-shell-file-name  | Shell to use when entering containers | `/bin/sh`            |
@@ -80,7 +81,7 @@ Here is a list of other customizations you can set:
 | docker-image-default-sort-key     | Sort key for images                   | `("Repository")`     |
 | docker-network-columns            | Columns definition for networks       | Too complex to show  |
 | docker-network-default-sort-key   | Sort key for networks                 | `("Name")`           |
-| docker-run-as-root                | Run docker as root                    | `nil`                |
+| docker-run-as-root                | Runs docker as root when enabled      | `nil`                |
 | docker-run-default-args           | Base arguments to use for docker run  | `("-i" "-t" "--rm")` |
 | docker-volume-columns             | Columns definition for volumes        | Too complex to show  |
 | docker-volume-default-sort-key    | Sort key for volumes                  | `("Driver")`         |
