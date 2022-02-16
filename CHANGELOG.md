@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.0 (2021-02-16)
+
+- Run commands asynchronously.
+- Add ability to choose which columns are displayed and in which order.
+- Add vterm support.
+- Add `--env-file` option to docker-compose.
+- Add filters for dangling items.
+- Show statistics in docker transient.
+- Remove deprecated docker-machine.
+- Various bugfixes.
+
 ## 1.4.0 (2020-09-14)
 
 - Add colors to various listings.
