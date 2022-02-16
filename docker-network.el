@@ -175,7 +175,6 @@ applied to the buffer."
 
 (defvar docker-network-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "$" 'docker-utils-visit-error-buffer)
     (define-key map "?" 'docker-network-help)
     (define-key map "D" 'docker-network-rm)
     (define-key map "I" 'docker-utils-inspect)

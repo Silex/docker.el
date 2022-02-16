@@ -444,7 +444,6 @@ nil, ask the user for it."
 
 (defvar docker-container-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "$" 'docker-utils-visit-error-buffer)
     (define-key map "?" 'docker-container-help)
     (define-key map "C" 'docker-container-cp)
     (define-key map "D" 'docker-container-rm)
