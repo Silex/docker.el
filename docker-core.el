@@ -71,12 +71,25 @@
 
 (defun docker-run-async-with-buffer (program &rest args)
   "Execute \"PROGRAM ARGS\" and display output in a new buffer."
+  (if (require 'vterm nil 'noerror)
+      (apply #'docker-run-async-with-buffer-vterm program args)
+    (apply #'docker-run-async-with-buffer-shell program args)))
+
+(defun docker-run-async-with-buffer-shell (program &rest args)
+  "Execute \"PROGRAM ARGS\" and display output in a new `shell' buffer."
   (let* ((process (apply #'docker-run-start-file-process-shell-command program args))
          (buffer (process-buffer process)))
     (set-process-query-on-exit-flag process nil)
     (with-current-buffer buffer (shell-mode))
     (set-process-filter process 'comint-output-filter)
     (switch-to-buffer-other-window buffer)))
+
+(defun docker-run-async-with-buffer-vterm (program &rest args)
+  "Execute \"PROGRAM ARGS\" and display output in a new `vterm' buffer."
+  (let* ((process-args (-remove 's-blank? (-flatten args)))
+         (vterm-shell (s-join " " (-insert-at 0 program process-args)))
+         (vterm-kill-buffer-on-exit nil))
+    (vterm-other-window (apply #'docker-generate-new-buffer-name process-args))))
 
 (defun docker-run-docker-async (&rest args)
   "Execute \"`docker-command' ARGS\" and return a promise with the results."

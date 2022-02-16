@@ -229,6 +229,18 @@ nil, ask the user for it."
          (tramp-remote-process-environment (append container-env nil)))
     (shell (docker-generate-new-buffer "shell" default-directory))))
 
+;;;###autoload (autoload 'docker-container-vterm "docker-container" nil t)
+(defun docker-container-vterm (container)
+  "Open `vterm' in CONTAINER."
+  (interactive (list (docker-container-read-name)))
+  (let* ((container-address (format "docker:%s:/" container))
+         (file-prefix (let ((prefix (file-remote-p default-directory)))
+                        (if prefix
+                            (format "%s|" (s-chop-suffix ":" prefix))
+                          "/")))
+         (default-directory (format "%s%s" file-prefix container-address)))
+    (vterm-other-window (docker-generate-new-buffer-name "vterm" default-directory))))
+
 (defun docker-container-cp-from-selection (container-path host-path)
   "Run \"docker cp\" from CONTAINER-PATH to HOST-PATH for selected container."
   (interactive "sContainer path: \nFHost path: ")
@@ -291,6 +303,13 @@ nil, ask the user for it."
   (interactive)
   (docker-utils-ensure-items)
   (docker-utils-generic-action-async-multiple-ids "unpause" (transient-args transient-current-command)))
+
+(defun docker-container-vterm-selection ()
+  "Run `docker-container-vterm' on the containers selection."
+  (interactive)
+  (docker-utils-ensure-items)
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-container-vterm it)))
 
 (docker-utils-transient-define-prefix docker-container-attach ()
   "Transient for attaching to containers."
@@ -385,7 +404,8 @@ nil, ask the user for it."
   [:description docker-utils-generic-actions-heading
    ("b" "Shell" docker-container-shell-selection)
    ("B" "Shell with env" docker-container-shell-env-selection)
-   ("e" "Eshell" docker-container-eshell-selection)])
+   ("e" "Eshell" docker-container-eshell-selection)
+   ("v" "Vterm" docker-container-vterm-selection)])
 
 (docker-utils-transient-define-prefix docker-container-start ()
   "Transient for starting containers."
