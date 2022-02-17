@@ -41,11 +41,6 @@
   :group 'docker-compose
   :type 'string)
 
-(defcustom docker-compose-run-buffer-name-function 'docker-compose-make-buffer-name
-  "Names a docker-compose run buffer based on `action' and `args'"
-  :group 'docker-compose
-  :type 'function)
-
 (defun docker-compose-run-docker-compose-async (action &rest args)
   "Execute \"`docker-compose-command' ACTION ARGS\" and return a promise with the results."
   (apply #'docker-run-async docker-compose-command (docker-compose-arguments) action args))
@@ -81,10 +76,6 @@
 (defun docker-compose-read-compose-file (prompt &optional initial-input _history)
   "Wrapper around `read-file-name'."
   (read-file-name prompt nil nil t initial-input (apply-partially 'string-match ".*\\.yml\\|.*\\.yaml")))
-
-(defun docker-compose-make-buffer-name (action args)
-  "Make a buffer name based on ACTION and ARGS."
-  (format "*docker-compose %s %s*" action (s-join " " (-non-nil args))))
 
 (aio-defun docker-compose-run-action-for-one-service (action args services)
   "Run \"docker-compose ACTION ARGS SERVICES\"."
