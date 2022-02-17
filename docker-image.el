@@ -31,6 +31,7 @@
 (require 'transient)
 
 (require 'docker-core)
+(require 'docker-faces)
 (require 'docker-utils)
 
 (defgroup docker-image nil
