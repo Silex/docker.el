@@ -1,4 +1,4 @@
-;;; docker-compose.el --- Emacs interface to docker-compose  -*- lexical-binding: t -*-
+;;; docker-compose.el --- Interface to docker-compose  -*- lexical-binding: t -*-
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 
@@ -26,11 +26,11 @@
 (require 's)
 (require 'aio)
 (require 'dash)
-(require 'tablist)
 (require 'transient)
 
-(require 'docker-core)
+(require 'docker-group)
 (require 'docker-utils)
+(require 'docker-process)
 
 (defgroup docker-compose nil
   "Docker compose customization group."

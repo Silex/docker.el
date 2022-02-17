@@ -1,4 +1,4 @@
-;;; docker-image.el --- Emacs interface to docker-image  -*- lexical-binding: t -*-
+;;; docker-image.el --- Interface to docker-image  -*- lexical-binding: t -*-
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 
@@ -224,15 +224,15 @@ applied to the buffer."
   :man-page "docker-image-pull"
   ["Arguments"
    ("a" "All" "-a")]
-  [:description docker-utils-generic-actions-heading
-   ("F" "Pull selection" docker-utils-generic-action-async)
+  [:description docker-generic-actions-heading
+   ("F" "Pull selection" docker-generic-action-async)
    ("N" "Pull a new image" docker-image-pull-one)])
 
 (docker-utils-transient-define-prefix docker-image-push ()
   "Transient for pushing images."
   :man-page "docker-image-push"
-  [:description docker-utils-generic-actions-heading
-   ("P" "Push" docker-utils-generic-action-async)])
+  [:description docker-generic-actions-heading
+   ("P" "Push" docker-generic-action-async)])
 
 (docker-utils-transient-define-prefix docker-image-rm ()
   "Transient for removing images."
@@ -240,8 +240,8 @@ applied to the buffer."
   ["Arguments"
    ("-f" "Force" "-f")
    ("-n" "Don't prune" "--no-prune")]
-  [:description docker-utils-generic-actions-heading
-   ("D" "Remove" docker-utils-generic-action-async-multiple-ids)])
+  [:description docker-generic-actions-heading
+   ("D" "Remove" docker-generic-action-async-multiple-ids)])
 
 (defclass docker-run-prefix (transient-prefix) nil)
 
@@ -280,7 +280,7 @@ applied to the buffer."
    ("u" "user" "-u " read-string)
    ("v" "volume" "-v " read-string)
    ("w" "workdir" "-w " read-string)]
-  [:description docker-utils-generic-actions-heading
+  [:description docker-generic-actions-heading
    ("R" "Run" docker-image-run-selection)])
 
 (transient-define-prefix docker-image-help ()
@@ -288,7 +288,7 @@ applied to the buffer."
   ["Docker images help"
    ("D" "Remove"        docker-image-rm)
    ("F" "Pull"          docker-image-pull)
-   ("I" "Inspect"       docker-utils-inspect)
+   ("I" "Inspect"       docker-inspect)
    ("P" "Push"          docker-image-push)
    ("R" "Run"           docker-image-run)
    ("T" "Tag"           docker-image-tag-selection)
@@ -300,7 +300,7 @@ applied to the buffer."
     (define-key map "?" 'docker-image-help)
     (define-key map "D" 'docker-image-rm)
     (define-key map "F" 'docker-image-pull)
-    (define-key map "I" 'docker-utils-inspect)
+    (define-key map "I" 'docker-inspect)
     (define-key map "P" 'docker-image-push)
     (define-key map "R" 'docker-image-run)
     (define-key map "T" 'docker-image-tag-selection)

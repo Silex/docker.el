@@ -1,4 +1,4 @@
-;;; docker-volume.el --- Emacs interface to docker-volume  -*- lexical-binding: t -*-
+;;; docker-volume.el --- Interface to docker-volume  -*- lexical-binding: t -*-
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 
@@ -172,14 +172,14 @@ applied to the buffer."
 (docker-utils-transient-define-prefix docker-volume-rm ()
   "Transient for removing volumes."
   :man-page "docker-volume-rm"
-  [:description docker-utils-generic-actions-heading
-   ("D" "Remove" docker-utils-generic-action-async-multiple-ids)])
+  [:description docker-generic-actions-heading
+   ("D" "Remove" docker-generic-action-async-multiple-ids)])
 
 (transient-define-prefix docker-volume-help ()
   "Help transient for docker volumes."
   ["Docker volumes help"
    ("D" "Remove"        docker-volume-rm)
-   ("I" "Inspect"       docker-utils-inspect)
+   ("I" "Inspect"       docker-inspect)
    ("d" "Mark Dangling" docker-volume-mark-dangling)
    ("f" "Dired"         docker-volume-dired-selection)
    ("l" "List"          docker-volume-ls)])
@@ -188,7 +188,7 @@ applied to the buffer."
   (let ((map (make-sparse-keymap)))
     (define-key map "?" 'docker-volume-help)
     (define-key map "D" 'docker-volume-rm)
-    (define-key map "I" 'docker-utils-inspect)
+    (define-key map "I" 'docker-inspect)
     (define-key map "d" 'docker-volume-mark-dangling)
     (define-key map "f" 'docker-volume-dired-selection)
     (define-key map "l" 'docker-volume-ls)

@@ -1,4 +1,4 @@
-;;; docker-network.el --- Emacs interface to docker-network  -*- lexical-binding: t -*-
+;;; docker-network.el --- Interface to docker-network  -*- lexical-binding: t -*-
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 
@@ -161,14 +161,14 @@ applied to the buffer."
 (docker-utils-transient-define-prefix docker-network-rm ()
   "Transient for removing networks."
   :man-page "docker-network-rm"
-  [:description docker-utils-generic-actions-heading
-   ("D" "Remove" docker-utils-generic-action-async-multiple-ids)])
+  [:description docker-generic-actions-heading
+   ("D" "Remove" docker-generic-action-async-multiple-ids)])
 
 (transient-define-prefix docker-network-help ()
   "Help transient for docker networks."
   ["Docker networks help"
    ("D" "Remove"        docker-network-rm)
-   ("I" "Inspect"       docker-utils-inspect)
+   ("I" "Inspect"       docker-inspect)
    ("d" "Mark Dangling" docker-network-mark-dangling)
    ("l" "List"          docker-network-ls)])
 
@@ -176,7 +176,7 @@ applied to the buffer."
   (let ((map (make-sparse-keymap)))
     (define-key map "?" 'docker-network-help)
     (define-key map "D" 'docker-network-rm)
-    (define-key map "I" 'docker-utils-inspect)
+    (define-key map "I" 'docker-inspect)
     (define-key map "d" 'docker-network-mark-dangling)
     (define-key map "l" 'docker-network-ls)
     map)

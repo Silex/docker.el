@@ -1,4 +1,4 @@
-;;; docker-faces.el --- Emacs interface to docker-container  -*- lexical-binding: t -*-
+;;; docker-faces.el --- Docker faces  -*- lexical-binding: t -*-
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 

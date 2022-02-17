@@ -23,71 +23,23 @@
 
 ;;; Code:
 
-(require 's)
 (require 'aio)
-(require 'dash)
 (require 'transient)
 
-(defgroup docker nil
-  "Docker customization group."
-  :group 'convenience)
+(require 'docker-group)
+(require 'docker-utils)
+(require 'docker-process)
 
 (defcustom docker-command "docker"
   "The docker binary."
   :group 'docker
   :type 'string)
 
-(defcustom docker-run-as-root nil
-  "Run docker as root."
-  :group 'docker
-  :type 'boolean)
+(defvar docker-open-hook ()
+  "Called when `docker' transient is opened.")
 
-(docker-utils-define-transient-arguments docker)
-
-(defmacro docker-with-sudo (&rest body)
-  (declare (indent defun))
-  `(let ((default-directory (if (and docker-run-as-root (not (file-remote-p default-directory)))
-                                "/sudo::"
-                              default-directory)))
-     ,@body))
-
-(defun docker-run-start-file-process-shell-command (program &rest args)
-  "Execute \"PROGRAM ARGS\" and return the process."
-  (docker-with-sudo
-    (let* ((process-args (-remove 's-blank? (-flatten args)))
-           (command (s-join " " (-insert-at 0 program process-args))))
-      (message "Running: %s" command)
-      (start-file-process-shell-command command (apply #'docker-generate-new-buffer-name process-args) command))))
-
-(defun docker-run-async (program &rest args)
-  "Execute \"PROGRAM ARGS\" and return a promise with the results."
-  (let* ((process (apply #'docker-run-start-file-process-shell-command program args))
-         (promise (aio-promise)))
-    (set-process-query-on-exit-flag process nil)
-    (set-process-sentinel process (-partial #'docker-process-sentinel promise))
-    promise))
-
-(defun docker-run-async-with-buffer (program &rest args)
-  "Execute \"PROGRAM ARGS\" and display output in a new buffer."
-  (if (require 'vterm nil 'noerror)
-      (apply #'docker-run-async-with-buffer-vterm program args)
-    (apply #'docker-run-async-with-buffer-shell program args)))
-
-(defun docker-run-async-with-buffer-shell (program &rest args)
-  "Execute \"PROGRAM ARGS\" and display output in a new `shell' buffer."
-  (let* ((process (apply #'docker-run-start-file-process-shell-command program args))
-         (buffer (process-buffer process)))
-    (set-process-query-on-exit-flag process nil)
-    (with-current-buffer buffer (shell-mode))
-    (set-process-filter process 'comint-output-filter)
-    (switch-to-buffer-other-window buffer)))
-
-(defun docker-run-async-with-buffer-vterm (program &rest args)
-  "Execute \"PROGRAM ARGS\" and display output in a new `vterm' buffer."
-  (let* ((process-args (-remove 's-blank? (-flatten args)))
-         (vterm-shell (s-join " " (-insert-at 0 program process-args)))
-         (vterm-kill-buffer-on-exit nil))
-    (vterm-other-window (apply #'docker-generate-new-buffer-name process-args))))
+(defvar docker-status-strings '(:containers "" :images "" :networks "" :volumes "")
+  "Plist of statuses for `docker' transient.")
 
 (defun docker-run-docker-async (&rest args)
   "Execute \"`docker-command' ARGS\" and return a promise with the results."
@@ -97,28 +49,79 @@
   "Execute \"`docker-command' ARGS\" and display the results in a buffer."
   (apply #'docker-run-async-with-buffer docker-command (docker-arguments) args))
 
-(defun docker-process-sentinel (promise process event)
-  "Sentinel that resolves the PROMISE using PROCESS and EVENT."
-  (when (memq (process-status process) '(exit signal))
-    (setq event (substring event 0 -1))
-    (if (not (string-equal event "finished"))
-        (error "Error running: \"%s\" (%s)" (process-name process) event)
-      (aio-resolve promise
-                   (lambda ()
-                     (message nil)
-                     (message "Finished: %s" (process-name process))
-                     (run-with-timer 2 nil (lambda () (message nil)))
-                     (with-current-buffer (process-buffer process)
-                       (prog1 (buffer-substring-no-properties (point-min) (point-max))
-                         (kill-buffer))))))))
+(defun docker-get-transient-action ()
+  (s-replace "-" " " (s-chop-prefix "docker-" (symbol-name transient-current-command))))
 
-(defun docker-generate-new-buffer-name (&rest args)
-  "Wrapper around `generate-new-buffer-name'."
-  (generate-new-buffer-name (format "* docker %s *" (s-join " " args))))
+(defun docker-generic-actions-heading ()
+  (let ((items (s-join ", " (docker-utils-get-marked-items-ids))))
+    (format "%s %s"
+            (propertize "Actions on" 'face 'transient-heading)
+            (propertize items        'face 'transient-value))))
 
-(defun docker-generate-new-buffer (&rest args)
-  "Wrapper around `generate-new-buffer'."
-  (generate-new-buffer (apply #'docker-generate-new-buffer-name args)))
+(aio-defun docker-generic-action-async (action args)
+  (interactive (list (docker-get-transient-action)
+                     (transient-args transient-current-command)))
+  (let* ((ids (docker-utils-get-marked-items-ids))
+         (promises (--map (docker-run-docker-async action args it) ids)))
+    (aio-await (aio-all promises))
+    (tablist-revert)))
+
+(aio-defun docker-generic-action-async-multiple-ids (action args)
+  "Same as `docker-generic-action-async', but group selection ids into a single command."
+  (interactive (list (docker-get-transient-action)
+                     (transient-args transient-current-command)))
+  (aio-await (docker-run-docker-async action args (docker-utils-get-marked-items-ids)))
+  (tablist-revert))
+
+(defun docker-generic-action-with-buffer (action args)
+  "Run \"docker ACTION ARGS\" asynchronously, printing output to a new buffer."
+  (interactive (list (docker-get-transient-action)
+                     (transient-args transient-current-command)))
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-run-docker-async-with-buffer (s-split " " action) args it)))
+
+(aio-defun docker-utils-inspect ()
+  "Docker Inspect the tablist entry under point."
+  (interactive)
+  (let* ((id (tabulated-list-get-id))
+         (data (aio-await (docker-run-docker-async "inspect" id))))
+    (docker-utils-with-buffer (format "inspect %s" id)
+      (insert data)
+      (js-mode)
+      (view-mode))))
+
+(defun docker-read-log-level (prompt &rest _args)
+  "Read the docker log level using PROMPT."
+  (completing-read prompt '(debug info warn error fatal)))
+
+(defun docker-read-certificate (prompt &optional initial-input _history)
+  "Wrapper around `read-file-name'."
+  (read-file-name prompt nil nil t initial-input (apply-partially 'string-match ".*\\.pem")))
+
+(docker-utils-define-transient-arguments docker)
+
+;;;###autoload (autoload 'docker "docker" nil t)
+(transient-define-prefix docker ()
+  "Transient for docker."
+  :man-page "docker"
+  ["Arguments"
+   (5 "H" "Host" "--host " read-string)
+   (5 "Tt" "TLS" "--tls")
+   (5 "Tv" "TLS verify remote" "--tlsverify")
+   (5 "Ta" "TLS CA" "--tlscacert" docker-read-certificate)
+   (5 "Tc" "TLS certificate" "--tlscert" docker-read-certificate)
+   (5 "Tk" "TLS key" "--tlskey" docker-read-certificate)
+   (5 "l" "Log level" "--log-level " docker-read-log-level)]
+  ["Docker"
+   ("c" (lambda ()(plist-get docker-status-strings :containers)) docker-containers)
+   ("i" (lambda ()(plist-get docker-status-strings :images))     docker-images)
+   ("n" (lambda ()(plist-get docker-status-strings :networks))   docker-networks)
+   ("v" (lambda ()(plist-get docker-status-strings :volumes))    docker-volumes)]
+  ["Other"
+   ("C" "Compose" docker-compose)]
+  (interactive)
+  (run-hooks 'docker-open-hook)
+  (transient-setup 'docker))
 
 (provide 'docker-core)
 
