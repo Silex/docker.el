@@ -158,9 +158,7 @@ applied to the buffer."
         (tablist-put-mark))
       (forward-line))))
 
-(defun docker-volume-ls-arguments ()
-  "Return the latest used arguments in the `docker-volume-ls' transient."
-  (car (alist-get 'docker-volume-ls transient-history)))
+(docker-utils-define-transient-arguments docker-volume-ls)
 
 (transient-define-prefix docker-volume-ls ()
   "Transient for listing volumes."

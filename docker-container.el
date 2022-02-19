@@ -358,9 +358,7 @@ nil, ask the user for it."
   [:description docker-utils-generic-actions-heading
    ("L" "Logs" docker-utils-generic-action-with-buffer)])
 
-(defun docker-container-ls-arguments ()
-  "Return the latest used arguments in the `docker-container-ls' transient."
-  (car (alist-get 'docker-container-ls transient-history)))
+(docker-utils-define-transient-arguments docker-container-ls)
 
 (transient-define-prefix docker-container-ls ()
   "Transient for listing containers."

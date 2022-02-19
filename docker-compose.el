@@ -268,9 +268,7 @@
    ("U" "Up" docker-compose-run-action-for-one-service)
    ("A" "All services" docker-compose-run-action-for-all-services)])
 
-(defun docker-compose-arguments ()
-  "Return the latest used arguments in the `docker-compose' transient."
-  (car (alist-get 'docker-compose transient-history)))
+(docker-utils-define-transient-arguments docker-compose)
 
 ;;;###autoload (autoload 'docker-compose "docker-compose" nil t)
 (transient-define-prefix docker-compose ()

@@ -42,9 +42,7 @@
   :group 'docker
   :type 'boolean)
 
-(defun docker-arguments ()
-  "Return the latest used arguments in the `docker' transient."
-  (car (alist-get 'docker transient-history)))
+(docker-utils-define-transient-arguments docker)
 
 (defmacro docker-with-sudo (&rest body)
   (declare (indent defun))

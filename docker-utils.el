@@ -60,6 +60,15 @@ Execute BODY in a buffer named with the help of NAME."
      (docker-utils-ensure-items)
      (transient-setup ',name)))
 
+(defmacro docker-utils-define-transient-arguments (name)
+  `(defun ,(intern (format "%s-arguments" name)) ()
+     ,(format "Return the latest used arguments in the `%s' transient." name)
+     (let ((history (alist-get ',name transient-history))
+           (default (transient-default-value (get ',name 'transient--prefix))))
+       (if (equal 0 (length history))
+           (car default)
+         (car history)))))
+
 (defun docker-utils-get-transient-action ()
   (s-replace "-" " " (s-chop-prefix "docker-" (symbol-name transient-current-command))))
 

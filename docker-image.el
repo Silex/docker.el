@@ -206,9 +206,7 @@ applied to the buffer."
         (tablist-put-mark))
       (forward-line))))
 
-(defun docker-image-ls-arguments ()
-  "Return the latest used arguments in the `docker-image-ls' transient."
-  (car (alist-get 'docker-image-ls transient-history)))
+(docker-utils-define-transient-arguments docker-image-ls)
 
 (transient-define-prefix docker-image-ls ()
   "Transient for listing images."

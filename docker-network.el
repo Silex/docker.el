@@ -146,9 +146,7 @@ applied to the buffer."
         (tablist-put-mark))
       (forward-line))))
 
-(defun docker-network-ls-arguments ()
-  "Return the latest used arguments in the `docker-network-ls' transient."
-  (car (alist-get 'docker-network-ls transient-history)))
+(docker-utils-define-transient-arguments docker-network-ls)
 
 (transient-define-prefix docker-network-ls ()
   "Transient for listing networks."
