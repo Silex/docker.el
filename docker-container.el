@@ -167,7 +167,7 @@ displayed values in the column."
                             (format "%s|" (s-chop-suffix ":" prefix))
                           "/")))
          (default-directory (format "%s%s" file-prefix container-address))
-         (eshell-buffer-name (docker-utils-generate-new-buffer-name "eshell" default-directory)))
+         (eshell-buffer-name (docker-utils-generate-new-buffer-name "docker" "eshell:" default-directory)))
     (eshell)))
 
 ;;;###autoload (autoload 'docker-container-find-directory "docker-container" nil t)
@@ -205,7 +205,7 @@ displayed values in the column."
                             (format "%s|" (s-chop-suffix ":" prefix))
                           "/")))
          (default-directory (format "%s%s" file-prefix container-address)))
-    (shell (docker-generate-new-buffer "shell" default-directory))))
+    (shell (docker-generate-new-buffer "docker" "shell:" default-directory))))
 
 ;;;###autoload (autoload 'docker-container-shell-env "docker-container" nil t)
 (aio-defun docker-container-shell-env (container &optional read-shell)
@@ -227,7 +227,7 @@ nil, ask the user for it."
          (default-directory (format "%s%s%s" file-prefix container-address container-workdir))
          ;; process-environment doesn't work with tramp if you call this function more than one per emacs session
          (tramp-remote-process-environment (append container-env nil)))
-    (shell (docker-generate-new-buffer "shell" default-directory))))
+    (shell (docker-generate-new-buffer "docker" "shell-env:" default-directory))))
 
 ;;;###autoload (autoload 'docker-container-vterm "docker-container" nil t)
 (defun docker-container-vterm (container)
@@ -239,7 +239,7 @@ nil, ask the user for it."
                             (format "%s|" (s-chop-suffix ":" prefix))
                           "/")))
          (default-directory (format "%s%s" file-prefix container-address)))
-    (vterm-other-window (docker-utils-generate-new-buffer-name "vterm" default-directory))))
+    (vterm-other-window (docker-utils-generate-new-buffer-name "docker" "vterm:" default-directory))))
 
 (defun docker-container-cp-from-selection (container-path host-path)
   "Run \"docker cp\" from CONTAINER-PATH to HOST-PATH for selected container."

@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 's)
+(require 'aio)
 (require 'dash)
 (require 'tramp)
 (require 'tablist)
@@ -38,19 +39,19 @@
   (when (null (docker-utils-get-marked-items-ids))
     (user-error "This action cannot be used in an empty list")))
 
-(defun docker-utils-generate-new-buffer-name (&rest args)
+(defun docker-utils-generate-new-buffer-name (program &rest args)
   "Wrapper around `generate-new-buffer-name'."
-  (generate-new-buffer-name (format "* docker %s *" (s-join " " args))))
+  (generate-new-buffer-name (format "* %s %s *" program (s-join " " args))))
 
-(defun docker-utils-generate-new-buffer (&rest args)
+(defun docker-generate-new-buffer (program &rest args)
   "Wrapper around `generate-new-buffer'."
-  (generate-new-buffer (apply #'docker-generate-new-buffer-name args)))
+  (generate-new-buffer (apply #'docker-utils-generate-new-buffer-name program args)))
 
 (defmacro docker-utils-with-buffer (name &rest body)
   "Wrapper around `with-current-buffer'.
 Execute BODY in a buffer named with the help of NAME."
   (declare (indent defun))
-  `(with-current-buffer (docker-generate-new-buffer ,name)
+  `(with-current-buffer (docker-generate-new-buffer "docker" ,name)
      (setq buffer-read-only nil)
      (erase-buffer)
      ,@body
@@ -73,6 +74,15 @@ Execute BODY in a buffer named with the help of NAME."
        (if (equal 0 (length history))
            (car default)
          (car history)))))
+
+(defun docker-utils-get-transient-action ()
+  (s-replace "-" " " (s-chop-prefix "docker-" (symbol-name transient-current-command))))
+
+(defun docker-utils-generic-actions-heading ()
+  (let ((items (s-join ", " (docker-utils-get-marked-items-ids))))
+    (format "%s %s"
+            (propertize "Actions on" 'face 'transient-heading)
+            (propertize items        'face 'transient-value))))
 
 (defun docker-utils-pop-to-buffer (name)
   "Like `pop-to-buffer', but suffix NAME with the host if on a remote host."
