@@ -214,7 +214,7 @@ applied to the buffer."
   ["Arguments"
    ("a" "All" "--all")
    ("d" "Dangling" "--filter dangling=true")
-   ("f" "Filter" "--filter" read-string)
+   ("f" "Filter" "--filter " read-string)
    ("n" "Don't truncate" "--no-trunc")]
   ["Actions"
    ("l" "List" tablist-revert)])
