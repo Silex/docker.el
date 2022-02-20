@@ -89,7 +89,7 @@ displayed values in the column."
 (aio-defun docker-volume-entries-propertized (&rest args)
   "Return the propertized docker volumes data for `tabulated-list-entries'."
   (let ((entries (aio-await (docker-volume-entries args)))
-        (dangling (aio-await (docker-volume-entries "--filter dangling=true"))))
+        (dangling (aio-await (docker-volume-entries args "--filter dangling=true"))))
     (--map-when (-contains? dangling it) (docker-volume-entry-set-dangling it) entries)))
 
 (defun docker-volume-dangling-p (entry-id)

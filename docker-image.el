@@ -128,7 +128,7 @@ be the list (repository tag id).  See `docker-image-id-template'."
 (aio-defun docker-image-entries-propertized (&rest args)
   "Return the propertized docker images data for `tabulated-list-entries'."
   (let ((entries (aio-await (docker-image-entries args)))
-        (dangling (aio-await (docker-image-entries "--all" "--filter dangling=true"))))
+        (dangling (aio-await (docker-image-entries args "--filter dangling=true"))))
     (--map-when (-contains? dangling it) (docker-image-entry-set-dangling it) entries)))
 
 (defun docker-image-dangling-p (entry-id)           ;

@@ -91,7 +91,7 @@ displayed values in the column."
 (aio-defun docker-network-entries-propertized (&rest args)
   "Return the propertized docker networks data for `tabulated-list-entries'."
   (let ((entries (aio-await (docker-network-entries args)))
-        (dangling (aio-await (docker-network-entries "--filter dangling=true"))))
+        (dangling (aio-await (docker-network-entries args "--filter dangling=true"))))
     (--map-when (-contains? dangling it) (docker-network-entry-set-dangling it) entries)))
 
 (defun docker-network-dangling-p (entry-id)
