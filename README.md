@@ -79,10 +79,10 @@ Here is a list of other customizations you can set:
 | docker-container-shell-file-name  | Shell to use when entering containers | `/bin/sh`            |
 | docker-image-columns              | Columns definition for images         | Too complex to show  |
 | docker-image-default-sort-key     | Sort key for images                   | `("Repository")`     |
+| docker-image-run-default-args     | Base arguments to use for docker run  | `("-i" "-t" "--rm")` |
 | docker-network-columns            | Columns definition for networks       | Too complex to show  |
 | docker-network-default-sort-key   | Sort key for networks                 | `("Name")`           |
 | docker-run-as-root                | Runs docker as root when enabled      | `nil`                |
-| docker-run-default-args           | Base arguments to use for docker run  | `("-i" "-t" "--rm")` |
 | docker-volume-columns             | Columns definition for volumes        | Too complex to show  |
 | docker-volume-default-sort-key    | Sort key for volumes                  | `("Driver")`         |
 
@@ -93,10 +93,11 @@ You can match on the repository name for an image to customize the initial infix
 ```elips
 (add-to-list
    'docker-image-run-custom-args
-   `("^postgres" ("-e POSTGRES_PASSWORD=postgres" . ,docker-run-default-args)))
+   `("^postgres" ("-e POSTGRES_PASSWORD=postgres" . ,docker-image-run-default-args)))
 ```
 
-So when `docker run` is called on an image whose repository name matches the regular expression `^postgres`, the option `"-e POSTGRES_PASSWORD=postgres"` will appear as set along with the defaults specified by `docker-run-default-args`.
+So when `docker run` is called on an image whose repository name matches the regular expression `^postgres`, the option
+`"-e POSTGRES_PASSWORD=postgres"` will appear as set along with the defaults specified by `docker-image-run-default-args`.
 
 ## Contributions
 

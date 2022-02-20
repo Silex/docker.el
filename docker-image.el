@@ -84,7 +84,7 @@ displayed values in the column."
                        (sexp :tag "Sort function")
                        (sexp :tag "Format function"))))
 
-(defcustom docker-run-default-args
+(defcustom docker-image-run-default-args
   '("-i" "-t" "--rm")
   "Default infix args used when docker run is invoked.
 
@@ -92,6 +92,8 @@ Note this can be overriden for specific images using
 `docker-image-run-custom-args'."
   :group 'docker-run
   :type '(repeat string))
+
+(make-obsolete-variable 'docker-run-default-args 'docker-image-run-default-args "Docker 2.1.0")
 
 (defcustom docker-image-run-custom-args
   nil
@@ -255,7 +257,7 @@ applied to the buffer."
                                  nil))))
           (if matched-args
               (cadr matched-args)
-            docker-run-default-args))))
+            docker-image-run-default-args))))
 
 (docker-utils-transient-define-prefix docker-image-run ()
   "Transient for running images."
