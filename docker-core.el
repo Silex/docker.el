@@ -80,7 +80,7 @@
   (--each (docker-utils-get-marked-items-ids)
     (docker-run-docker-async-with-buffer (s-split " " action) args it)))
 
-(aio-defun docker-utils-inspect ()
+(aio-defun docker-inspect ()
   "Docker Inspect the tablist entry under point."
   (interactive)
   (let* ((id (tabulated-list-get-id))
