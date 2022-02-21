@@ -86,7 +86,7 @@ Here is a list of other customizations you can set:
 | docker-volume-columns             | Columns definition for volumes        | Too complex to show  |
 | docker-volume-default-sort-key    | Sort key for volumes                  | `("Driver")`         |
 
-### Changing the Default Arguments for `docker run`
+### Changing the default arguments for `docker run`
 
 You can match on the repository name for an image to customize the initial infix arguments via `docker-image-run-custom-args`:
 
@@ -98,6 +98,11 @@ You can match on the repository name for an image to customize the initial infix
 
 So when `docker run` is called on an image whose repository name matches the regular expression `^postgres`, the option
 `"-e POSTGRES_PASSWORD=postgres"` will appear as set along with the defaults specified by `docker-image-run-default-args`.
+
+## Vterm support
+
+If [vterm](https://github.com/akermu/emacs-libvterm) is installed, it'll be used for any commands that needs a running
+buffer (for example `docker run`, `docker logs`, etc).
 
 ## Contributions
 
