@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.0 (2021-02-21)
+
+- Fix cyclic dependencies issues.
+- Refactor buffer generation functions.
+- Ensure default value is used in transient arguments helpers.
+- Make docker-run-default-args obsolete.
+- Fix typos & various bugfixes.
+
 ## 2.0.0 (2021-02-16)
 
 - Run commands asynchronously.
