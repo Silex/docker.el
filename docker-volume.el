@@ -79,6 +79,8 @@ displayed values in the column."
                        (sexp :tag "Sort function")
                        (sexp :tag "Format function"))))
 
+(defalias 'docker-volume-inspect 'docker-inspect)
+
 (aio-defun docker-volume-entries (&rest args)
   "Return the docker volumes data for `tabulated-list-entries'."
   (let* ((fmt (docker-utils-make-format-string docker-volume-id-template docker-volume-columns))
@@ -179,7 +181,7 @@ applied to the buffer."
   "Help transient for docker volumes."
   ["Docker volumes help"
    ("D" "Remove"        docker-volume-rm)
-   ("I" "Inspect"       docker-inspect)
+   ("I" "Inspect"       docker-volume-inspect)
    ("d" "Mark Dangling" docker-volume-mark-dangling)
    ("f" "Dired"         docker-volume-dired-selection)
    ("l" "List"          docker-volume-ls)])
@@ -188,7 +190,7 @@ applied to the buffer."
   (let ((map (make-sparse-keymap)))
     (define-key map "?" 'docker-volume-help)
     (define-key map "D" 'docker-volume-rm)
-    (define-key map "I" 'docker-inspect)
+    (define-key map "I" 'docker-volume-inspect)
     (define-key map "d" 'docker-volume-mark-dangling)
     (define-key map "f" 'docker-volume-dired-selection)
     (define-key map "l" 'docker-volume-ls)

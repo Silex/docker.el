@@ -90,6 +90,8 @@ displayed values in the column."
                        (sexp :tag "Sort function")
                        (sexp :tag "Format function"))))
 
+(defalias 'docker-container-inspect 'docker-inspect)
+
 (defun docker-container--read-shell (&optional read-shell-name)
   "Return `docker-container-shell-file-name' or read a shell name if READ-SHELL-NAME is truthy."
   (if read-shell-name (read-shell-command "Shell: ") docker-container-shell-file-name))
@@ -431,7 +433,7 @@ nil, ask the user for it."
    ["Admin"
     ("C" "Copy"       docker-container-cp)
     ("D" "Remove"     docker-container-rm)
-    ("I" "Inspect"    docker-inspect)
+    ("I" "Inspect"    docker-container-inspect)
     ("L" "Logs"       docker-container-logs)
     ("a" "Attach"     docker-container-attach)
     ("b" "Shell"      docker-container-shells)
@@ -445,7 +447,7 @@ nil, ask the user for it."
     (define-key map "?" 'docker-container-help)
     (define-key map "C" 'docker-container-cp)
     (define-key map "D" 'docker-container-rm)
-    (define-key map "I" 'docker-inspect)
+    (define-key map "I" 'docker-container-inspect)
     (define-key map "K" 'docker-container-kill)
     (define-key map "L" 'docker-container-logs)
     (define-key map "O" 'docker-container-stop)

@@ -106,6 +106,7 @@ corresponding to arguments.
 Also note if you do not specify `docker-run-default-args', they will be ignored."
   :type '(repeat (list string (repeat string))))
 
+(defalias 'docker-image-inspect 'docker-inspect)
 
 (defun docker-image-make-id (parsed-line)
   "Fix the id string of the entry and return the fixed entry.
@@ -290,7 +291,7 @@ applied to the buffer."
   ["Docker images help"
    ("D" "Remove"        docker-image-rm)
    ("F" "Pull"          docker-image-pull)
-   ("I" "Inspect"       docker-inspect)
+   ("I" "Inspect"       docker-image-inspect)
    ("P" "Push"          docker-image-push)
    ("R" "Run"           docker-image-run)
    ("T" "Tag"           docker-image-tag-selection)
@@ -302,7 +303,7 @@ applied to the buffer."
     (define-key map "?" 'docker-image-help)
     (define-key map "D" 'docker-image-rm)
     (define-key map "F" 'docker-image-pull)
-    (define-key map "I" 'docker-inspect)
+    (define-key map "I" 'docker-image-inspect)
     (define-key map "P" 'docker-image-push)
     (define-key map "R" 'docker-image-run)
     (define-key map "T" 'docker-image-tag-selection)

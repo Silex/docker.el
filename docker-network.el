@@ -81,6 +81,8 @@ displayed values in the column."
                        (sexp :tag "Sort function")
                        (sexp :tag "Format function"))))
 
+(defalias 'docker-network-inspect 'docker-inspect)
+
 (aio-defun docker-network-entries (&rest args)
   "Return the docker networks data for `tabulated-list-entries'."
   (let* ((fmt (docker-utils-make-format-string docker-network-id-template docker-network-columns))
@@ -168,7 +170,7 @@ applied to the buffer."
   "Help transient for docker networks."
   ["Docker networks help"
    ("D" "Remove"        docker-network-rm)
-   ("I" "Inspect"       docker-inspect)
+   ("I" "Inspect"       docker-network-inspect)
    ("d" "Mark Dangling" docker-network-mark-dangling)
    ("l" "List"          docker-network-ls)])
 
@@ -176,7 +178,7 @@ applied to the buffer."
   (let ((map (make-sparse-keymap)))
     (define-key map "?" 'docker-network-help)
     (define-key map "D" 'docker-network-rm)
-    (define-key map "I" 'docker-inspect)
+    (define-key map "I" 'docker-network-inspect)
     (define-key map "d" 'docker-network-mark-dangling)
     (define-key map "l" 'docker-network-ls)
     map)
