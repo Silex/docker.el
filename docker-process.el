@@ -26,6 +26,7 @@
 (require 's)
 (require 'aio)
 (require 'dash)
+(require 'vterm nil 'noerror)
 
 (require 'docker-group)
 (require 'docker-utils)
@@ -61,7 +62,7 @@
 
 (defun docker-run-async-with-buffer (program &rest args)
   "Execute \"PROGRAM ARGS\" and display output in a new buffer."
-  (if (require 'vterm nil 'noerror)
+  (if (featurep 'vterm)
       (apply #'docker-run-async-with-buffer-vterm program args)
     (apply #'docker-run-async-with-buffer-shell program args)))
 
