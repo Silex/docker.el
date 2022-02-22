@@ -44,7 +44,7 @@
   "Wrapper around `generate-new-buffer-name' using PROGRAM and ARGS."
   (generate-new-buffer-name (format "* %s %s *" program (s-join " " args))))
 
-(defun docker-generate-new-buffer (program &rest args)
+(defun docker-utils-generate-new-buffer (program &rest args)
   "Wrapper around `generate-new-buffer' using PROGRAM and ARGS."
   (generate-new-buffer (apply #'docker-utils-generate-new-buffer-name program args)))
 
@@ -52,7 +52,7 @@
   "Wrapper around `with-current-buffer'.
 Execute BODY in a buffer named with the help of NAME."
   (declare (indent defun))
-  `(with-current-buffer (docker-generate-new-buffer "docker" ,name)
+  `(with-current-buffer (docker-utils-generate-new-buffer "docker" ,name)
      (setq buffer-read-only nil)
      (erase-buffer)
      ,@body
