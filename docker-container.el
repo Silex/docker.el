@@ -399,7 +399,7 @@ nil, ask the user for it."
    ("D" "Remove" docker-generic-action-multiple-ids)])
 
 (docker-utils-transient-define-prefix docker-container-shells ()
-  "Transient for doing M-x `shell'/`eshell' to containers."
+  "Transient for using shells on containers."
   [:description docker-generic-action-description
    ("b" "Shell" docker-container-shell-selection)
    ("B" "Shell with env" docker-container-shell-env-selection)
