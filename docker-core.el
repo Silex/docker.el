@@ -61,7 +61,7 @@
             (propertize items        'face 'transient-value))))
 
 (aio-defun docker-generic-action (action args)
-  "Run `docker ACTION ARGS' on each of the selected items."
+  "Run \"`docker-command' ACTION ARGS\" on each of the selected items."
   (interactive (list (docker-get-transient-action)
                      (transient-args transient-current-command)))
   (let* ((ids (docker-utils-get-marked-items-ids))
@@ -77,14 +77,14 @@
   (tablist-revert))
 
 (defun docker-generic-action-with-buffer (action args)
-  "Run \"docker ACTION ARGS\" asynchronously, printing output to a new buffer."
+  "Run \"`docker-command' ACTION ARGS\" and print output to a new buffer."
   (interactive (list (docker-get-transient-action)
                      (transient-args transient-current-command)))
   (--each (docker-utils-get-marked-items-ids)
     (docker-run-docker-async-with-buffer (s-split " " action) args it)))
 
 (aio-defun docker-inspect ()
-  "Run `docker inspect' on the selected items."
+  "Run \"`docker-command' inspect\" on the selected items."
   (interactive)
   (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
