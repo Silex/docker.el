@@ -163,8 +163,8 @@ applied to the buffer."
 (docker-utils-transient-define-prefix docker-network-rm ()
   "Transient for removing networks."
   :man-page "docker-network-rm"
-  [:description docker-generic-actions-heading
-   ("D" "Remove" docker-generic-action-async-multiple-ids)])
+  [:description docker-generic-action-description
+   ("D" "Remove" docker-generic-action-multiple-ids)])
 
 (transient-define-prefix docker-network-help ()
   "Help transient for docker networks."

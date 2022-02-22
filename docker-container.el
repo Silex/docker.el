@@ -303,7 +303,7 @@ nil, ask the user for it."
   "Run `docker-container-unpause' on the containers selection."
   (interactive)
   (docker-utils-ensure-items)
-  (docker-generic-action-async-multiple-ids "unpause" (transient-args transient-current-command)))
+  (docker-generic-action-multiple-ids "unpause" (transient-args transient-current-command)))
 
 (defun docker-container-vterm-selection ()
   "Run `docker-container-vterm' on the containers selection."
@@ -318,25 +318,25 @@ nil, ask the user for it."
   ["Arguments"
    ("n" "No STDIN" "--no-stdin")
    ("d" "Key sequence for detaching" "--detach-keys=" read-string)]
-  [:description docker-generic-actions-heading
+  [:description docker-generic-action-description
    ("a" "Attach" docker-generic-action-with-buffer)])
 
 (docker-utils-transient-define-prefix docker-container-cp ()
   "Transient for copying files from/to containers."
   :man-page "docker-container-cp"
-  [:description docker-generic-actions-heading
+  [:description docker-generic-action-description
    ("f" "Copy From" docker-container-cp-from-selection)
    ("t" "Copy To" docker-container-cp-to-selection)])
 
 (docker-utils-transient-define-prefix docker-container-diff ()
   "Transient for showing containers diffs."
   :man-page "docker-container-diff"
-  [:description docker-generic-actions-heading
+  [:description docker-generic-action-description
    ("d" "Diff" docker-generic-action-with-buffer)])
 
 (docker-utils-transient-define-prefix docker-container-open ()
   "Transient for opening containers files."
-  [:description docker-generic-actions-heading
+  [:description docker-generic-action-description
    ("d" "Open directory" docker-container-find-directory-selection)
    ("f" "Open file" docker-container-find-file-selection)])
 
@@ -345,8 +345,8 @@ nil, ask the user for it."
   :man-page "docker-container-kill"
   ["Arguments"
    ("s" "Signal" "-s " read-string)]
-  [:description docker-generic-actions-heading
-   ("K" "Kill" docker-generic-action-async-multiple-ids)])
+  [:description docker-generic-action-description
+   ("K" "Kill" docker-generic-action-multiple-ids)])
 
 (docker-utils-transient-define-prefix docker-container-logs ()
   "Transient for showing containers logs."
@@ -356,7 +356,7 @@ nil, ask the user for it."
    ("s" "Since" "--since " read-string)
    ("t" "Tail" "--tail " read-string)
    ("u" "Until" "--until " read-string)]
-  [:description docker-generic-actions-heading
+  [:description docker-generic-action-description
    ("L" "Logs" docker-generic-action-with-buffer)])
 
 (docker-utils-define-transient-arguments docker-container-ls)
@@ -377,8 +377,8 @@ nil, ask the user for it."
 (docker-utils-transient-define-prefix docker-container-pause ()
   "Transient for pausing containers."
   :man-page "docker-container-pause"
-  [:description docker-generic-actions-heading
-   ("P" "Pause" docker-generic-action-async-multiple-ids)
+  [:description docker-generic-action-description
+   ("P" "Pause" docker-generic-action-multiple-ids)
    ("U" "Unpause" docker-container-unpause-selection)])
 
 (docker-utils-transient-define-prefix docker-container-restart ()
@@ -386,8 +386,8 @@ nil, ask the user for it."
   :man-page "docker-container-restart"
   ["Arguments"
    ("t" "Timeout" "-t " transient-read-number-N0)]
-  [:description docker-generic-actions-heading
-   ("R" "Restart" docker-generic-action-async-multiple-ids)])
+  [:description docker-generic-action-description
+   ("R" "Restart" docker-generic-action-multiple-ids)])
 
 (docker-utils-transient-define-prefix docker-container-rm ()
   "Transient for removing containers."
@@ -395,12 +395,12 @@ nil, ask the user for it."
   ["Arguments"
    ("f" "Force" "-f")
    ("v" "Volumes" "-v")]
-  [:description docker-generic-actions-heading
-   ("D" "Remove" docker-generic-action-async-multiple-ids)])
+  [:description docker-generic-action-description
+   ("D" "Remove" docker-generic-action-multiple-ids)])
 
 (docker-utils-transient-define-prefix docker-container-shells ()
   "Transient for doing M-x `shell'/`eshell' to containers."
-  [:description docker-generic-actions-heading
+  [:description docker-generic-action-description
    ("b" "Shell" docker-container-shell-selection)
    ("B" "Shell with env" docker-container-shell-env-selection)
    ("e" "Eshell" docker-container-eshell-selection)
@@ -409,16 +409,16 @@ nil, ask the user for it."
 (docker-utils-transient-define-prefix docker-container-start ()
   "Transient for starting containers."
   :man-page "docker-container-start"
-  [:description docker-generic-actions-heading
-   ("S" "Start" docker-generic-action-async-multiple-ids)])
+  [:description docker-generic-action-description
+   ("S" "Start" docker-generic-action-multiple-ids)])
 
 (docker-utils-transient-define-prefix docker-container-stop ()
   "Transient for stoping containers."
   :man-page "docker-container-stop"
   ["Arguments"
    ("t" "Timeout" "-t " transient-read-number-N0)]
-  [:description docker-generic-actions-heading
-   ("O" "Stop" docker-generic-action-async-multiple-ids)])
+  [:description docker-generic-action-description
+   ("O" "Stop" docker-generic-action-multiple-ids)])
 
 (transient-define-prefix docker-container-help ()
   "Help transient for docker containers."

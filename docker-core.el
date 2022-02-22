@@ -53,14 +53,14 @@
   "Extract the action out of `current-transient-command'."
   (s-replace "-" " " (s-chop-prefix "docker-" (symbol-name transient-current-command))))
 
-(defun docker-generic-actions-heading ()
-  "Make the actions heading for the selected items."
+(defun docker-generic-action-description ()
+  "Make the actions description for the selected items."
   (let ((items (s-join ", " (docker-utils-get-marked-items-ids))))
     (format "%s %s"
             (propertize "Actions on" 'face 'transient-heading)
             (propertize items        'face 'transient-value))))
 
-(aio-defun docker-generic-action-async (action args)
+(aio-defun docker-generic-action (action args)
   "Run `docker ACTION ARGS' on each of the selected items."
   (interactive (list (docker-get-transient-action)
                      (transient-args transient-current-command)))
@@ -69,8 +69,8 @@
     (aio-await (aio-all promises))
     (tablist-revert)))
 
-(aio-defun docker-generic-action-async-multiple-ids (action args)
-  "Same as `docker-generic-action-async', but group selection ids into a single command."
+(aio-defun docker-generic-action-multiple-ids (action args)
+  "Same as `docker-generic-action', but group selection ids into a single command."
   (interactive (list (docker-get-transient-action)
                      (transient-args transient-current-command)))
   (aio-await (docker-run-docker-async action args (docker-utils-get-marked-items-ids)))

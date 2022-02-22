@@ -174,8 +174,8 @@ applied to the buffer."
 (docker-utils-transient-define-prefix docker-volume-rm ()
   "Transient for removing volumes."
   :man-page "docker-volume-rm"
-  [:description docker-generic-actions-heading
-   ("D" "Remove" docker-generic-action-async-multiple-ids)])
+  [:description docker-generic-action-description
+   ("D" "Remove" docker-generic-action-multiple-ids)])
 
 (transient-define-prefix docker-volume-help ()
   "Help transient for docker volumes."

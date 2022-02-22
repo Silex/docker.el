@@ -227,15 +227,15 @@ applied to the buffer."
   :man-page "docker-image-pull"
   ["Arguments"
    ("a" "All" "-a")]
-  [:description docker-generic-actions-heading
-   ("F" "Pull selection" docker-generic-action-async)
+  [:description docker-generic-action-description
+   ("F" "Pull selection" docker-generic-action)
    ("N" "Pull a new image" docker-image-pull-one)])
 
 (docker-utils-transient-define-prefix docker-image-push ()
   "Transient for pushing images."
   :man-page "docker-image-push"
-  [:description docker-generic-actions-heading
-   ("P" "Push" docker-generic-action-async)])
+  [:description docker-generic-action-description
+   ("P" "Push" docker-generic-action)])
 
 (docker-utils-transient-define-prefix docker-image-rm ()
   "Transient for removing images."
@@ -243,8 +243,8 @@ applied to the buffer."
   ["Arguments"
    ("-f" "Force" "-f")
    ("-n" "Don't prune" "--no-prune")]
-  [:description docker-generic-actions-heading
-   ("D" "Remove" docker-generic-action-async-multiple-ids)])
+  [:description docker-generic-action-description
+   ("D" "Remove" docker-generic-action-multiple-ids)])
 
 (defclass docker-run-prefix (transient-prefix) nil)
 
@@ -284,7 +284,7 @@ applied to the buffer."
    ("u" "user" "-u " read-string)
    ("v" "volume" "-v " read-string)
    ("w" "workdir" "-w " read-string)]
-  [:description docker-generic-actions-heading
+  [:description docker-generic-action-description
    ("R" "Run" docker-image-run-selection)])
 
 (transient-define-prefix docker-image-help ()
