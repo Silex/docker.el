@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.1 (2021-02-22)
+
+- Fix forgotten function renames from previous refactorings.
+- Allow docker inspect to be used on multiple items.
+- Improve docstrings.
+
 ## 2.1.0 (2021-02-21)
 
 - Fix cyclic dependencies issues.
