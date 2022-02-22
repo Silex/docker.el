@@ -78,15 +78,6 @@ Execute BODY in a buffer named with the help of NAME."
            (car default)
          (car history)))))
 
-(defun docker-utils-get-transient-action ()
-  (s-replace "-" " " (s-chop-prefix "docker-" (symbol-name transient-current-command))))
-
-(defun docker-utils-generic-actions-heading ()
-  (let ((items (s-join ", " (docker-utils-get-marked-items-ids))))
-    (format "%s %s"
-            (propertize "Actions on" 'face 'transient-heading)
-            (propertize items        'face 'transient-value))))
-
 (defun docker-utils-pop-to-buffer (name)
   "Like `pop-to-buffer', but suffix NAME with the host if on a remote host."
   (pop-to-buffer
