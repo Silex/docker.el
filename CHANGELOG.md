@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.1.2 (2021-02-22)
+
+- Fix vterm byte-compile issues.
+- Prettify changelog.
+
 ## 2.1.1 (2021-02-22)
 
 - Fix forgotten function renames from previous refactorings.
