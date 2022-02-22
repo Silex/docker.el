@@ -81,14 +81,16 @@
     (docker-run-docker-async-with-buffer (s-split " " action) args it)))
 
 (aio-defun docker-inspect ()
-  "Docker Inspect the tablist entry under point."
+  "Run `docker inspect' on the selected items."
   (interactive)
-  (let* ((id (tabulated-list-get-id))
-         (data (aio-await (docker-run-docker-async "inspect" id))))
-    (docker-utils-with-buffer (format "inspect %s" id)
-      (insert data)
-      (js-mode)
-      (view-mode))))
+  (docker-utils-ensure-items)
+  (--each (docker-utils-get-marked-items-ids)
+    (let* ((id it)
+           (data (aio-await (docker-run-docker-async "inspect" id))))
+      (docker-utils-with-buffer (format "inspect %s" id)
+        (insert data)
+        (js-mode)
+        (view-mode)))))
 
 (defun docker-read-log-level (prompt &rest _args)
   "Read the docker log level using PROMPT."
