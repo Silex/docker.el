@@ -36,6 +36,7 @@
   :type 'boolean)
 
 (defmacro docker-with-sudo (&rest body)
+  "Ensure `default-directory' is set correctly according to `docker-run-as-root' then execute BODY."
   (declare (indent defun))
   `(let ((default-directory (if (and docker-run-as-root (not (file-remote-p default-directory)))
                                 "/sudo::"

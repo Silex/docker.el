@@ -36,15 +36,16 @@
   (-map #'car (tablist-get-marked-items)))
 
 (defun docker-utils-ensure-items ()
+  "Ensure at least one item is selected."
   (when (null (docker-utils-get-marked-items-ids))
     (user-error "This action cannot be used in an empty list")))
 
 (defun docker-utils-generate-new-buffer-name (program &rest args)
-  "Wrapper around `generate-new-buffer-name'."
+  "Wrapper around `generate-new-buffer-name' using PROGRAM and ARGS."
   (generate-new-buffer-name (format "* %s %s *" program (s-join " " args))))
 
 (defun docker-generate-new-buffer (program &rest args)
-  "Wrapper around `generate-new-buffer'."
+  "Wrapper around `generate-new-buffer' using PROGRAM and ARGS."
   (generate-new-buffer (apply #'docker-utils-generate-new-buffer-name program args)))
 
 (defmacro docker-utils-with-buffer (name &rest body)
@@ -60,6 +61,7 @@ Execute BODY in a buffer named with the help of NAME."
      (pop-to-buffer (current-buffer))))
 
 (defmacro docker-utils-transient-define-prefix (name arglist &rest args)
+  "Wrapper around `transient-define-prefix' forwarding NAME, ARGLIST and ARGS and calling `docker-utils-ensure-items'."
   `(transient-define-prefix ,name ,arglist
      ,@args
      (interactive)
@@ -67,6 +69,7 @@ Execute BODY in a buffer named with the help of NAME."
      (transient-setup ',name)))
 
 (defmacro docker-utils-define-transient-arguments (name)
+  "Define the transient arguments function using NAME that return the latest transient value or its default."
   `(defun ,(intern (format "%s-arguments" name)) ()
      ,(format "Return the latest used arguments in the `%s' transient." name)
      (let ((history (alist-get ',name transient-history))

@@ -50,15 +50,18 @@
   (apply #'docker-run-async-with-buffer docker-command (docker-arguments) args))
 
 (defun docker-get-transient-action ()
+  "Extract the action out of `current-transient-command'."
   (s-replace "-" " " (s-chop-prefix "docker-" (symbol-name transient-current-command))))
 
 (defun docker-generic-actions-heading ()
+  "Make the actions heading for the selected items."
   (let ((items (s-join ", " (docker-utils-get-marked-items-ids))))
     (format "%s %s"
             (propertize "Actions on" 'face 'transient-heading)
             (propertize items        'face 'transient-value))))
 
 (aio-defun docker-generic-action-async (action args)
+  "Run `docker ACTION ARGS' on each of the selected items."
   (interactive (list (docker-get-transient-action)
                      (transient-args transient-current-command)))
   (let* ((ids (docker-utils-get-marked-items-ids))
@@ -97,7 +100,7 @@
   (completing-read prompt '(debug info warn error fatal)))
 
 (defun docker-read-certificate (prompt &optional initial-input _history)
-  "Wrapper around `read-file-name'."
+  "Wrapper around `read-file-name' forwarding PROMPT and INITIAL-INPUT."
   (read-file-name prompt nil nil t initial-input (apply-partially 'string-match ".*\\.pem")))
 
 (docker-utils-define-transient-arguments docker)

@@ -73,13 +73,12 @@ and FLIP is a boolean to specify the sort order."
     (:name "Names" :width 10 :template "{{ json .Names }}" :sort nil :format nil))
   "Column specification for docker containers.
 
-The order of entries defines the displayed column order.
-'Template' is the Go template passed to docker-container-ls to create the column
-data.   It should return a string delimited with double quotes.
-'Sort function' is a binary predicate that should return true when the first
-argument should be sorted before the second.
-'Format function' is a function from string to string that transforms the
-displayed values in the column."
+The order of entries defines the displayed column order.  'Template' is
+the Go template passed to `docker-container-ls' to create the column data.
+It should return a string delimited with double quotes.  'Sort function' is
+a binary predicate that should return true when the first argument should be
+sorted before the second.  'Format function' is a function from string to
+string that transforms the displayed values in the column."
   :group 'docker-container
   :set 'docker-utils-columns-setter
   :get 'docker-utils-columns-getter
@@ -119,7 +118,7 @@ displayed values in the column."
     (-map #'docker-container-propertize-entry entries)))
 
 (defun docker-container-propertize-entry (entry)
-  "Propertize ENTRY so status uses the right face."
+  "Propertize ENTRY."
   (let* ((index (--find-index (string-equal "Status" (plist-get it :name)) docker-container-columns))
          (data (cadr entry))
          (status (aref data index)))
@@ -287,14 +286,14 @@ nil, ask the user for it."
   (tablist-revert))
 
 (defun docker-container-shell-selection (prefix)
-  "Run `docker-container-shell' on the containers selection."
+  "Run `docker-container-shell' on the containers selection forwarding PREFIX."
   (interactive "P")
   (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
     (docker-container-shell it prefix)))
 
 (defun docker-container-shell-env-selection (prefix)
-  "Run `docker-container-shell-env' on the containers selection."
+  "Run `docker-container-shell-env' on the containers selection forwarding PREFIX."
   (interactive "P")
   (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)

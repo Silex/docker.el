@@ -68,7 +68,7 @@ and FLIP is a boolean to specify the sort order."
   "Column specification for docker images.
 
 The order of entries defines the displayed column order.
-'Template' is the Go template passed to docker-image-ls to create the column
+'Template' is the Go template passed to `docker-image-ls' to create the column
 data.   It should return a string delimited with double quotes.
 'Sort function' is a binary predicate that should return true when the first
 argument should be sorted before the second.
@@ -249,6 +249,7 @@ applied to the buffer."
 (defclass docker-run-prefix (transient-prefix) nil)
 
 (cl-defmethod transient-init-value ((obj docker-run-prefix))
+  "Helper that modify OBJ DOCKER-RUN-PREFIX to handle `docker-image-run-custom-args'."
   (oset obj value
         (let* ((images (tablist-get-marked-items))
                (matched-args (let ((repo-name (caar images)))

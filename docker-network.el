@@ -65,7 +65,7 @@ and FLIP is a boolean to specify the sort order."
   "Column specification for docker networks.
 
 The order of entries defines the displayed column order.
-'Template' is the Go template passed to docker-network-ls to create the column
+'Template' is the Go template passed to `docker-network-ls' to create the column
 data.   It should return a string delimited with double quotes.
 'Sort function' is a binary predicate that should return true when the first
 argument should be sorted before the second.

@@ -37,7 +37,7 @@
   :group 'docker)
 
 (defcustom docker-compose-command "docker-compose"
-  "The docker-compose binary"
+  "The `docker-compose' binary."
   :group 'docker-compose
   :type 'string)
 
@@ -62,19 +62,19 @@
   (completing-read "Service: " (aio-await (docker-compose-services))))
 
 (defun docker-compose-read-log-level (prompt &rest _args)
-  "Read the docker-compose log level."
+  "Read the `docker-compose' log level forwarding PROMPT."
   (completing-read prompt '(DEBUG INFO WARNING ERROR CRITICAL)))
 
 (defun docker-compose-read-directory (prompt &optional initial-input _history)
-  "Wrapper around `read-directory-name'."
+  "Wrapper around `read-directory-name' forwarding PROMPT and INITIAL-INPUT."
   (read-directory-name prompt nil nil t initial-input))
 
 (defun docker-compose-read-environment-file (prompt &optional initial-input _history)
-  "Wrapper around `read-file-name'."
+  "Wrapper around `read-file-name' forwarding PROMPT and INITIAL-INPUT."
   (read-file-name prompt nil nil t initial-input))
 
 (defun docker-compose-read-compose-file (prompt &optional initial-input _history)
-  "Wrapper around `read-file-name'."
+  "Wrapper around `read-file-name' forwarding PROMPT and INITIAL-INPUT."
   (read-file-name prompt nil nil t initial-input (apply-partially 'string-match ".*\\.yml\\|.*\\.yaml")))
 
 (aio-defun docker-compose-run-action-for-one-service (action args services)
