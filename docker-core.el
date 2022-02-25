@@ -41,6 +41,11 @@
 (defvar docker-status-strings '(:containers "" :images "" :networks "" :volumes "")
   "Plist of statuses for `docker' transient.")
 
+(defcustom docker-display-status-in-transient t
+  "Whether to display docker status in the main transient buffer."
+  :group 'docker
+  :type 'boolean)
+
 (defun docker-run-docker-async (&rest args)
   "Execute \"`docker-command' ARGS\" and return a promise with the results."
   (apply #'docker-run-async docker-command (docker-arguments) args))
