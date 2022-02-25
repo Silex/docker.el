@@ -109,14 +109,15 @@ The result is the tabulated list id for an entry is propertized with
 (aio-defun docker-volume-update-status-async ()
   "Write the status to `docker-status-strings'."
   (plist-put docker-status-strings :volumes "Volumes")
-  (let* ((entries (aio-await (docker-volume-entries-propertized (docker-volume-ls-arguments))))
-         (dangling (--filter (docker-volume-dangling-p (car it)) entries)))
-    (plist-put docker-status-strings
-               :volumes
-               (format "Volumes (%s total, %s dangling)"
-                       (number-to-string (length entries))
-                       (propertize (number-to-string (length dangling)) 'face 'docker-face-dangling)))
-    (transient--redisplay)))
+  (when docker-display-status-in-transient
+    (let* ((entries (aio-await (docker-volume-entries-propertized (docker-volume-ls-arguments))))
+           (dangling (--filter (docker-volume-dangling-p (car it)) entries)))
+      (plist-put docker-status-strings
+                 :volumes
+                 (format "Volumes (%s total, %s dangling)"
+                         (number-to-string (length entries))
+                         (propertize (number-to-string (length dangling)) 'face 'docker-face-dangling)))
+      (transient--redisplay))))
 
 (add-hook 'docker-open-hook #'docker-volume-update-status-async)
 
