@@ -85,7 +85,7 @@ Here is a list of other customizations you can set:
 | docker-run-as-root                | Runs docker as root when enabled       | `nil`                |
 | docker-volume-columns             | Columns definition for volumes         | Too complex to show  |
 | docker-volume-default-sort-key    | Sort key for volumes                   | `("Driver")`         |
-| docker-message-commands       | If non-nil message run docker commands | `t`                  |
+| docker-show-messages              | If non-nil message run docker commands | `t`                  |
 
 ### Changing the default arguments for `docker run`
 

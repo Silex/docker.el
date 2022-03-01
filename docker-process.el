@@ -36,7 +36,7 @@
   :group 'docker
   :type 'boolean)
 
-(defcustom docker-message-commands t
+(defcustom docker-show-messages t
   "If non-nil `message' docker commands which are run."
   :group 'docker
   :type 'boolean)
@@ -54,7 +54,7 @@
   (docker-with-sudo
     (let* ((process-args (-remove 's-blank? (-flatten args)))
            (command (s-join " " (-insert-at 0 program process-args))))
-      (when docker-message-commands (message "Running: %s" command))
+      (when docker-show-messages (message "Running: %s" command))
       (start-file-process-shell-command command (apply #'docker-utils-generate-new-buffer-name program process-args) command))))
 
 (defun docker-run-async (program &rest args)
@@ -96,7 +96,7 @@
       (aio-resolve promise
                    (lambda ()
                      (message nil)
-                     (when docker-message-commands
+                     (when docker-show-messages
                        (message "Finished: %s" (process-name process)))
                      (run-with-timer 2 nil (lambda () (message nil)))
                      (with-current-buffer (process-buffer process)
