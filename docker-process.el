@@ -41,6 +41,9 @@
   :group 'docker
   :type 'boolean)
 
+(defvar vterm-kill-buffer-on-exit)
+(defvar vterm-shell)
+
 (defmacro docker-with-sudo (&rest body)
   "Ensure `default-directory' is set correctly according to `docker-run-as-root' then execute BODY."
   (declare (indent defun))
@@ -82,10 +85,13 @@
 
 (defun docker-run-async-with-buffer-vterm (program &rest args)
   "Execute \"PROGRAM ARGS\" and display output in a new `vterm' buffer."
-  (let* ((process-args (-remove 's-blank? (-flatten args)))
-         (vterm-shell (s-join " " (-insert-at 0 program process-args)))
-         (vterm-kill-buffer-on-exit nil))
-    (vterm-other-window (apply #'docker-utils-generate-new-buffer-name program process-args))))
+  (if (fboundp 'vterm-other-window)
+      (let* ((process-args (-remove 's-blank? (-flatten args)))
+             (vterm-shell (s-join " " (-insert-at 0 program process-args)))
+             (vterm-kill-buffer-on-exit nil))
+        (vterm-other-window
+         (apply #'docker-utils-generate-new-buffer-name program process-args)))
+    (error "The vterm package is not installed")))
 
 (defun docker-process-sentinel (promise process event)
   "Sentinel that resolves the PROMISE using PROCESS and EVENT."

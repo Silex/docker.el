@@ -235,13 +235,15 @@ nil, ask the user for it."
 (defun docker-container-vterm (container)
   "Open `vterm' in CONTAINER."
   (interactive (list (docker-container-read-name)))
-  (let* ((container-address (format "docker:%s:/" container))
-         (file-prefix (let ((prefix (file-remote-p default-directory)))
-                        (if prefix
-                            (format "%s|" (s-chop-suffix ":" prefix))
-                          "/")))
-         (default-directory (format "%s%s" file-prefix container-address)))
-    (vterm-other-window (docker-utils-generate-new-buffer-name "docker" "vterm:" default-directory))))
+  (if (fboundp 'vterm-other-window)
+      (let* ((container-address (format "docker:%s:/" container))
+             (file-prefix (let ((prefix (file-remote-p default-directory)))
+                            (if prefix
+                                (format "%s|" (s-chop-suffix ":" prefix))
+                              "/")))
+             (default-directory (format "%s%s" file-prefix container-address)))
+        (vterm-other-window (docker-utils-generate-new-buffer-name "docker" "vterm:" default-directory)))
+    (error "The vterm package is not installed")))
 
 (defun docker-container-cp-from-selection (container-path host-path)
   "Run \"docker cp\" from CONTAINER-PATH to HOST-PATH for selected container."
