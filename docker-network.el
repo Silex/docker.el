@@ -113,7 +113,7 @@ The result is the tabulated list id for an entry is propertized with
 (aio-defun docker-network-update-status-async ()
   "Write the status to `docker-status-strings'."
   (plist-put docker-status-strings :networks "Networks")
-  (when docker-display-status-in-transient
+  (when docker-show-status
     (let* ((entries (aio-await (docker-network-entries-propertized (docker-network-ls-arguments))))
            (dangling (--filter (docker-network-dangling-p (car it)) entries)))
       (plist-put docker-status-strings

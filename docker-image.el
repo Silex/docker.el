@@ -151,7 +151,7 @@ The result is the tabulated list id for an entry is propertized with
 (aio-defun docker-image-update-status-async ()
   "Write the status to `docker-status-strings'."
   (plist-put docker-status-strings :images "Images")
-  (when docker-display-status-in-transient
+  (when docker-show-status
     (let* ((entries (aio-await (docker-image-entries-propertized (docker-image-ls-arguments))))
            (dangling (--filter (docker-image-dangling-p (car it)) entries)))
       (plist-put docker-status-strings

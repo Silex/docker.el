@@ -41,7 +41,7 @@
 (defvar docker-status-strings '(:containers "" :images "" :networks "" :volumes "")
   "Plist of statuses for `docker' transient.")
 
-(defcustom docker-display-status-in-transient t
+(defcustom docker-show-status t
   "Whether to display docker status in the main transient buffer."
   :group 'docker
   :type 'boolean)

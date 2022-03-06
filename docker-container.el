@@ -128,7 +128,7 @@ string that transforms the displayed values in the column."
 (aio-defun docker-container-update-status-async ()
   "Write the status to `docker-status-strings'."
   (plist-put docker-status-strings :containers "Containers")
-  (when docker-display-status-in-transient
+  (when docker-show-status
     (let* ((entries (aio-await (docker-container-entries-propertized (docker-container-ls-arguments))))
            (index (--find-index (string-equal "Status" (plist-get it :name)) docker-container-columns))
            (statuses (--map (aref (cadr it) index) entries))

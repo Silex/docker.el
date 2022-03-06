@@ -86,6 +86,7 @@ Here is a list of other customizations you can set:
 | docker-volume-columns             | Columns definition for volumes         | Too complex to show  |
 | docker-volume-default-sort-key    | Sort key for volumes                   | `("Driver")`         |
 | docker-show-messages              | If non-nil message run docker commands | `t`                  |
+| docker-show-status                | If non-nil compute status              | `t`                  |
 
 ### Changing the default arguments for `docker run`
 
