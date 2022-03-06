@@ -1,4 +1,3 @@
 ; -*- mode: emacs-lisp; lexical-binding: t; no-byte-compile: t -*-
 
-;; Autodetermined by `eldev init'.
-(eldev-use-package-archive 'melpa-stable)
+(eldev-use-package-archive 'melpa)
