@@ -106,7 +106,6 @@
         (error "Error running: \"%s\" (%s)" (process-name process) event)
       (aio-resolve promise
                    (lambda ()
-                     (message nil)
                      (when docker-show-messages
                        (message "Finished: %s" (process-name process)))
                      (run-with-timer 2 nil (lambda () (message nil)))
