@@ -26,7 +26,6 @@
 (require 's)
 (require 'aio)
 (require 'dash)
-(require 'vterm nil 'noerror)
 
 (require 'docker-group)
 (require 'docker-utils)
@@ -48,8 +47,6 @@
   :group 'docker
   :type 'symbol)
 
-(defvar vterm-kill-buffer-on-exit)
-(defvar vterm-shell)
 
 (defmacro docker-with-sudo (&rest body)
   "Ensure `default-directory' is set correctly according to `docker-run-as-root' then execute BODY."
@@ -90,6 +87,9 @@
 
 (defun docker-run-async-with-buffer-vterm (program &rest args)
   "Execute \"PROGRAM ARGS\" and display output in a new `vterm' buffer."
+  (defvar vterm-kill-buffer-on-exit)
+  (defvar vterm-shell)
+  (require 'vterm nil 'noerror)
   (if (fboundp 'vterm-other-window)
       (let* ((process-args (-remove 's-blank? (-flatten args)))
              (vterm-shell (s-join " " (-insert-at 0 program process-args)))

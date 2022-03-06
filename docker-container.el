@@ -235,6 +235,7 @@ nil, ask the user for it."
 (defun docker-container-vterm (container)
   "Open `vterm' in CONTAINER."
   (interactive (list (docker-container-read-name)))
+  (require 'vterm nil 'noerror)
   (if (fboundp 'vterm-other-window)
       (let* ((container-address (format "docker:%s:/" container))
              (file-prefix (let ((prefix (file-remote-p default-directory)))
