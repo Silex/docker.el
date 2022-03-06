@@ -41,6 +41,13 @@
   :group 'docker
   :type 'boolean)
 
+(defcustom docker-run-async-with-buffer-function (if (featurep 'vterm)
+                                                     'docker-run-async-with-buffer-vterm
+                                                   'docker-run-async-with-buffer-shell)
+  "Function used to run a program with a live buffer attached to it."
+  :group 'docker
+  :type 'symbol)
+
 (defvar vterm-kill-buffer-on-exit)
 (defvar vterm-shell)
 
@@ -70,9 +77,7 @@
 
 (defun docker-run-async-with-buffer (program &rest args)
   "Execute \"PROGRAM ARGS\" and display output in a new buffer."
-  (if (featurep 'vterm)
-      (apply #'docker-run-async-with-buffer-vterm program args)
-    (apply #'docker-run-async-with-buffer-shell program args)))
+   (apply docker-run-async-with-buffer-function program args))
 
 (defun docker-run-async-with-buffer-shell (program &rest args)
   "Execute \"PROGRAM ARGS\" and display output in a new `shell' buffer."
