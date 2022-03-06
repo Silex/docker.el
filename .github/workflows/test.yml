@@ -12,6 +12,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         emacs_version:
           - 26.1
@@ -19,6 +20,9 @@ jobs:
           - 26.3
           - 27.1
           - 27.2
+        melpa_version:
+          - stable
+          - unstable
 
     steps:
     - name: Set up Emacs
@@ -32,12 +36,6 @@ jobs:
     - name: Check out the source code
       uses: actions/checkout@v2
 
-    - name: Test byte compilation against MELPA stable
+    - name: Test byte compilation against MELPA ${{matrix.melpa_version}}
       run: |
-        eldev -dtT -C --stable compile --warnings-as-errors
-
-    - name: Test byte compilation against MELPA unstable
-      run: |
-        eldev clean all
-        eldev -dtT -C --unstable compile --warnings-as-errors
-        
+        eldev -dtT -C --${{matrix.melpa_version}} compile --warnings-as-errors
