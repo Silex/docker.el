@@ -70,23 +70,24 @@ https://magit.vc/manual/transient/Enabling-and-Disabling-Suffixes.html for more 
 
 Here is a list of other customizations you can set:
 
-| Variable                          | Description                            | Default              |
-|-----------------------------------|----------------------------------------|----------------------|
-| docker-command                    | The docker binary to use               | `docker`             |
-| docker-compose-command            | The docker-compose binary to use       | `docker-compose`     |
-| docker-container-columns          | Columns definition for containers      | `/bin/sh`            |
-| docker-container-default-sort-key | Sort key for containers                | `("Image")`          |
-| docker-container-shell-file-name  | Shell to use when entering containers  | `/bin/sh`            |
-| docker-image-columns              | Columns definition for images          | Too complex to show  |
-| docker-image-default-sort-key     | Sort key for images                    | `("Repository")`     |
-| docker-image-run-default-args     | Base arguments to use for docker run   | `("-i" "-t" "--rm")` |
-| docker-network-columns            | Columns definition for networks        | Too complex to show  |
-| docker-network-default-sort-key   | Sort key for networks                  | `("Name")`           |
-| docker-run-as-root                | Runs docker as root when enabled       | `nil`                |
-| docker-volume-columns             | Columns definition for volumes         | Too complex to show  |
-| docker-volume-default-sort-key    | Sort key for volumes                   | `("Driver")`         |
-| docker-show-messages              | If non-nil message run docker commands | `t`                  |
-| docker-show-status                | If non-nil compute status              | `t`                  |
+| Variable                              | Description                                | Default              |
+|---------------------------------------|--------------------------------------------|----------------------|
+| docker-command                        | The docker binary to use                   | `docker`             |
+| docker-compose-command                | The docker-compose binary to use           | `docker-compose`     |
+| docker-container-columns              | Columns definition for containers          | `/bin/sh`            |
+| docker-container-default-sort-key     | Sort key for containers                    | `("Image")`          |
+| docker-container-shell-file-name      | Shell to use when entering containers      | `/bin/sh`            |
+| docker-image-columns                  | Columns definition for images              | Too complex to show  |
+| docker-image-default-sort-key         | Sort key for images                        | `("Repository")`     |
+| docker-image-run-default-args         | Base arguments to use for docker run       | `("-i" "-t" "--rm")` |
+| docker-network-columns                | Columns definition for networks            | Too complex to show  |
+| docker-network-default-sort-key       | Sort key for networks                      | `("Name")`           |
+| docker-run-as-root                    | Runs docker as root when enabled           | `nil`                |
+| docker-run-async-with-buffer-function | Function used to run programs with buffers | Too complex to show  |
+| docker-show-messages                  | If non-nil message docker commands         | `t`                  |
+| docker-show-status                    | If non-nil compute status                  | `t`                  |
+| docker-volume-columns                 | Columns definition for volumes             | Too complex to show  |
+| docker-volume-default-sort-key        | Sort key for volumes                       | `("Driver")`         |
 
 ### Changing the default arguments for `docker run`
 
