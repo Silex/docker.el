@@ -32,6 +32,12 @@ jobs:
     - name: Check out the source code
       uses: actions/checkout@v2
 
-    - name: Test Byte Compilation
+    - name: Test Byte Compilation Against melpa stable
       run: |
-        eldev -dtT -C compile --warnings-as-errors
+        eldev -dtT -C --stable compile --warnings-as-errors
+
+    - name: Test Byte Compilation Against melpa unstable
+      run: |
+        eldev clean all
+        eldev -dtT -C --unstable compile --warnings-as-errors
+        
