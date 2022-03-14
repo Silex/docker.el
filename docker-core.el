@@ -55,7 +55,7 @@
   (apply #'docker-run-async-with-buffer docker-command (docker-arguments) args))
 
 (defun docker-get-transient-action ()
-  "Extract the action out of `current-transient-command'."
+  "Extract the action out of `transient-current-command'."
   (s-replace "-" " " (s-chop-prefix "docker-" (symbol-name transient-current-command))))
 
 (defun docker-generic-action-description ()
