@@ -90,7 +90,7 @@ displayed values in the column."
 
 Note this can be overriden for specific images using
 `docker-image-run-custom-args'."
-  :group 'docker-run
+  :group 'docker-image
   :type '(repeat string))
 
 (make-obsolete-variable 'docker-run-default-args 'docker-image-run-default-args "Docker 2.1.0")
