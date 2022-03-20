@@ -130,16 +130,23 @@ displayed values in the column."
   (interactive)
   (message (elt (tabulated-list-get-entry) 1)))
 
-(defun docker-search-pull-action ()
-  "Run 'docker pull' on search selection displaying progress in new buffers."
+(aio-defun docker-search-pull-action ()
+  "Run 'docker pull' on search selection displaying progress in a new buffer.
+
+The transient may specify a tag, if multiple images are marked for pulling,
+the same tag will be applied to each."
   (interactive)
-  (docker-utils-generic-action-with-buffer "pull" (transient-args transient-current-command)))
+  (-let* ((((tag) args) (--separate (string-match-p ":.*" it) (transient-args transient-current-command)))
+          (promises (--map (docker-run-docker-async "pull" "-q" args (concat it tag)) (docker-utils-get-marked-items-ids))))
+    (aio-await (aio-all promises)))
+  (message "docker-pull complete"))
 
 (transient-define-prefix docker-search-pull ()
   "Transient for pulling Docker Hub images."
   :man-page "docker-image-pull"
   ["Arguments"
-   ("a" "Download all tags" "-a")]
+   ("a" "Download all tags" "-a")
+   ("t" "Download a specific tag" ":" read-string)]
   [:description docker-utils-generic-actions-heading
    ("F" "Pull selection" docker-search-pull-action)])
 
