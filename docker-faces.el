@@ -29,7 +29,7 @@
 (require 'docker-core)
 
 (defgroup docker-faces nil
-  "Docker faces."
+  "Docker faces customization group."
   :group 'docker
   :group 'faces)
 
