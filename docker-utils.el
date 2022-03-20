@@ -98,7 +98,7 @@ Execute BODY in a buffer named with the help of NAME."
 
 (defun docker-utils-human-size-sort (a b)
   "Sort A and B by image size."
-    (< (docker-utils-human-size-to-bytes a) (docker-utils-human-size-to-bytes b)))
+    (> (docker-utils-human-size-to-bytes a) (docker-utils-human-size-to-bytes b)))
 
 (defun docker-utils-numeric-sort (a b)
   "Sort A and B numerically."
