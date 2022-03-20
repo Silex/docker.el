@@ -34,7 +34,7 @@ jobs:
       run: curl -fsSL https://raw.github.com/doublep/eldev/master/webinstall/github-eldev | sh
 
     - name: Check out the source code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Test byte compilation against MELPA ${{matrix.melpa_version}}
       run: |
