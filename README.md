@@ -1,5 +1,6 @@
 [![MELPA](http://melpa.org/packages/docker-badge.svg)](http://melpa.org/#/docker)
 [![MELPA Stable](http://stable.melpa.org/packages/docker-badge.svg)](http://stable.melpa.org/#/docker)
+![CI status](https://github.com/Silex/docker.el/actions/workflows/ci.yml/badge.svg)
 
 # docker.el
 
