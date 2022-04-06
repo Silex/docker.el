@@ -83,7 +83,8 @@ Execute BODY in a buffer named with the help of NAME."
   (pop-to-buffer
    (if (file-remote-p default-directory)
        (with-parsed-tramp-file-name default-directory nil (concat name " - " host))
-     name)))
+     name)
+   docker-pop-buffer-action))
 
 (defun docker-utils-unit-multiplier (str)
   "Return the correct multiplier for STR."
