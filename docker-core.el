@@ -46,6 +46,15 @@
   :group 'docker
   :type 'boolean)
 
+(defun docker-refresh-entries (form)
+  "Updates the current buffer with the results of FORM, ensuring that they occur in the current buffer.
+FORM is wrapped in `aio-await'"
+  `(let ((buffer (current-buffer))
+         (entries (aio-await ,form)))
+     (with-current-buffer buffer
+       (setq tabulated-list-entries entries)
+       (tabulated-list-print t))))
+
 (defun docker-run-docker-async (&rest args)
   "Execute \"`docker-command' ARGS\" and return a promise with the results."
   (apply #'docker-run-async docker-command (docker-arguments) args))
