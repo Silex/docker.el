@@ -125,8 +125,11 @@ The result is the tabulated list id for an entry is propertized with
 
 (aio-defun docker-volume-refresh ()
   "Refresh the volumes list."
-  (setq tabulated-list-entries (aio-await (docker-volume-entries-propertized (docker-volume-ls-arguments))))
-  (tabulated-list-print t))
+  (let ((buffer (current-buffer))
+        (entries (aio-await (docker-volume-entries-propertized (docker-volume-ls-arguments)))))
+    (with-current-buffer buffer
+      (setq tabulated-list-entries entries)
+      (tabulated-list-print t))))
 
 (defun docker-volume-read-name ()
   "Read a volume name."
