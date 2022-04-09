@@ -127,7 +127,7 @@ The result is the tabulated list id for an entry is propertized with
 
 (aio-defun docker-network-refresh ()
   "Refresh the networks list."
-  (docker-refresh-entries
+  (docker-utils-refresh-entries
    (docker-network-entries-propertized (docker-network-ls-arguments))))
 
 (defun docker-network-read-name ()

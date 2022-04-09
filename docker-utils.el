@@ -78,6 +78,14 @@ Execute BODY in a buffer named with the help of NAME."
            (car default)
          (car history)))))
 
+(defmacro docker-utils-refresh-entries (promise)
+  "Update the current buffer with the results of PROMISE."
+  `(let ((buffer (current-buffer))
+         (entries (aio-await ,promise)))
+     (with-current-buffer buffer
+       (setq tabulated-list-entries entries)
+       (tabulated-list-print t))))
+
 (defun docker-utils-pop-to-buffer (name)
   "Like `pop-to-buffer', but suffix NAME with the host if on a remote host."
   (pop-to-buffer

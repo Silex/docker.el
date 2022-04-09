@@ -150,7 +150,7 @@ string that transforms the displayed values in the column."
 
 (aio-defun docker-container-refresh ()
   "Refresh the containers list."
-  (docker-refresh-entries
+  (docker-utils-refresh-entries
    (docker-container-entries-propertized (docker-container-ls-arguments))))
 
 (defun docker-container-read-name ()
