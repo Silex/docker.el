@@ -83,6 +83,7 @@ Here is a list of other customizations you can set:
 | docker-image-run-default-args         | Base arguments to use for docker run       | `("-i" "-t" "--rm")` |
 | docker-network-columns                | Columns definition for networks            | Too complex to show  |
 | docker-network-default-sort-key       | Sort key for networks                      | `("Name")`           |
+| docker-pop-to-buffer-action           | Action for `docker-utils-pop-to-buffer`    | `nil`                |
 | docker-run-as-root                    | Runs docker as root when enabled           | `nil`                |
 | docker-run-async-with-buffer-function | Function used to run programs with buffers | Too complex to show  |
 | docker-show-messages                  | If non-nil message docker commands         | `t`                  |
