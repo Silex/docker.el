@@ -150,8 +150,8 @@ string that transforms the displayed values in the column."
 
 (aio-defun docker-container-refresh ()
   "Refresh the containers list."
-  (setq tabulated-list-entries (aio-await (docker-container-entries-propertized (docker-container-ls-arguments))))
-  (tabulated-list-print t))
+  (docker-refresh-entries
+   (docker-container-entries-propertized (docker-container-ls-arguments))))
 
 (defun docker-container-read-name ()
   "Read an container name."
