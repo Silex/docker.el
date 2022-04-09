@@ -41,9 +41,6 @@
 (defvar docker-status-strings '(:containers "" :images "" :networks "" :volumes "")
   "Plist of statuses for `docker' transient.")
 
-(defvar docker-pop-to-buffer-action nil
-  "Action to use internally when `docker-utils-pop-to-buffer' calls `pop-to-buffer'")
-
 (defcustom docker-show-status t
   "Whether to display docker status in the main transient buffer."
   :group 'docker

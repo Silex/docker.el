@@ -86,6 +86,9 @@ Execute BODY in a buffer named with the help of NAME."
        (setq tabulated-list-entries entries)
        (tabulated-list-print t))))
 
+(defvar docker-pop-to-buffer-action nil
+  "Action to use internally when `docker-utils-pop-to-buffer' calls `pop-to-buffer'")
+
 (defun docker-utils-pop-to-buffer (name)
   "Like `pop-to-buffer', but suffix NAME with the host if on a remote host."
   (pop-to-buffer
