@@ -283,6 +283,7 @@
    ("h" "Host" "--host " read-string)
    ("l" "Log level" "--log-level " docker-compose-read-log-level)
    ("p" "Project name" "--project-name " read-string)
+   ("r" "Profile" "--profile " read-string)
    ("v" "Verbose" "--verbose")]
   [["Images"
     ("B" "Build"      docker-compose-build)
