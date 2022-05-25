@@ -145,7 +145,6 @@
   :man-page "docker-compose down"
   ["Arguments"
    ("o" "Remove orphans" "--remove-orphans")
-   ("p" "Profile" "--profile " read-string)
    ("t" "Timeout" "--timeout " transient-read-number-N0)
    ("v" "Remove volumes" "--volumes")]
   ["Actions"
@@ -262,7 +261,6 @@
    ("d" "Detach" "-d")
    ("f" "Force recreate" "--force-recreate")
    ("n" "No deps" "--no-deps")
-   ("p" "Profile" "--profile " read-string)
    ("q" "Quiet pull" "--quiet-pull")
    ("r" "Remove orphans" "--remove-orphans")
    ("t" "Timeout" "--timeout " transient-read-number-N0)]
@@ -285,6 +283,7 @@
    ("h" "Host" "--host " read-string)
    ("l" "Log level" "--log-level " docker-compose-read-log-level)
    ("p" "Project name" "--project-name " read-string)
+   ("r" "Profile" "--profile " read-string)
    ("v" "Verbose" "--verbose")]
   [["Images"
     ("B" "Build"      docker-compose-build)
