@@ -155,7 +155,7 @@ string that transforms the displayed values in the column."
 
 (defun docker-container-read-name ()
   "Read an container name."
-  (completing-read "Container: " (-map #'car (docker-container-entries))))
+  (completing-read "Container: " (-map #'car (aio-wait-for (docker-container-entries)))))
 
 (defvar eshell-buffer-name)
 

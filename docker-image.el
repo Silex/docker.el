@@ -170,7 +170,7 @@ The result is the tabulated list id for an entry is propertized with
 
 (defun docker-image-read-name ()
   "Read an image name."
-  (completing-read "Image: " (-map #'car (docker-image-entries))))
+  (completing-read "Image: " (-map #'car (aio-wait-for (docker-image-entries)))))
 
 ;;;###autoload (autoload 'docker-image-pull-one "docker-image" nil t)
 (aio-defun docker-image-pull-one (name &optional all)
