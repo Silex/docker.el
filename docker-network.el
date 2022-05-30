@@ -132,7 +132,7 @@ The result is the tabulated list id for an entry is propertized with
 
 (defun docker-network-read-name ()
   "Read a network name."
-  (completing-read "Network: " (-map #'car (docker-network-entries))))
+  (completing-read "Network: " (-map #'car (aio-wait-for (docker-network-entries)))))
 
 (defun docker-network-mark-dangling ()
   "Mark only the dangling networks listed in *docker-networks*.
