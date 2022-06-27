@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 'aio)
+(require 'json-mode)
 (require 'transient)
 
 (require 'docker-group)
@@ -97,7 +98,7 @@
            (data (aio-await (docker-run-docker-async "inspect" id))))
       (docker-utils-with-buffer (format "inspect %s" id)
         (insert data)
-        (js-mode)
+        (json-mode)
         (view-mode)))))
 
 (defun docker-read-log-level (prompt &rest _args)
