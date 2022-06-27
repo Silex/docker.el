@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.2.0 (2022-06-27)
+
+- Add `--profile` flag to docker-compose.
+- Add option to hide docker messages.
+- Add option to disable docker status.
+- Improve documentation.
+- Various bugfixes.
+
 ## 2.1.2 (2021-02-22)
 
 - Fix vterm byte-compile issues.
