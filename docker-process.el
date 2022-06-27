@@ -89,7 +89,6 @@
   "Execute \"PROGRAM ARGS\" and display output in a new `vterm' buffer."
   (defvar vterm-kill-buffer-on-exit)
   (defvar vterm-shell)
-  (require 'vterm nil 'noerror)
   (if (fboundp 'vterm-other-window)
       (let* ((process-args (-remove 's-blank? (-flatten args)))
              (vterm-shell (s-join " " (-insert-at 0 program process-args)))
