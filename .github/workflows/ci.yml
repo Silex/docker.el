@@ -20,6 +20,7 @@ jobs:
           - 26.3
           - 27.1
           - 27.2
+          - 28.1
         melpa_version:
           # - stable
           - unstable
