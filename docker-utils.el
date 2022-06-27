@@ -28,7 +28,7 @@
 (require 'dash)
 (require 'tramp)
 (require 'tablist)
-(require 'json-mode)
+(require 'json)
 (require 'transient)
 
 (defun docker-utils-get-marked-items-ids ()
