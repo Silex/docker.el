@@ -26,6 +26,7 @@
 (require 's)
 (require 'aio)
 (require 'dash)
+(require 'json)
 (require 'tramp)
 (require 'tablist)
 (require 'transient)
