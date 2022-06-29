@@ -40,7 +40,7 @@
 
 (defface docker-face-status-down
   '((t :inherit error))
-  "Face used when the status is down"
+  "Face used when the status is down."
   :group 'docker-faces)
 
 (defface docker-face-status-other
