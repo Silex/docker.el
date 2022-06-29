@@ -2,3 +2,6 @@
 
 (eldev-use-package-archive 'melpa)
 (eldev-use-package-archive 'gnu-elpa)
+
+(with-eval-after-load 'bytecomp
+  (setf byte-compile-warnings '(not docstrings)))
