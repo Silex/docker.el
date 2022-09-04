@@ -61,6 +61,19 @@
   "Read one service name."
   (completing-read "Service: " (aio-await (docker-compose-services))))
 
+(defun docker-compose-read-project (prompt &rest _args)
+  "Read the `docker-compose' project forwarding PROMPT."
+  (completing-read
+   prompt
+   ;; in docker compose v2, we can obtain the list of
+   ;; projects with 'ls' argument
+   (if (string-match-p "*?docker compose*?" docker-compose-command)
+       (split-string
+	(shell-command-to-string
+	 (concat docker-compose-command " ls" " --all" " -q"))
+	"\n"
+	t))))
+
 (defun docker-compose-read-log-level (prompt &rest _args)
   "Read the `docker-compose' log level forwarding PROMPT."
   (completing-read prompt '(DEBUG INFO WARNING ERROR CRITICAL)))
@@ -282,7 +295,7 @@
    ("f" "Compose file" "--file " docker-compose-read-compose-file)
    ("h" "Host" "--host " read-string)
    ("l" "Log level" "--log-level " docker-compose-read-log-level)
-   ("p" "Project name" "--project-name " read-string)
+   ("p" "Project name" "--project-name " docker-compose-read-project)
    ("r" "Profile" "--profile " read-string)
    ("v" "Verbose" "--verbose")]
   [["Images"
