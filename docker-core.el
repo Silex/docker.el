@@ -128,7 +128,8 @@
    ("c" (lambda ()(plist-get docker-status-strings :containers)) docker-containers)
    ("i" (lambda ()(plist-get docker-status-strings :images))     docker-images)
    ("n" (lambda ()(plist-get docker-status-strings :networks))   docker-networks)
-   ("v" (lambda ()(plist-get docker-status-strings :volumes))    docker-volumes)]
+   ("v" (lambda ()(plist-get docker-status-strings :volumes))    docker-volumes)
+   ("x"  "Contexts " docker-contexts)]
   ["Other"
    ("C" "Compose" docker-compose)]
   (interactive)

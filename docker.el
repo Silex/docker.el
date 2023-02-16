@@ -34,6 +34,7 @@
 (require 'docker-image)
 (require 'docker-network)
 (require 'docker-volume)
+(require 'docker-context)
 
 (provide 'docker)
 
