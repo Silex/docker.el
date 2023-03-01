@@ -98,7 +98,6 @@ displayed values in the column."
         (active (car (s-split "\n" (aio-await (docker-run-docker-async "context" "show")) t))))
     (--map-when (string= active (car it)) (docker-context-entry-set-active it) entries)))
 
-
 (defun docker-context-entry-set-active (entry)
   "Mark ENTRY (output of `docker-context-entries') as active.
 
