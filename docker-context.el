@@ -141,9 +141,9 @@ The result is the tabulated list id for an entry is propertized with
 (transient-define-prefix docker-context-help ()
   "Help transient for docker contexts."
   ["Docker contexts help"
-   ("D" "Remove"        docker-context-rm)
-   ("I" "Inspect"       docker-context-inspect)
-   ("X" "Use"       docker-context-use)])
+   ("D" "Remove"  docker-context-rm)
+   ("I" "Inspect" docker-context-inspect)
+   ("X" "Use"     docker-context-use)])
 
 (defvar docker-context-mode-map
   (let ((map (make-sparse-keymap)))
