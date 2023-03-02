@@ -6,7 +6,7 @@
 
 Emacs integration for [Docker](https://www.docker.com)!
 
-Supports docker containers, images, volumes, networks and docker-compose.
+Supports docker containers, images, volumes, networks, contexts and docker-compose.
 
 ## Screenshots
 
@@ -57,6 +57,7 @@ Then select an action and follow the instructions.
 - docker image: inspect, pull, push, rm, run, tag
 - docker network: rm
 - docker volume: rm
+- docker context: ls, use
 - docker-compose: build, config, create, down, exec, logs, pull, push, remove, restart, run, start, stop, up
 
 You can also enter `dired` or open a file inside a container or volume.

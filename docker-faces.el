@@ -53,6 +53,11 @@
   "Face for dangling items."
   :group 'docker-faces)
 
+(defface docker-face-active
+  '((t :inherit bold))
+  "Face for active items."
+  :group 'docker-faces)
+
 (provide 'docker-faces)
 
 ;;; docker-faces.el ends here
