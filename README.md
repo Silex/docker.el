@@ -24,7 +24,7 @@ The recommended way to install docker.el is through [MELPA](https://github.com/m
 
 Here is a example [use-package](https://github.com/jwiegley/use-package) configuration:
 
-``` elisp
+```elisp
 (use-package docker
   :ensure t
   :bind ("C-c d" . docker))
@@ -32,7 +32,7 @@ Here is a example [use-package](https://github.com/jwiegley/use-package) configu
 
 ## Quickstart
 
-Use <kbd>M-x docker</kbd>, select a resource then then mark or unmark items using the following keybindings (for more
+Use <kbd>M-x docker</kbd>, select a resource then mark or unmark items using the following keybindings (for more
 marking possibilities, check out https://github.com/politza/tablist):
 
 | Binding            | Description          |
