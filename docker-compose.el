@@ -312,9 +312,9 @@
     ("S" "Start"      docker-compose-start)
     ("T" "Restart"    docker-compose-restart)]
    ["Other"
-    ("R" "Run"        docker-compose-run)
-    ("L" "Logs"       docker-compose-logs)
     ("E" "Exec"       docker-compose-exec)
+    ("L" "Logs"       docker-compose-logs)
+    ("R" "Run"        docker-compose-run)
     ("V" "Config"     docker-compose-config)]])
 
 (provide 'docker-compose)
