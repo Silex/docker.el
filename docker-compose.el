@@ -281,6 +281,20 @@
    ("U" "Up" docker-compose-run-action-for-one-service)
    ("A" "All services" docker-compose-run-action-for-all-services)])
 
+(transient-define-prefix docker-compose-pause ()
+  "Transient for \"docker-compose pause\"."
+  :man-page "docker-compose pause"
+  ["Actions"
+   ("P" "Pause" docker-compose-run-action-for-one-service)
+   ("A" "All services" docker-compose-run-action-for-all-services)])
+
+(transient-define-prefix docker-compose-unpause ()
+  "Transient for \"docker-compose unpause\"."
+  :man-page "docker-compose unpause"
+  ["Actions"
+   ("N" "Unpause" docker-compose-run-action-for-one-service)
+   ("A" "All services" docker-compose-run-action-for-all-services)])
+
 (docker-utils-define-transient-arguments docker-compose)
 
 ;;;###autoload (autoload 'docker-compose "docker-compose" nil t)
@@ -305,6 +319,8 @@
    ["Containers"
     ("C" "Create"     docker-compose-create)
     ("D" "Remove"     docker-compose-rm)
+    ("N" "Unpause"    docker-compose-unpause)
+    ("P" "Pause"      docker-compose-pause)
     ("U" "Up"         docker-compose-up)
     ("W" "Down"       docker-compose-down)]
    ["State"

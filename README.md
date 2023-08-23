@@ -58,7 +58,7 @@ Then select an action and follow the instructions.
 - docker network: rm
 - docker volume: rm
 - docker context: ls, use
-- docker-compose: build, config, create, down, exec, logs, pull, push, remove, restart, run, start, stop, up
+- docker-compose: build, config, create, down, exec, logs, pause, pull, push, remove, restart, run, start, stop, unpause, up
 
 You can also enter `dired` or open a file inside a container or volume.
 
