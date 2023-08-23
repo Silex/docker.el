@@ -302,12 +302,6 @@ nil, ask the user for it."
   (--each (docker-utils-get-marked-items-ids)
     (docker-container-shell-env it prefix)))
 
-(defun docker-container-unpause-selection ()
-  "Run `docker-container-unpause' on the containers selection."
-  (interactive)
-  (docker-utils-ensure-items)
-  (docker-generic-action-multiple-ids "unpause" (transient-args transient-current-command)))
-
 (defun docker-container-vterm-selection ()
   "Run `docker-container-vterm' on the containers selection."
   (interactive)
@@ -381,8 +375,13 @@ nil, ask the user for it."
   "Transient for pausing containers."
   :man-page "docker-container-pause"
   [:description docker-generic-action-description
-   ("P" "Pause" docker-generic-action-multiple-ids)
-   ("U" "Unpause" docker-container-unpause-selection)])
+   ("P" "Pause" docker-generic-action-multiple-ids)])
+
+(docker-utils-transient-define-prefix docker-container-unpause ()
+  "Transient for pausing containers."
+  :man-page "docker-container-unpause"
+  [:description docker-generic-action-description
+   ("N" "Unpause" docker-generic-action-multiple-ids)])
 
 (docker-utils-transient-define-prefix docker-container-restart ()
   "Transient for restarting containers."
@@ -429,6 +428,7 @@ nil, ask the user for it."
    ["Lifecycle"
     ("K" "Kill"       docker-container-kill)
     ("O" "Stop"       docker-container-stop)
+    ("N" "Unpause"    docker-container-unpause)
     ("P" "Pause"      docker-container-pause)
     ("R" "Restart"    docker-container-restart)
     ("S" "Start"      docker-container-start)]
@@ -453,6 +453,7 @@ nil, ask the user for it."
     (define-key map "K" 'docker-container-kill)
     (define-key map "L" 'docker-container-logs)
     (define-key map "O" 'docker-container-stop)
+    (define-key map "N" 'docker-container-unpause)
     (define-key map "P" 'docker-container-pause)
     (define-key map "R" 'docker-container-restart)
     (define-key map "S" 'docker-container-start)
