@@ -136,7 +136,7 @@ The result is the tabulated list id for an entry is propertized with
 (aio-defun docker-volume-dired (name)
   "Enter `dired' in the volume named NAME."
   (interactive (list (docker-volume-read-name)))
-  (let ((path (s-trim-right (aio-await (docker-run-docker-async "inspect" "-f" "\"{{ .Mountpoint }}\"" name))))
+  (let ((path (s-trim-right (aio-await (docker-run-docker-async "inspect" "-f" "\"{{ .Mountpoint }}\"" name)))))
     (dired (format "/sudo::%s" path))))
 
 (defun docker-volume-dired-selection ()
