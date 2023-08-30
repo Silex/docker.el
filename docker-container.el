@@ -234,8 +234,7 @@ nil, ask the user for it."
 ;;;###autoload (autoload 'docker-container-vterm "docker-container" nil t)
 (defun docker-container-vterm (container)
   "Open `vterm' in CONTAINER."
-  (interactive (list
-                (docker-container-read-name)))
+  (interactive (list (docker-container-read-name)))
   (if (fboundp 'vterm-other-window)
       (let* ((container-address (format "docker:%s:/" container))
              (file-prefix (let ((prefix (file-remote-p default-directory)))
@@ -436,7 +435,7 @@ default directory set to workdir."
    ("B" "Shell with env" docker-container-shell-env-selection)
    ("e" "Eshell" docker-container-eshell-selection)
    ("v" "Vterm" docker-container-vterm-selection)
-   ("V" "Vterm with env"  docker-container-vterm-env-selection)])
+   ("V" "Vterm with env" docker-container-vterm-env-selection)])
 
 (docker-utils-transient-define-prefix docker-container-start ()
   "Transient for starting containers."
