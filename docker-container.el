@@ -245,6 +245,27 @@ nil, ask the user for it."
         (vterm-other-window (docker-utils-generate-new-buffer-name "docker" "vterm:" default-directory)))
     (error "The vterm package is not installed")))
 
+;;;###autoload (autoload 'docker-container-vterm-env "docker-container" nil t)
+(aio-defun docker-container-vterm-env (container)
+  "Open `vterm' in CONTAINER with the environment variable set and
+default directory set to workdir."
+  (interactive (list
+                (docker-container-read-name)))
+  (if (fboundp 'vterm-other-window)
+      (let* ((container-address (format "docker:%s:" container))
+             (file-prefix (let ((prefix (file-remote-p default-directory)))
+                            (if prefix
+                                (format "%s|" (s-chop-suffix ":" prefix))
+                              "/")))
+             (container-config (cdr (assq 'Config (aref (json-read-from-string (aio-await (docker-run-docker-async "inspect" container))) 0))))
+             (container-workdir (cdr (assq 'WorkingDir container-config)))
+             (container-env (cdr (assq 'Env container-config)))
+             (default-directory (format "%s%s%s" file-prefix container-address container-workdir))
+             ;; process-environment doesn't work with tramp if you call this function more than one per emacs session
+             (tramp-remote-process-environment (append container-env nil)))
+        (vterm-other-window (docker-utils-generate-new-buffer-name "docker" "vterm-env:" default-directory)))
+    (error "The vterm package is not installed")))
+
 (defun docker-container-cp-from-selection (container-path host-path)
   "Run \"docker cp\" from CONTAINER-PATH to HOST-PATH for selected container."
   (interactive "sContainer path: \nFHost path: ")
@@ -308,6 +329,13 @@ nil, ask the user for it."
   (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
     (docker-container-vterm it)))
+
+(defun docker-container-vterm-env-selection ()
+  "Run `docker-container-vterm-env' on the containers selection."
+  (interactive)
+  (docker-utils-ensure-items)
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-container-vterm-env it)))
 
 (docker-utils-transient-define-prefix docker-container-attach ()
   "Transient for attaching to containers."
@@ -406,7 +434,8 @@ nil, ask the user for it."
    ("b" "Shell" docker-container-shell-selection)
    ("B" "Shell with env" docker-container-shell-env-selection)
    ("e" "Eshell" docker-container-eshell-selection)
-   ("v" "Vterm" docker-container-vterm-selection)])
+   ("v" "Vterm" docker-container-vterm-selection)
+   ("V" "Vterm with env" docker-container-vterm-env-selection)])
 
 (docker-utils-transient-define-prefix docker-container-start ()
   "Transient for starting containers."
