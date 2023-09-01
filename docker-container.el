@@ -246,7 +246,7 @@ nil, ask the user for it."
     (error "The vterm package is not installed")))
 
 ;;;###autoload (autoload 'docker-container-vterm-env "docker-container" nil t)
-(aio-defun docker-container-vterm-env (container)
+(defun docker-container-vterm-env (container)
   "Open `vterm' in CONTAINER with the environment variable set and
 default directory set to workdir."
   (interactive (list
