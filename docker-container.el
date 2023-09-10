@@ -251,20 +251,20 @@ nil, ask the user for it."
 default directory set to workdir."
   (interactive (list
                 (docker-container-read-name)))
-  (if (fboundp 'vterm-other-window)
-      (let* ((container-address (format "docker:%s:" container))
-             (file-prefix (let ((prefix (file-remote-p default-directory)))
-                            (if prefix
-                                (format "%s|" (s-chop-suffix ":" prefix))
-                              "/")))
-             (container-config (cdr (assq 'Config (aref (json-read-from-string (aio-await (docker-run-docker-async "inspect" container))) 0))))
-             (container-workdir (cdr (assq 'WorkingDir container-config)))
-             (container-env (cdr (assq 'Env container-config)))
-             (default-directory (format "%s%s%s" file-prefix container-address container-workdir))
-             ;; process-environment doesn't work with tramp if you call this function more than one per emacs session
-             (tramp-remote-process-environment (append container-env nil)))
-        (vterm-other-window (docker-utils-generate-new-buffer-name "docker" "vterm-env:" default-directory)))
-    (error "The vterm package is not installed")))
+  (let* ((container-address (format "docker:%s:" container))
+         (file-prefix (let ((prefix (file-remote-p default-directory)))
+                        (if prefix
+                            (format "%s|" (s-chop-suffix ":" prefix))
+                          "/")))
+         (container-config (cdr (assq 'Config (aref (json-read-from-string (aio-await (docker-run-docker-async "inspect" container))) 0))))
+         (container-workdir (cdr (assq 'WorkingDir container-config)))
+         (container-env (cdr (assq 'Env container-config)))
+         (default-directory (format "%s%s%s" file-prefix container-address container-workdir))
+         ;; process-environment doesn't work with tramp if you call this function more than one per emacs session
+         (tramp-remote-process-environment (append container-env nil)))
+    (if (fboundp 'vterm-other-window)
+        (vterm-other-window (docker-utils-generate-new-buffer-name "docker" "vterm-env:" default-directory))
+      (error "The vterm package is not installed"))))
 
 (defun docker-container-cp-from-selection (container-path host-path)
   "Run \"docker cp\" from CONTAINER-PATH to HOST-PATH for selected container."
