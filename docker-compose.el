@@ -186,7 +186,6 @@
    ("n" "No color" "--no-color")
    ("t" "Timestamps" "--timestamps")]
   ["Actions"
-
    ("L" "Logs" docker-compose-run-action-for-one-service)
    ("A" "All services" docker-compose-run-action-for-all-services)])
 
