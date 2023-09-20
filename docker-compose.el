@@ -181,7 +181,7 @@
   "Transient for \"docker-compose logs\"."
   :man-page "docker-compose logs"
   ["Arguments"
-   ("T" "Tail" "--tail=" read-string)
+   ("T" "Tail" "--tail " read-string)
    ("f" "Follow" "--follow")
    ("n" "No color" "--no-color")
    ("t" "Timestamps" "--timestamps")]

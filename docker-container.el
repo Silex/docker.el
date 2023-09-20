@@ -342,7 +342,7 @@ default directory set to workdir."
   :man-page "docker-container-attach"
   ["Arguments"
    ("n" "No STDIN" "--no-stdin")
-   ("d" "Key sequence for detaching" "--detach-keys=" read-string)]
+   ("d" "Key sequence for detaching" "--detach-keys " read-string)]
   [:description docker-generic-action-description
    ("a" "Attach" docker-generic-action-with-buffer)])
 

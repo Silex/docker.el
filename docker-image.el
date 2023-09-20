@@ -268,7 +268,7 @@ applied to the buffer."
   :class 'docker-run-prefix
   ["Arguments"
    ("D" "With display" "-v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY")
-   ("M" "Mount volume" "--mount=" read-string)
+   ("M" "Mount volume" "--mount " read-string)
    ("N" "Network" "--network " read-string)
    ("P" "Privileged" "--privileged")
    ("T" "Synchronize time" "-v /etc/localtime:/etc/localtime:ro")
