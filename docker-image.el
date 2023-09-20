@@ -274,18 +274,18 @@ applied to the buffer."
    ("T" "Synchronize time" "-v /etc/localtime:/etc/localtime:ro")
    ("W" "Web ports" "-p 80:80 -p 443:443 -p 8080:8080")
    ("d" "Detach" "-d")
-   ("e" "environment" "-e " read-string)
+   ("e" "Environment" "-e " read-string)
    ("i" "Interactive" "-i")
-   ("l" "link" "--link " read-string)
-   ("m" "name" "--name " read-string)
-   ("n" "entrypoint" "--entrypoint " read-string)
+   ("l" "Link" "--link " read-string)
+   ("m" "Name" "--name " read-string)
+   ("n" "Entrypoint" "--entrypoint " read-string)
    ("o" "Read only" "--read-only")
-   ("p" "port" "-p " read-string)
+   ("p" "Port" "-p " read-string)
    ("r" "Remove container when it exits" "--rm")
    ("t" "TTY" "-t")
-   ("u" "user" "-u " read-string)
-   ("v" "volume" "-v " read-string)
-   ("w" "workdir" "-w " read-string)]
+   ("u" "User" "-u " read-string)
+   ("v" "Volume" "-v " read-string)
+   ("w" "Workdir" "-w " read-string)]
   [:description docker-generic-action-description
    ("R" "Run" docker-image-run-selection)])
 
