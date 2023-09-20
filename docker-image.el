@@ -276,6 +276,7 @@ applied to the buffer."
    ("d" "Detach" "-d")
    ("e" "environment" "-e " read-string)
    ("i" "Interactive" "-i")
+   ("l" "link" "--link " read-string)
    ("m" "name" "--name " read-string)
    ("n" "entrypoint" "--entrypoint " read-string)
    ("o" "Read only" "--read-only")
