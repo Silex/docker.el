@@ -92,10 +92,18 @@ displayed values in the column."
          (lines (s-split "\n" data t)))
     (-map (-partial #'docker-utils-parse docker-context-columns) lines)))
 
+(aio-defun docker-context-active-name (&rest args)
+  (let* ((fmt "{{ json .Current }} {{ json .Name }}")
+	 (data (aio-await (docker-run-docker-async "context" "ls" args (format "--format=\"%s\"" fmt))))
+	 (lines (s-split "\n" data t))
+	 (active-line (seq-find (lambda (line) (string-match-p "true" (car (s-split " " line)))) lines)))
+    (when active-line
+      (cadr (split-string active-line "\"")))))
+
 (aio-defun docker-context-entries-propertized (&rest args)
   "Return the propertized docker contexts data for `tabulated-list-entries'."
   (let ((entries (aio-await (docker-context-entries args)))
-        (active (car (s-split "\n" (aio-await (docker-run-docker-async "context" "show")) t))))
+        (active (aio-await (docker-context-active-name args))))
     (--map-when (string= active (car it)) (docker-context-entry-set-active it) entries)))
 
 (defun docker-context-entry-set-active (entry)
