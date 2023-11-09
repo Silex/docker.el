@@ -18,6 +18,7 @@ jobs:
           - 28.2
           - 29.1
         melpa_version:
+          - stable
           - unstable
 
     steps:
