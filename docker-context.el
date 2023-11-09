@@ -96,7 +96,7 @@ displayed values in the column."
   (let* ((fmt "{{ json .Current }} {{ json .Name }}")
 	 (data (aio-await (docker-run-docker-async "context" "ls" args (format "--format=\"%s\"" fmt))))
 	 (lines (s-split "\n" data t))
-	 (active-line (seq-find (lambda (line) (string-match-p "true" (car (s-split " " line)))) lines)))
+	 (active-line (-first (lambda (line) (string-match-p "true" (car (s-split " " line)))) lines)))
     (when active-line
       (cadr (split-string active-line "\"")))))
 

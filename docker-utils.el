@@ -150,7 +150,7 @@ defcustom (e.g. `docker-image-columns`) used to apply any custom format function
                 (data-index (+ it-index 1)))
             (when fmt-fn (aset data data-index (apply fmt-fn (list (aref data data-index)))))))
 
-        (list (aref data 0) (seq-drop data 1)))
+        (list (aref data 0) (-drop 1 data)))
     (json-readtable-error
      (error "Could not read following string as json:\n%s" line))))
 
