@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.3.0 (2023-11-10)
+
+- Add support for contexts.
+- Add `--link` option to docker-image-run.
+- Add ability to use vterm with environment and workdir set.
+- Add support for `docker-compose pause/unpause`.
+- Provide default list of Docker Compose projects.
+- Separate docker container pause from unpause.
+- Fix byte-comp error with vterm.
+- Fix `docker-volume-dired` bug with newlines.
+- Remove docker-tramp dependency.
+
 ## 2.2.0 (2022-06-27)
 
 - Add `--profile` flag to docker-compose.
