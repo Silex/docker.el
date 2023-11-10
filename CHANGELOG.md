@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.3.1 (2023-11-10)
+
+- Fix empty listings bug.
+
 ## 2.3.0 (2023-11-10)
 
 - Add support for contexts.
