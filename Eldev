@@ -3,5 +3,14 @@
 (eldev-use-package-archive 'melpa)
 (eldev-use-package-archive 'gnu-elpa)
 
+;; Fix bug with Emacs 29.1 (see https://github.com/emacs-eldev/eldev/issues/93)
+(defun sanityinc/reload-previously-loaded-with-load-path-updated (orig pkg-desc)
+  (let ((load-path (cons (package-desc-dir pkg-desc) load-path)))
+    (funcall orig pkg-desc)))
+
+(when (string-match-p (regexp-quote "29.1") (emacs-version))
+  (advice-add 'package--reload-previously-loaded :around
+	      'sanityinc/reload-previously-loaded-with-load-path-updated))
+
 (with-eval-after-load 'bytecomp
   (setf byte-compile-warnings '(not docstrings)))
