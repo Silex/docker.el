@@ -64,7 +64,7 @@ and FLIP is a boolean to specify the sort order."
     (:name "Tag" :width 20 :template "{{ json .Tag }}" :sort nil :format nil)
     (:name "Id" :width 16 :template "{{ json .ID }}" :sort nil :format nil)
     (:name "Created" :width 24 :template "{{ json .CreatedAt }}" :sort nil :format (lambda (x) (format-time-string "%F %T" (date-to-time x))))
-    (:name "Size" :width 10 :template "{{ json .Size }}" :sort docker-utils-human-size-predicate :format nil))
+    (:name "Size" :width 10 :template "{{ json .Size }}" :sort docker-utils-human-size-sort :format nil))
   "Column specification for docker images.
 
 The order of entries defines the displayed column order.
