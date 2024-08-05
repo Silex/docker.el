@@ -172,6 +172,12 @@ string that transforms the displayed values in the column."
          (eshell-buffer-name (docker-utils-generate-new-buffer-name "docker" "eshell:" default-directory)))
     (eshell)))
 
+(defun docker-container-assert-tramp-docker ()
+  "Assert tramp docker support is available."
+  (unless (or (docker-utils-package-p 'docker-container)
+              (docker-utils-package-p 'docker-tramp))
+    (error "tramp docker support was not detected, try installing docker-tramp")))
+
 ;;;###autoload (autoload 'docker-container-find-directory "docker-container" nil t)
 (defun docker-container-find-directory (container directory)
   "Inside CONTAINER open DIRECTORY."
@@ -180,6 +186,7 @@ string that transforms the displayed values in the column."
           (tramp-filename (read-directory-name "Directory: " (format "/docker:%s:/" container-name))))
      (with-parsed-tramp-file-name tramp-filename nil
        (list host localname))))
+  (docker-container-assert-tramp-docker)
   (dired (format "/docker:%s:%s" container directory)))
 
 (defalias 'docker-container-dired 'docker-container-find-directory)
@@ -192,6 +199,7 @@ string that transforms the displayed values in the column."
           (tramp-filename (read-file-name "File: " (format "/docker:%s:/" container-name))))
      (with-parsed-tramp-file-name tramp-filename nil
        (list host localname))))
+  (docker-container-assert-tramp-docker)
   (find-file (format "/docker:%s:%s" container file)))
 
 ;;;###autoload (autoload 'docker-container-shell "docker-container" nil t)
@@ -217,6 +225,7 @@ nil, ask the user for it."
   (interactive (list
                 (docker-container-read-name)
                 current-prefix-arg))
+  (docker-container-assert-tramp-docker)
   (let* ((shell-file-name (docker-container--read-shell read-shell))
          (container-address (format "docker:%s:" container))
          (file-prefix (let ((prefix (file-remote-p default-directory)))
@@ -251,6 +260,7 @@ nil, ask the user for it."
 default directory set to workdir."
   (interactive (list
                 (docker-container-read-name)))
+  (docker-container-assert-tramp-docker)
   (let* ((container-address (format "docker:%s:" container))
          (file-prefix (let ((prefix (file-remote-p default-directory)))
                         (if prefix

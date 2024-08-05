@@ -175,6 +175,11 @@ This has no effect on the actual value of the variable."
    (-map (-partial #'plist-get it) '(:name :width :template :sort :format))
    (symbol-value sym)))
 
+(defun docker-utils-package-p (package)
+  "Check if PACKAGE is available."
+  (or (featurep package)
+      (ignore-errors (require package))))
+
 (provide 'docker-utils)
 
 ;;; docker-utils.el ends here
