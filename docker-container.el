@@ -276,6 +276,46 @@ default directory set to workdir."
         (vterm-other-window (docker-utils-generate-new-buffer-name "docker" "vterm-env:" default-directory))
       (error "The vterm package is not installed"))))
 
+(defvar eat-buffer-name)
+
+;;;###autoload (autoload 'docker-container-eat "docker-container" nil t)
+(defun docker-container-eat (container)
+  "Open `eat' in CONTAINER."
+  (interactive (list (docker-container-read-name)))
+  (if (fboundp 'eat-other-window)
+      (let* ((container-address (format "docker:%s:/" container))
+             (file-prefix (let ((prefix (file-remote-p default-directory)))
+                            (if prefix
+                                (format "%s|" (s-chop-suffix ":" prefix))
+                              "/")))
+             (default-directory (format "%s%s" file-prefix container-address))
+             (eat-buffer-name (format "*eat:%s" default-directory)))
+        (eat-other-window))
+    (error "The eat package is not installed")))
+
+;;;###autoload (autoload 'docker-container-eat-env "docker-container" nil t)
+(aio-defun docker-container-eat-env (container)
+  "Open `eat' in CONTAINER with the environment variable set and
+default directory set to workdir."
+  (interactive (list
+                (docker-container-read-name)))
+  (docker-container-assert-tramp-docker)
+  (let* ((container-address (format "docker:%s:" container))
+         (file-prefix (let ((prefix (file-remote-p default-directory)))
+                        (if prefix
+                            (format "%s|" (s-chop-suffix ":" prefix))
+                          "/")))
+         (container-config (cdr (assq 'Config (aref (json-read-from-string (aio-await (docker-run-docker-async "inspect" container))) 0))))
+         (container-workdir (cdr (assq 'WorkingDir container-config)))
+         (container-env (cdr (assq 'Env container-config)))
+         (default-directory (format "%s%s%s" file-prefix container-address container-workdir))
+         ;; process-environment doesn't work with tramp if you call this function more than one per emacs session
+         (tramp-remote-process-environment (append container-env nil))
+         (eat-buffer-name (format "*eat-env:%s" default-directory)))
+    (if (fboundp 'eat-other-window)
+        (eat-other-window)
+      (error "The eat package is not installed"))))
+
 (defun docker-container-cp-from-selection (container-path host-path)
   "Run \"docker cp\" from CONTAINER-PATH to HOST-PATH for selected container."
   (interactive "sContainer path: \nFHost path: ")
@@ -358,6 +398,20 @@ default directory set to workdir."
   (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
     (docker-container-shell-command it)))
+
+(defun docker-container-eat-selection ()
+  "Run `docker-container-eat' on the containers selection."
+  (interactive)
+  (docker-utils-ensure-items)
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-container-eat it)))
+
+(defun docker-container-eat-env-selection ()
+  "Run `docker-container-eat-env' on the containers selection."
+  (interactive)
+  (docker-utils-ensure-items)
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-container-eat-env it)))
 
 (docker-utils-transient-define-prefix docker-container-attach ()
   "Transient for attaching to containers."
@@ -458,7 +512,9 @@ default directory set to workdir."
    ("B" "Shell with env" docker-container-shell-env-selection)
    ("e" "Eshell" docker-container-eshell-selection)
    ("v" "Vterm" docker-container-vterm-selection)
-   ("V" "Vterm with env" docker-container-vterm-env-selection)])
+   ("V" "Vterm with env" docker-container-vterm-env-selection)
+   ("a" "Eat" docker-container-eat-selection)
+   ("A" "Eat with env" docker-container-eat-env-selection)])
 
 (docker-utils-transient-define-prefix docker-container-start ()
   "Transient for starting containers."
