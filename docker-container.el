@@ -347,6 +347,18 @@ default directory set to workdir."
   (--each (docker-utils-get-marked-items-ids)
     (docker-container-vterm-env it)))
 
+(defun docker-container-shell-command (container)
+  "Run exec of a CONTAINER."
+  (interactive (list (docker-container-read-name)))
+  (shell-command (read-shell-command "Run: " (format "docker exec %s " container))))
+
+(defun docker-container-shell-command-selection ()
+  "Run `docker exec' on the containers selection."
+  (interactive)
+  (docker-utils-ensure-items)
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-container-shell-command it)))
+
 (docker-utils-transient-define-prefix docker-container-attach ()
   "Transient for attaching to containers."
   :man-page "docker-container-attach"
@@ -441,6 +453,7 @@ default directory set to workdir."
 (docker-utils-transient-define-prefix docker-container-shells ()
   "Transient for using shells on containers."
   [:description docker-generic-action-description
+   ("!" "Shell command" docker-container-shell-command-selection)
    ("b" "Shell" docker-container-shell-selection)
    ("B" "Shell with env" docker-container-shell-env-selection)
    ("e" "Eshell" docker-container-eshell-selection)
