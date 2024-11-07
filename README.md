@@ -79,6 +79,7 @@ Here is a list of other customizations you can set:
 | docker-container-columns              | Columns definition for containers          | `/bin/sh`            |
 | docker-container-default-sort-key     | Sort key for containers                    | `("Image")`          |
 | docker-container-shell-file-name      | Shell to use when entering containers      | `/bin/sh`            |
+| docker-container-tramp-method         | Tramp prefix when connecting to containers | `docker`             |
 | docker-image-columns                  | Columns definition for images              | Too complex to show  |
 | docker-image-default-sort-key         | Sort key for images                        | `("Repository")`     |
 | docker-image-run-default-args         | Base arguments to use for docker run       | `("-i" "-t" "--rm")` |
