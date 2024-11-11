@@ -48,6 +48,11 @@
   :group 'docker-container
   :type 'string)
 
+(defcustom docker-container-tramp-method "docker"
+  "TRAMP method to use for connecting to Docker containers."
+  :group 'docker-container
+  :type 'string)
+
 (defcustom docker-container-default-sort-key '("Image" . nil)
   "Sort key for docker containers.
 
@@ -163,7 +168,7 @@ string that transforms the displayed values in the column."
 (defun docker-container-eshell (container)
   "Open `eshell' in CONTAINER."
   (interactive (list (docker-container-read-name)))
-  (let* ((container-address (format "docker:%s:/" container))
+  (let* ((container-address (format "%s:%s:/" docker-container-tramp-method container))
          (file-prefix (let ((prefix (file-remote-p default-directory)))
                         (if prefix
                             (format "%s|" (s-chop-suffix ":" prefix))
@@ -176,18 +181,18 @@ string that transforms the displayed values in the column."
   "Assert tramp docker support is available."
   (unless (or (docker-utils-package-p 'docker-container)
               (docker-utils-package-p 'docker-tramp))
-    (error "tramp docker support was not detected, try installing docker-tramp")))
+    (error "Tramp docker support was not detected, try installing docker-tramp")))
 
 ;;;###autoload (autoload 'docker-container-find-directory "docker-container" nil t)
 (defun docker-container-find-directory (container directory)
   "Inside CONTAINER open DIRECTORY."
   (interactive
    (let* ((container-name (docker-container-read-name))
-          (tramp-filename (read-directory-name "Directory: " (format "/docker:%s:/" container-name))))
+          (tramp-filename (read-directory-name "Directory: " (format "/%s:%s:/" docker-container-tramp-method container-name))))
      (with-parsed-tramp-file-name tramp-filename nil
        (list host localname))))
   (docker-container-assert-tramp-docker)
-  (dired (format "/docker:%s:%s" container directory)))
+  (dired (format "/%s:%s:%s" docker-container-tramp-method container directory)))
 
 (defalias 'docker-container-dired 'docker-container-find-directory)
 
@@ -196,11 +201,11 @@ string that transforms the displayed values in the column."
   "Open FILE inside CONTAINER."
   (interactive
    (let* ((container-name (docker-container-read-name))
-          (tramp-filename (read-file-name "File: " (format "/docker:%s:/" container-name))))
+          (tramp-filename (read-file-name "File: " (format "/%s:%s:/" docker-container-tramp-method container-name))))
      (with-parsed-tramp-file-name tramp-filename nil
        (list host localname))))
   (docker-container-assert-tramp-docker)
-  (find-file (format "/docker:%s:%s" container file)))
+  (find-file (format "/%s:%s:%s" docker-container-tramp-method container file)))
 
 ;;;###autoload (autoload 'docker-container-shell "docker-container" nil t)
 (defun docker-container-shell (container &optional read-shell)
@@ -209,7 +214,7 @@ string that transforms the displayed values in the column."
                 (docker-container-read-name)
                 current-prefix-arg))
   (let* ((shell-file-name (docker-container--read-shell read-shell))
-         (container-address (format "docker:%s:/" container))
+         (container-address (format "%s:%s:/" docker-container-tramp-method container))
          (file-prefix (let ((prefix (file-remote-p default-directory)))
                         (if prefix
                             (format "%s|" (s-chop-suffix ":" prefix))
@@ -227,7 +232,7 @@ nil, ask the user for it."
                 current-prefix-arg))
   (docker-container-assert-tramp-docker)
   (let* ((shell-file-name (docker-container--read-shell read-shell))
-         (container-address (format "docker:%s:" container))
+         (container-address (format "%s:%s:" docker-container-tramp-method container))
          (file-prefix (let ((prefix (file-remote-p default-directory)))
                         (if prefix
                             (format "%s|" (s-chop-suffix ":" prefix))
@@ -245,7 +250,7 @@ nil, ask the user for it."
   "Open `vterm' in CONTAINER."
   (interactive (list (docker-container-read-name)))
   (if (fboundp 'vterm-other-window)
-      (let* ((container-address (format "docker:%s:/" container))
+      (let* ((container-address (format "%s:%s:/" docker-container-tramp-method container))
              (file-prefix (let ((prefix (file-remote-p default-directory)))
                             (if prefix
                                 (format "%s|" (s-chop-suffix ":" prefix))
@@ -261,7 +266,7 @@ default directory set to workdir."
   (interactive (list
                 (docker-container-read-name)))
   (docker-container-assert-tramp-docker)
-  (let* ((container-address (format "docker:%s:" container))
+  (let* ((container-address (format "%s:%s:" docker-container-tramp-method container))
          (file-prefix (let ((prefix (file-remote-p default-directory)))
                         (if prefix
                             (format "%s|" (s-chop-suffix ":" prefix))
@@ -283,7 +288,7 @@ default directory set to workdir."
   "Open `eat' in CONTAINER."
   (interactive (list (docker-container-read-name)))
   (if (fboundp 'eat-other-window)
-      (let* ((container-address (format "docker:%s:/" container))
+      (let* ((container-address (format "%s:%s:/" docker-container-tramp-method container))
              (file-prefix (let ((prefix (file-remote-p default-directory)))
                             (if prefix
                                 (format "%s|" (s-chop-suffix ":" prefix))
@@ -300,7 +305,7 @@ default directory set to workdir."
   (interactive (list
                 (docker-container-read-name)))
   (docker-container-assert-tramp-docker)
-  (let* ((container-address (format "docker:%s:" container))
+  (let* ((container-address (format "%s:%s:" docker-container-tramp-method container))
          (file-prefix (let ((prefix (file-remote-p default-directory)))
                         (if prefix
                             (format "%s|" (s-chop-suffix ":" prefix))
