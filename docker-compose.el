@@ -36,7 +36,7 @@
   "Docker compose customization group."
   :group 'docker)
 
-(defcustom docker-compose-command "docker-compose"
+(defcustom docker-compose-command "docker compose"
   "The `docker-compose' binary."
   :group 'docker-compose
   :type 'string)
