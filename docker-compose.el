@@ -284,7 +284,7 @@
   "Transient for \"docker-compose pause\"."
   :man-page "docker-compose pause"
   ["Actions"
-   ("P" "Pause" docker-compose-run-action-for-one-service)
+   ("Z" "Pause" docker-compose-run-action-for-one-service)
    ("A" "All services" docker-compose-run-action-for-all-services)])
 
 (transient-define-prefix docker-compose-unpause ()
@@ -318,8 +318,8 @@
    ["Containers"
     ("C" "Create"     docker-compose-create)
     ("D" "Remove"     docker-compose-rm)
+    ("Z" "Pause"      docker-compose-pause)
     ("N" "Unpause"    docker-compose-unpause)
-    ("P" "Pause"      docker-compose-pause)
     ("U" "Up"         docker-compose-up)
     ("W" "Down"       docker-compose-down)]
    ["State"
