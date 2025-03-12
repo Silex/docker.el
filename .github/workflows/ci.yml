@@ -24,17 +24,14 @@ jobs:
           - stable
           - unstable
 
+    container: silex/emacs:${{ matrix.emacs_version }}-ci-eask
     steps:
-    - name: Set up Emacs
-      uses: purcell/setup-emacs@master
-      with:
-        version: ${{ matrix.emacs_version }}
-
-    - name: Install Eldev
-      run: curl -fsSL https://raw.github.com/doublep/eldev/master/webinstall/github-eldev | sh
-
-    - name: Check out the source code
-      uses: actions/checkout@main
-
-    - name: Test byte compilation against MELPA ${{ matrix.melpa_version }}
-      run: eldev -dtT -C --${{ matrix.melpa_version }} compile --warnings-as-errors
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Set package source
+        if: ${{ matrix.melpa_version == 'stable' }}
+        run: eask source delete melpa; eask source add melpa-stable
+      - name: Install dependencies
+        run: eask install-deps
+      - name: Test byte compilation against MELPA ${{ matrix.melpa_version }}
+        run: eask compile --strict --debug -v 5
