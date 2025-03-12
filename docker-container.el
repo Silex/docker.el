@@ -23,6 +23,8 @@
 ;;; Commentary:
 
 ;;; Code:
+(eval-when-compile
+  (setq-local byte-compile-warnings '(not docstrings)))
 
 (require 's)
 (require 'aio)

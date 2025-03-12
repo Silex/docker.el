@@ -28,6 +28,8 @@
 ;; This package allows you to manipulate docker images, containers & more from Emacs.
 
 ;;; Code:
+(eval-when-compile
+  (setq-local byte-compile-warnings '(not docstrings)))
 
 (require 'docker-compose)
 (require 'docker-container)
