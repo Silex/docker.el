@@ -23,11 +23,10 @@ jobs:
         melpa_version:
           - stable
           - unstable
-
     container: silex/emacs:${{ matrix.emacs_version }}-ci-eask
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v4
+        uses: actions/checkout@main
       - name: Set package source
         if: ${{ matrix.melpa_version == 'stable' }}
         run: eask source delete melpa; eask source add melpa-stable
