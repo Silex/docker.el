@@ -18,3 +18,7 @@
 (depends-on "s"         "1.13.0")
 (depends-on "tablist"   "1.1")
 (depends-on "transient" "0.4.3")
+;; hack: this forces the built-in transient to be upgraded to latest.
+;; make sure to run "eask uninstall docker" in CI to avoid confusing the versions of docker.el
+(development
+ (depends-on "docker"))
