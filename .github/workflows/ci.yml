@@ -32,6 +32,6 @@ jobs:
         if: ${{ matrix.melpa_version == 'stable' }}
         run: eask source delete melpa; eask source add melpa-stable
       - name: Install dependencies
-        run: eask install-deps
+        run: eask install-deps --dev; eask uninstall docker
       - name: Test byte compilation against MELPA ${{ matrix.melpa_version }}
         run: eask compile --strict --debug -v 5
