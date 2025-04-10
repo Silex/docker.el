@@ -89,7 +89,7 @@ Here is a list of other customizations you can set:
 | docker-run-as-root                    | Runs docker as root when enabled           | `nil`                |
 | docker-run-async-with-buffer-function | Function used to run programs with buffers | Too complex to show  |
 | docker-show-messages                  | If non-nil message docker commands         | `t`                  |
-| docker-show-status                    | If non-nil compute status                  | `t`                  |
+| docker-show-status                    | When to compute status                     | `non-remote`                  |
 | docker-volume-columns                 | Columns definition for volumes             | Too complex to show  |
 | docker-volume-default-sort-key        | Sort key for volumes                       | `("Driver")`         |
 
