@@ -113,7 +113,7 @@ The result is the tabulated list id for an entry is propertized with
 (aio-defun docker-volume-update-status-async ()
   "Write the status to `docker-status-strings'."
   (plist-put docker-status-strings :volumes "Volumes")
-  (when (or (eq docker-show-status t) (and (eq docker-show-status 'non-remote) (not (file-remote-p default-directory))))
+  (when (or (eq docker-show-status t) (and (eq docker-show-status 'local-only) (not (file-remote-p default-directory))))
     (let* ((entries (aio-await (docker-volume-entries-propertized (docker-volume-ls-arguments))))
            (dangling (--filter (docker-volume-dangling-p (car it)) entries)))
       (plist-put docker-status-strings

@@ -120,7 +120,7 @@ The result is the tabulated list id for an entry is propertized with
 (aio-defun docker-context-update-status-async ()
   "Write the status to `docker-status-strings'."
   (plist-put docker-status-strings :contexts "Contexts")
-  (when (or (eq docker-show-status t) (and (eq docker-show-status 'non-remote) (not (file-remote-p default-directory))))
+  (when (or (eq docker-show-status t) (and (eq docker-show-status 'local-only) (not (file-remote-p default-directory))))
     (let* ((entries (aio-await (docker-context-entries-propertized (docker-context-ls-arguments)))))
       (plist-put docker-status-strings
                  :contexts
