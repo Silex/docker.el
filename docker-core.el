@@ -43,10 +43,13 @@
 (defvar docker-status-strings '(:containers "" :images "" :networks "" :volumes "" :contexts "")
   "Plist of statuses for `docker' transient.")
 
-(defcustom docker-show-status t
+(defcustom docker-show-status 'local-only
   "Whether to display docker status in the main transient buffer."
   :group 'docker
-  :type 'boolean)
+  :type '(choice
+          (const :tag "Always" t)
+          (const :tag "Local Only" local-only)
+          (const :tag "Never" nil)))
 
 (defun docker-run-docker-async (&rest args)
   "Execute \"`docker-command' ARGS\" and return a promise with the results."
