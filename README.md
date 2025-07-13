@@ -83,6 +83,7 @@ Here is a list of other customizations you can set:
 | docker-image-columns                  | Columns definition for images              | Too complex to show  |
 | docker-image-default-sort-key         | Sort key for images                        | `("Repository")`     |
 | docker-image-run-default-args         | Base arguments to use for docker run       | `("-i" "-t" "--rm")` |
+| docker-inspect-view-mode              | Mode used in `docker inspect` buffers      | Too complex to show  |
 | docker-network-columns                | Columns definition for networks            | Too complex to show  |
 | docker-network-default-sort-key       | Sort key for networks                      | `("Name")`           |
 | docker-pop-to-buffer-action           | Action for `docker-utils-pop-to-buffer`    | `nil`                |
