@@ -51,6 +51,11 @@
           (const :tag "Local Only" local-only)
           (const :tag "Never" nil)))
 
+(defcustom docker-inspect-view-mode (if (fboundp 'json-mode) 'json-mode 'js-mode)
+  "Major mode used in `docker inspect' buffers."
+  :group 'docker
+  :type 'symbol)
+
 (defun docker-run-docker-async (&rest args)
   "Execute \"`docker-command' ARGS\" and return a promise with the results."
   (apply #'docker-run-async docker-command (docker-arguments) args))
@@ -102,9 +107,7 @@
            (data (aio-await (docker-run-docker-async (concat (or subcmd "") " inspect") id))))
       (docker-utils-with-buffer (format "inspect %s" id)
         (insert data)
-        (if (fboundp 'json-mode)
-            (json-mode)
-          (js-mode))
+        (funcall docker-inspect-view-mode)
         (view-mode)))))
 
 (defun docker-read-log-level (prompt &rest _args)
