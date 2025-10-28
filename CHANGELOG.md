@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.4.0 (2025-10-28)
+
+- Bump requirements to Emacs 28.1 because of transient.
+- Add option to disable docker-show-status in remote buffers.
+- Add docker-container-shell-command.
+- Add customizable TRAMP method for container connections across shells.
+- Support custom docker inspect buffer major mode.
+- Support eat terminal.
+- Move "docker compose pause" to "Z".
+- Update default docker compose command.
+- Replace ElDev with Eask.
+
 ## 2.3.1 (2023-11-10)
 
 - Fix empty listings bug.
