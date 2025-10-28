@@ -12,7 +12,7 @@
 (source "gnu")
 (source "melpa")
 
-(depends-on "emacs"     "26.1")
+(depends-on "emacs"     "28.1")
 (depends-on "aio"       "1.0")
 (depends-on "dash"      "2.19.1")
 (depends-on "s"         "1.13.0")
