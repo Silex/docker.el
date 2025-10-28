@@ -1,6 +1,6 @@
 (package "docker"
-         "2.3.1"
-         "Interface to Docker")
+  "2.3.1"
+  "Interface to Docker")
 
 (website-url "https://github.com/Silex/docker.el")
 (keywords "filename" "convenience")
@@ -21,4 +21,4 @@
 ;; hack: this forces the built-in transient to be upgraded to latest.
 ;; make sure to run "eask uninstall docker" in CI to avoid confusing the versions of docker.el
 (development
- (depends-on "docker"))
+  (depends-on "docker"))
