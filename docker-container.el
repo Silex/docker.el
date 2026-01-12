@@ -181,7 +181,7 @@ string that transforms the displayed values in the column."
 
 (defun docker-container-assert-tramp-docker ()
   "Assert tramp docker support is available."
-  (unless (or (docker-utils-package-p 'docker-container)
+  (unless (or (assoc docker-container-tramp-method tramp-methods)
               (docker-utils-package-p 'docker-tramp))
     (error "Tramp docker support was not detected, try installing docker-tramp")))
 
