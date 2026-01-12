@@ -54,7 +54,7 @@ Then select an action and follow the instructions.
 ## Supported commands
 
 - docker container: attach, cp, diff, inspect, kill, logs, pause, rename, restart, rm, start, stop, unpause
-- docker image: inspect, pull, push, rm, run, tag
+- docker image: history, inspect, pull, push, rm, run, tag
 - docker network: rm
 - docker volume: rm
 - docker context: ls, use
@@ -82,6 +82,8 @@ Here is a list of other customizations you can set:
 | docker-container-tramp-method         | Tramp prefix when connecting to containers | `docker`             |
 | docker-image-columns                  | Columns definition for images              | Too complex to show  |
 | docker-image-default-sort-key         | Sort key for images                        | `("Repository")`     |
+| docker-image-history-columns          | Columns definition for image history       | Too complex to show  |
+| docker-image-history-default-sort-key | Sort key for image history                 | `("Created" . t)`    |
 | docker-image-run-default-args         | Base arguments to use for docker run       | `("-i" "-t" "--rm")` |
 | docker-inspect-view-mode              | Mode used in `docker inspect` buffers      | Too complex to show  |
 | docker-network-columns                | Columns definition for networks            | Too complex to show  |

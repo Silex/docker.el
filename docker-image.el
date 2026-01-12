@@ -86,6 +86,50 @@ displayed values in the column."
                        (sexp :tag "Sort function")
                        (sexp :tag "Format function"))))
 
+(defconst docker-image-history-id-template
+  "{{ json .ID }}"
+  "This Go template extracts the history entry id.")
+
+(defcustom docker-image-history-default-sort-key '("Created" . t)
+  "Sort key for docker image history.
+
+This should be a cons cell (NAME . FLIP) where
+NAME is a string matching one of the column names
+and FLIP is a boolean to specify the sort order."
+  :group 'docker-image
+  :type '(cons (string :tag "Column Name"
+                       :validate (lambda (widget)
+                                   (unless (--any-p (equal (plist-get it :name) (widget-value widget)) docker-image-history-columns)
+                                     (widget-put widget :error "Default Sort Key must match a column name")
+                                     widget)))
+               (choice (const :tag "Ascending" nil)
+                       (const :tag "Descending" t))))
+
+(defcustom docker-image-history-columns
+  '((:name "Id" :width 16 :template "{{ json .ID }}" :sort nil :format nil)
+    (:name "Created" :width 24 :template "{{ json .CreatedAt }}" :sort nil :format (lambda (x) (format-time-string "%F %T" (date-to-time x))))
+    (:name "CreatedBy" :width 60 :template "{{ json .CreatedBy }}" :sort nil :format nil)
+    (:name "Size" :width 10 :template "{{ json .Size }}" :sort docker-utils-human-size-predicate :format nil)
+    (:name "Comment" :width 20 :template "{{ json .Comment }}" :sort nil :format nil))
+  "Column specification for docker image history.
+
+The order of entries defines the displayed column order.
+'Template' is the Go template passed to `docker-image-history' to create the column
+data.   It should return a string delimited with double quotes.
+'Sort function' is a binary predicate that should return true when the first
+argument should be sorted before the second.
+'Format function' is a function from string to string that transforms the
+displayed values in the column."
+  :group 'docker-image
+  :set 'docker-utils-columns-setter
+  :get 'docker-utils-columns-getter
+  :type '(repeat (list :tag "Column"
+                       (string :tag "Name")
+                       (integer :tag "Width")
+                       (string :tag "Template")
+                       (sexp :tag "Sort function")
+                       (sexp :tag "Format function"))))
+
 (defcustom docker-image-run-default-args
   '("-i" "-t" "--rm")
   "Default infix args used when docker run is invoked.
@@ -174,6 +218,42 @@ The result is the tabulated list id for an entry is propertized with
   "Read an image name."
   (completing-read "Image: " (-map #'car (aio-wait-for (docker-image-entries)))))
 
+(defvar-local docker-image-history-image nil
+  "Image name used by the current history buffer.")
+
+(defvar-local docker-image-history-args nil
+  "Arguments used by the current history buffer.")
+
+(aio-defun docker-image-history-entries (image &rest args)
+  "Return the docker image history data for `tabulated-list-entries'."
+  (let* ((fmt (docker-utils-make-format-string docker-image-history-id-template docker-image-history-columns))
+         (data (aio-await (docker-run-docker-async "image" "history" args (format "--format=\"%s\"" fmt) image)))
+         (lines (s-split "\n" data t)))
+    (-map (-partial #'docker-utils-parse docker-image-history-columns) lines)))
+
+(aio-defun docker-image-history-refresh ()
+  "Refresh the image history list."
+  (docker-utils-refresh-entries
+   (apply #'docker-image-history-entries docker-image-history-image docker-image-history-args)))
+
+(defun docker-image-history-show (image &optional args)
+  "Display history for IMAGE."
+  (let ((buffer (docker-utils-generate-new-buffer "docker-image-history" image)))
+    (with-current-buffer buffer
+      (docker-image-history-mode)
+      (setq docker-image-history-image image)
+      (setq docker-image-history-args args)
+      (tablist-revert))
+    (pop-to-buffer buffer)))
+
+(defun docker-image-history-selection ()
+  "Show image history for the selection."
+  (interactive)
+  (docker-utils-ensure-items)
+  (let ((args (transient-args 'docker-image-history)))
+    (--each (docker-utils-get-marked-items-ids)
+      (docker-image-history-show it args))))
+
 ;;;###autoload (autoload 'docker-image-pull-one "docker-image" nil t)
 (aio-defun docker-image-pull-one (name &optional all)
   "Pull the image named NAME.  If ALL is set, use \"-a\"."
@@ -224,6 +304,17 @@ applied to the buffer."
    ("n" "Don't truncate" "--no-trunc")]
   ["Actions"
    ("l" "List" tablist-revert)])
+
+(docker-utils-define-transient-arguments docker-image-history)
+
+(docker-utils-transient-define-prefix docker-image-history ()
+  "Transient for showing image history."
+  :man-page "docker-history"
+  ["Arguments"
+   ("n" "Don't truncate" "--no-trunc")
+   ("r" "Raw sizes" "--human=false")]
+  [:description docker-generic-action-description
+   ("H" "History" docker-image-history-selection)])
 
 (transient-define-prefix docker-image-pull ()
   "Transient for pulling images."
@@ -296,6 +387,7 @@ applied to the buffer."
   ["Docker images help"
    ("D" "Remove"        docker-image-rm)
    ("F" "Pull"          docker-image-pull)
+   ("H" "History"       docker-image-history)
    ("I" "Inspect"       docker-image-inspect)
    ("P" "Push"          docker-image-push)
    ("R" "Run"           docker-image-run)
@@ -308,6 +400,7 @@ applied to the buffer."
     (define-key map "?" 'docker-image-help)
     (define-key map "D" 'docker-image-rm)
     (define-key map "F" 'docker-image-pull)
+    (define-key map "H" 'docker-image-history)
     (define-key map "I" 'docker-image-inspect)
     (define-key map "P" 'docker-image-push)
     (define-key map "R" 'docker-image-run)
@@ -331,6 +424,15 @@ applied to the buffer."
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key docker-image-default-sort-key)
   (add-hook 'tabulated-list-revert-hook 'docker-image-refresh nil t)
+  (tabulated-list-init-header)
+  (tablist-minor-mode))
+
+(define-derived-mode docker-image-history-mode tabulated-list-mode "Image History"
+  "Major mode for handling docker image history."
+  (setq tabulated-list-format (docker-utils-columns-list-format docker-image-history-columns))
+  (setq tabulated-list-padding 2)
+  (setq tabulated-list-sort-key docker-image-history-default-sort-key)
+  (add-hook 'tabulated-list-revert-hook 'docker-image-history-refresh nil t)
   (tabulated-list-init-header)
   (tablist-minor-mode))
 
