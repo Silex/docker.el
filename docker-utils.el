@@ -101,14 +101,18 @@ Execute BODY in a buffer named with the help of NAME."
 
 (defun docker-utils-unit-multiplier (str)
   "Return the correct multiplier for STR."
-  (expt 1024 (-elem-index (upcase str) '("B" "KB" "MB" "GB" "TB" "PB" "EB"))))
+  (let* ((unit (or str "B"))
+         (idx (-elem-index (upcase unit) '("B" "KB" "MB" "GB" "TB" "PB" "EB"))))
+    (expt 1024 (or idx 0))))
 
 (defun docker-utils-human-size-to-bytes (str)
   "Parse STR and return size in bytes."
-  (let* ((parts (s-match "^\\([0-9\\.]+\\)\\([A-Z]+\\)?$" str))
-         (value (string-to-number (-second-item parts)))
-         (multiplier (docker-utils-unit-multiplier (-third-item parts))))
-    (* value multiplier)))
+  (let* ((parts (s-match "^\\([0-9\\.]+\\)\\([A-Za-z]+\\)?$" str)))
+    (unless parts
+      (error "Unexpected size format: %s" str))
+    (let* ((value (string-to-number (-second-item parts)))
+           (multiplier (docker-utils-unit-multiplier (-third-item parts))))
+      (* value multiplier))))
 
 (defun docker-utils-human-size-predicate (a b)
   "Sort A and B by image size."
