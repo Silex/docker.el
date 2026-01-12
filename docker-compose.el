@@ -69,7 +69,7 @@
    prompt
    ;; in docker compose v2, we can obtain the list of
    ;; projects with 'ls' argument
-   (if (string-match-p "*?docker compose*?" docker-compose-command)
+   (if (string-match-p "\\bdocker\\s-+compose\\b" docker-compose-command)
        (split-string
 	(shell-command-to-string
 	 (concat docker-compose-command " ls" " --all" " -q"))
