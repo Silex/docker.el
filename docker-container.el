@@ -397,7 +397,12 @@ default directory set to workdir."
 (defun docker-container-shell-command (container)
   "Run exec of a CONTAINER."
   (interactive (list (docker-container-read-name)))
-  (shell-command (read-shell-command "Run: " (format "docker exec %s " container))))
+  (let* ((default-command (string-join (append (list docker-command)
+                                               (docker-arguments)
+                                               (list "exec" container))
+                                       " "))
+         (command (read-shell-command "Run: " default-command)))
+    (shell-command command)))
 
 (defun docker-container-shell-command-selection ()
   "Run `docker exec' on the containers selection."
