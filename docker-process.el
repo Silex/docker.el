@@ -104,7 +104,9 @@
   (when (memq (process-status process) '(exit signal))
     (setq event (substring event 0 -1))
     (if (not (string-equal event "finished"))
-        (error "Error running: \"%s\" (%s)" (process-name process) event)
+        (aio-resolve promise
+                     (lambda ()
+                       (error "Error running: \"%s\" (%s)" (process-name process) event)))
       (aio-resolve promise
                    (lambda ()
                      (when docker-show-messages
