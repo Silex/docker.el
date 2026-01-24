@@ -91,12 +91,26 @@
   (aio-await (docker-run-docker-async action args (docker-utils-get-marked-items-ids)))
   (tablist-revert))
 
-(defun docker-generic-action-with-buffer (action args)
-  "Run \"`docker-command' ACTION ARGS\" and print output to a new buffer."
+(defun docker-generic-action-with-buffer-stream (action args)
+  "Run \"`docker-command' ACTION ARGS\" and print output to a new buffer.
+This uses a streaming shell buffer, suitable for interactive or long-running commands."
   (interactive (list (docker-get-transient-action)
                      (transient-args transient-current-command)))
   (--each (docker-utils-get-marked-items-ids)
     (docker-run-docker-async-with-buffer (s-split " " action) args it)))
+
+(aio-defun docker-generic-action-with-buffer (action args)
+  "Run \"`docker-command' ACTION ARGS\", wait for completion, then display output.
+This collects all output before displaying, suitable for non-interactive commands."
+  (interactive (list (docker-get-transient-action)
+                     (transient-args transient-current-command)))
+  (--each (docker-utils-get-marked-items-ids)
+    (let* ((id it)
+           (output (aio-await (docker-run-docker-async (s-split " " action) args id))))
+      (docker-utils-with-buffer (format "%s %s" action id)
+        ;; Strip carriage returns (Docker outputs CRLF line endings)
+        (insert (ansi-color-apply (replace-regexp-in-string "\r" "" output)))
+        (special-mode)))))
 
 (aio-defun docker-inspect (&optional subcmd)
   "Run \"`docker-command' inspect\" on the selected items."
