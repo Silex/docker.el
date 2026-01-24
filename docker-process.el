@@ -74,30 +74,54 @@
     (set-process-sentinel process (-partial #'docker-process-sentinel promise))
     promise))
 
-(defun docker-run-async-with-buffer (program &rest args)
-  "Execute \"PROGRAM ARGS\" and display output in a new buffer."
-   (apply docker-run-async-with-buffer-function program args))
+(defun docker-run-async-with-buffer (program &optional readonly &rest args)
+  "Execute \"PROGRAM ARGS\" and display output in a new buffer.
+If READONLY is non-nil, use a read-only buffer with ANSI color support."
+   (apply docker-run-async-with-buffer-function program readonly args))
 
-(defun docker-run-async-with-buffer-shell (program &rest args)
-  "Execute \"PROGRAM ARGS\" and display output in a new `shell' buffer."
+(defun docker-run-async-with-buffer-shell (program &optional readonly &rest args)
+  "Execute \"PROGRAM ARGS\" and display output in a new buffer.
+If READONLY is non-nil, use a read-only buffer with ANSI color support.
+Otherwise, use a `shell' buffer for interactive use."
   (let* ((process (apply #'docker-run-start-file-process-shell-command program args))
          (buffer (process-buffer process)))
     (set-process-query-on-exit-flag process nil)
-    (with-current-buffer buffer (shell-mode))
-    (set-process-filter process 'comint-output-filter)
+    (if readonly
+        (with-current-buffer buffer
+          (special-mode)
+          (set-process-filter process 'docker-process-filter-readonly))
+      (with-current-buffer buffer (shell-mode))
+      (set-process-filter process 'comint-output-filter))
     (switch-to-buffer-other-window buffer)))
 
-(defun docker-run-async-with-buffer-vterm (program &rest args)
-  "Execute \"PROGRAM ARGS\" and display output in a new `vterm' buffer."
-  (defvar vterm-kill-buffer-on-exit)
-  (defvar vterm-shell)
-  (if (fboundp 'vterm-other-window)
-      (let* ((process-args (-remove 's-blank? (-flatten args)))
-             (vterm-shell (s-join " " (-insert-at 0 program process-args)))
-             (vterm-kill-buffer-on-exit nil))
-        (vterm-other-window
-         (apply #'docker-utils-generate-new-buffer-name program process-args)))
-    (error "The vterm package is not installed")))
+(defun docker-run-async-with-buffer-vterm (program &optional readonly &rest args)
+  "Execute \"PROGRAM ARGS\" and display output in a new `vterm' buffer.
+If READONLY is non-nil, fall back to shell mode since vterm is interactive."
+  (if readonly
+      ;; vterm doesn't support read-only mode, fall back to shell
+      (apply #'docker-run-async-with-buffer-shell program readonly args)
+    (defvar vterm-kill-buffer-on-exit)
+    (defvar vterm-shell)
+    (if (fboundp 'vterm-other-window)
+        (let* ((process-args (-remove 's-blank? (-flatten args)))
+               (vterm-shell (s-join " " (-insert-at 0 program process-args)))
+               (vterm-kill-buffer-on-exit nil))
+          (vterm-other-window
+           (apply #'docker-utils-generate-new-buffer-name program process-args)))
+      (error "The vterm package is not installed"))))
+
+(defun docker-process-filter-readonly (proc string)
+  "Process filter for read-only streaming buffers.
+Strips carriage returns and applies ANSI color codes."
+  (when (buffer-live-p (process-buffer proc))
+    (with-current-buffer (process-buffer proc)
+      (let ((inhibit-read-only t)
+            (moving (= (point) (process-mark proc))))
+        (save-excursion
+          (goto-char (process-mark proc))
+          (insert (ansi-color-apply (replace-regexp-in-string "\r" "" string)))
+          (set-marker (process-mark proc) (point)))
+        (when moving (goto-char (process-mark proc)))))))
 
 (defun docker-process-sentinel (promise process event)
   "Sentinel that resolves the PROMISE using PROCESS and EVENT."

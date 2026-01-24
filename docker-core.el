@@ -60,9 +60,10 @@
   "Execute \"`docker-command' ARGS\" and return a promise with the results."
   (apply #'docker-run-async docker-command (docker-arguments) args))
 
-(defun docker-run-docker-async-with-buffer (&rest args)
-  "Execute \"`docker-command' ARGS\" and display the results in a buffer."
-  (apply #'docker-run-async-with-buffer docker-command (docker-arguments) args))
+(defun docker-run-docker-async-with-buffer (readonly &rest args)
+  "Execute \"`docker-command' ARGS\" and display the results in a buffer.
+If READONLY is non-nil, use a read-only buffer with ANSI color support."
+  (apply #'docker-run-async-with-buffer docker-command readonly (docker-arguments) args))
 
 (defun docker-get-transient-action ()
   "Extract the action out of `transient-current-command'."
@@ -91,13 +92,14 @@
   (aio-await (docker-run-docker-async action args (docker-utils-get-marked-items-ids)))
   (tablist-revert))
 
-(defun docker-generic-action-with-buffer-stream (action args)
+(defun docker-generic-action-with-buffer-stream (action args &optional readonly)
   "Run \"`docker-command' ACTION ARGS\" and print output to a new buffer.
-This uses a streaming shell buffer, suitable for interactive or long-running commands."
+This uses a streaming shell buffer, suitable for interactive or long-running commands.
+If READONLY is non-nil, use a read-only buffer with ANSI color support."
   (interactive (list (docker-get-transient-action)
                      (transient-args transient-current-command)))
   (--each (docker-utils-get-marked-items-ids)
-    (docker-run-docker-async-with-buffer (s-split " " action) args it)))
+    (docker-run-docker-async-with-buffer readonly (s-split " " action) args it)))
 
 (aio-defun docker-generic-action-with-buffer (action args)
   "Run \"`docker-command' ACTION ARGS\", wait for completion, then display output.

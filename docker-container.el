@@ -467,7 +467,7 @@ ACTION is the docker action, ARGS are the transient arguments."
   (interactive (list (docker-get-transient-action)
                      (transient-args transient-current-command)))
   (if (member "-f" args)
-      (docker-generic-action-with-buffer-stream action args)
+      (docker-generic-action-with-buffer-stream action args t)
     (aio-wait-for (docker-generic-action-with-buffer action args))))
 
 (docker-utils-transient-define-prefix docker-container-logs ()
