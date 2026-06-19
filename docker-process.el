@@ -147,6 +147,13 @@ Otherwise, use a non-interactive buffer with ANSI color support."
                           'docker-process-filter-noninteractive))
     (switch-to-buffer-other-window buffer)))
 
+(defcustom docker-vterm-kill-buffer-on-exit nil
+  "Indicates if docker `vterm' buffers should be killed on exit.
+
+See `vterm-kill-buffer-on-exit'."
+  :group 'docker
+  :type 'boolean)
+
 (defun docker-run-async-with-buffer-vterm (program &optional interactive &rest args)
   "Execute \"PROGRAM ARGS\" and display output in a new `vterm' buffer.
 If INTERACTIVE is nil, fall back to shell mode since vterm is interactive."
@@ -158,7 +165,7 @@ If INTERACTIVE is nil, fall back to shell mode since vterm is interactive."
     (if (fboundp 'vterm-other-window)
         (let* ((process-args (-remove 's-blank? (-flatten args)))
                (vterm-shell (s-join " " (-insert-at 0 program process-args)))
-               (vterm-kill-buffer-on-exit nil))
+               (vterm-kill-buffer-on-exit docker-vterm-kill-buffer-on-exit))
           (vterm-other-window
            (apply #'docker-utils-generate-new-buffer-name program process-args)))
       (error "The vterm package is not installed"))))
