@@ -157,8 +157,7 @@ If INTERACTIVE is nil, fall back to shell mode since vterm is interactive."
     (defvar vterm-shell)
     (if (fboundp 'vterm-other-window)
         (let* ((process-args (-remove 's-blank? (-flatten args)))
-               (vterm-shell (s-join " " (-insert-at 0 program process-args)))
-               (vterm-kill-buffer-on-exit nil))
+               (vterm-shell (s-join " " (-insert-at 0 program process-args))))
           (vterm-other-window
            (apply #'docker-utils-generate-new-buffer-name program process-args)))
       (error "The vterm package is not installed"))))
