@@ -292,6 +292,38 @@ applied to the buffer."
         (tablist-put-mark))
       (forward-line))))
 
+(aio-defun docker-image-default-runtime ()
+  (s-trim (aio-await (docker-run-docker-async "info" "-f" "{{.DefaultRuntime}}"))))
+
+(aio-defun docker-image-runtimes ()
+  (let ((default (aio-await (docker-image-default-runtime))))
+    (--> (docker-run-docker-async "info" "-f" "'{{range $name, $_ := .Runtimes}}{{println $name}}{{end}}'")
+         aio-await
+         (s-split "\n" it t)
+         ;; Remove alias for runc.
+         (-remove (-partial #'s-starts-with-p "io.containerd") it)
+         ;; Ensure that default is first.
+         (remove default it)
+         (cons default it))))
+
+(defun docker-image-read-runtime (prompt &rest _)
+  (completing-read prompt
+                   (let ((runtimes (aio-wait-for (docker-image-runtimes))))
+                     ;; Complete with the runtimes in the order given by
+                     ;; `docker-image-runtimes' don't re-sort them. Some
+                     ;; completion frameworks don't change the order but some
+                     ;; (e.g. vertico) do by default. See
+                     ;; [[info:elisp#Programmed Completion][Programmed
+                     ;; Completion]].
+                     (lambda (string predicate action)
+                       (if (eq action 'metadata)
+                           '(metadata
+                             (display-sort-function . identity)
+                             (cycle-sort-function . identity))
+                         (complete-with-action action runtimes string predicate))))
+                   nil
+                   t))
+
 (docker-utils-define-transient-arguments docker-image-ls)
 
 (transient-define-prefix docker-image-ls ()
@@ -378,7 +410,8 @@ applied to the buffer."
    ("t" "TTY" "-t")
    ("u" "User" "-u " read-string)
    ("v" "Volume" "-v " read-string)
-   ("w" "Workdir" "-w " read-string)]
+   ("w" "Workdir" "-w " read-string)
+   ("x" "Runtime" "--runtime " docker-image-read-runtime)]
   [:description docker-generic-action-description
    ("R" "Run" docker-image-run-selection)])
 
