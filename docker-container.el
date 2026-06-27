@@ -96,6 +96,27 @@ string that transforms the displayed values in the column."
                        (sexp :tag "Sort function")
                        (sexp :tag "Format function"))))
 
+(defcustom docker-container-exec-default-args
+  '("-i" "-t")
+  "Default infix args used when docker run is invoked.
+
+Note this can be overriden for specific images using
+`docker-container-exec-custom-args'."
+  :group 'docker-container
+  :type '(repeat string))
+
+(defcustom docker-container-exec-custom-args
+  nil
+  "List which can be used to customize the default arguments for docker exec.
+
+Its elements should be of the form (REGEX ARGS) where
+REGEX is a (string) regular expression and ARGS is a list of strings
+corresponding to arguments.
+
+Also note if you do not specify `docker-exec-default-args', they will be ignored."
+  :group 'docker-container
+  :type '(repeat (list string (repeat string))))
+
 (defalias 'docker-container-inspect 'docker-inspect)
 
 (defun docker-container--read-shell (&optional read-shell-name)
@@ -445,7 +466,36 @@ default directory set to workdir."
   "Transient for showing containers diffs."
   :man-page "docker-container-diff"
   [:description docker-generic-action-description
-   ("d" "Diff" docker-generic-action-with-buffer)])
+  ("d" "Diff" docker-generic-action-with-buffer)])
+
+(defclass docker-exec-prefix (transient-prefix) nil)
+
+(cl-defmethod transient-init-value ((obj docker-exec-prefix))
+  "Helper that modify OBJ DOCKER-EXEC-PREFIX to handle `docker-image-exec-custom-args'."
+  (oset obj value
+        (docker-utils-compute-args docker-container-exec-default-args docker-container-exec-custom-args)))
+
+(docker-utils-transient-define-prefix docker-container-exec ()
+  "Transient for running commands on containers."
+  :man-page "docker-container-exec"
+  :class 'docker-exec-prefix
+  ["Arguments"
+   ("P" "Privileged" "--privileged")
+   ("d" "Detach" "-d")
+   ("e" "Environment" "-e " read-string)
+   ("i" "Interactive" "-i")
+   ("t" "TTY" "-t")
+   ("u" "User" "-u " read-string)
+   ("w" "Workdir" "-w " read-string)]
+  [:description docker-generic-action-description
+   ("E" "Exec" docker-container-exec-selection)])
+
+(defun docker-container-exec-selection (command)
+  "Run \"docker container exec\" with COMMAND on the containers selection."
+  (interactive "sCommand: ")
+  (docker-utils-ensure-items)
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-run-docker-async-with-buffer-interactive "container" "exec" (transient-args 'docker-container-exec) it command)))
 
 (docker-utils-transient-define-prefix docker-container-open ()
   "Transient for opening containers files."
@@ -564,6 +614,7 @@ ACTION is the docker action, ARGS are the transient arguments."
    ["Admin"
     ("C" "Copy"       docker-container-cp)
     ("D" "Remove"     docker-container-rm)
+    ("E" "Exec"       docker-container-exec)
     ("I" "Inspect"    docker-container-inspect)
     ("L" "Logs"       docker-container-logs)
     ("a" "Attach"     docker-container-attach)
@@ -578,6 +629,7 @@ ACTION is the docker action, ARGS are the transient arguments."
     (define-key map "?" 'docker-container-help)
     (define-key map "C" 'docker-container-cp)
     (define-key map "D" 'docker-container-rm)
+    (define-key map "E" 'docker-container-exec)
     (define-key map "I" 'docker-container-inspect)
     (define-key map "K" 'docker-container-kill)
     (define-key map "L" 'docker-container-logs)
