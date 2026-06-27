@@ -37,6 +37,17 @@
   "Get the id part of `tablist-get-marked-items'."
   (-map #'car (tablist-get-marked-items)))
 
+(defun docker-utils-compute-args (default custom)
+  "Helper function for merging DEFAULT and CUSTOM args."
+  (let* ((objs (tablist-get-marked-items))
+         (name (caar objs))
+         (matched-args (when name
+                         (--first (string-match (car it) name)
+                                  custom))))
+    (if matched-args
+        (cadr matched-args)
+      default)))
+
 (defun docker-utils-ensure-items ()
   "Ensure at least one item is selected."
   (when (null (docker-utils-get-marked-items-ids))

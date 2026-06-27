@@ -377,15 +377,7 @@ applied to the buffer."
 (cl-defmethod transient-init-value ((obj docker-run-prefix))
   "Helper that modify OBJ DOCKER-RUN-PREFIX to handle `docker-image-run-custom-args'."
   (oset obj value
-        (let* ((images (tablist-get-marked-items))
-               (matched-args (let ((repo-name (caar images)))
-                               (if repo-name
-                                   (--first (string-match (car it) repo-name)
-                                            docker-image-run-custom-args)
-                                 nil))))
-          (if matched-args
-              (cadr matched-args)
-            docker-image-run-default-args))))
+        (docker-utils-compute-args docker-image-run-default-args docker-image-run-custom-args)))
 
 (docker-utils-transient-define-prefix docker-image-run ()
   "Transient for running images."
