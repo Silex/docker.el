@@ -44,10 +44,11 @@
 
 (defcustom docker-terminal-backend 'auto
   "Terminal backend used for commands that need a live buffer.
-When set to `auto', prefer eat, then vterm, then shell."
+When set to `auto', prefer eat, then vterm, then ghostel, then shell."
   :group 'docker
-  :type '(choice (const :tag "Auto (eat > vterm > shell)" auto)
+  :type '(choice (const :tag "Auto (eat > vterm > ghostel > shell)" auto)
                  (const :tag "Eat" eat)
+		 (const :tag "Ghostel" eat)
                  (const :tag "Vterm" vterm)
                  (const :tag "Shell" shell)))
 
@@ -107,6 +108,7 @@ Prefer `docker-run-async-with-buffer-interactive' or
   (pcase backend
     ('eat (fboundp 'eat-other-window))
     ('vterm (fboundp 'vterm-other-window))
+    ('ghostel (fboundp 'ghostel-other))
     ('shell t)
     (_ nil)))
 
@@ -116,6 +118,7 @@ Prefer `docker-run-async-with-buffer-interactive' or
     ('auto (cond
             ((docker--terminal-backend-available-p 'eat) 'eat)
             ((docker--terminal-backend-available-p 'vterm) 'vterm)
+	    ((docker--terminal-backend-available-p 'ghostel) 'ghostel)
             (t 'shell)))
     (_ docker-terminal-backend)))
 
@@ -128,6 +131,9 @@ Prefer `docker-run-async-with-buffer-interactive' or
     ('vterm (if (docker--terminal-backend-available-p 'vterm)
                 (apply #'docker-run-async-with-buffer-vterm program interactive args)
               (error "The vterm package is not installed")))
+    ('ghostel (if (docker--terminal-backend-available-p 'ghostel)
+		  (apply #'docker-run-async-with-buffer-ghostel program interactive args)
+		(error "The ghostel package is not installed")))
     ('shell (apply #'docker-run-async-with-buffer-shell program interactive args))
     (_ (error "Unsupported docker terminal backend: %s" backend))))
 
@@ -175,6 +181,25 @@ If INTERACTIVE is nil, fall back to shell mode since eat is interactive."
                                        program process-args)))
           (eat-other-window command))
       (error "The eat package is not installed"))))
+
+(defun docker-run-async-with-buffer-ghostel (program &optional interactive &rest args)
+  "Execute \"PROGRAM ARGS\" and display output in a new `ghostel' buffer.
+If INTERACTIVE is nil, fall back to shell mode since ghostel is interactive."
+  (if (not interactive)
+      (apply #'docker-run-async-with-buffer-shell program nil args)
+    (defvar ghostel-buffer-name)
+    (if (fboundp 'ghostel-other)
+	(let* ((process-args (-remove 's-blank? (-flatten args)))
+               (ghostel-buffer-name (apply #'docker-utils-generate-new-buffer-name
+					   program process-args)))
+	    (setq buf (get-buffer-create ghostel-buffer-name))
+	    (switch-to-buffer buf)
+	    (ghostel-exec buf (executable-find program)
+			  (append (butlast process-args)
+				  (list "sh" "-c" (car (last process-args)))))
+	    (with-current-buffer buf
+	      (setq-local ghostel-kill-buffer-on-exit nil)))
+      (error "The ghostel package is not installed"))))
 
 (defun docker-process-filter-noninteractive (proc string)
   "Process filter for non-interactive streaming buffers.
