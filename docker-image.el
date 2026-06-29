@@ -149,7 +149,7 @@ Its elements should be of the form (REGEX ARGS) where
 REGEX is a (string) regular expression and ARGS is a list of strings
 corresponding to arguments.
 
-Also note if you do not specify `docker-run-default-args', they will be ignored."
+Also note if you do not specify `docker-image-run-default-args', they will be ignored."
   :type '(repeat (list string (repeat string))))
 
 (defalias 'docker-image-inspect 'docker-inspect)
