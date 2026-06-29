@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Support ghostel as terminal backend.
 - Add support for `docker exec`.
 - Add `--runtime` argument selection to `docker image run`.
 - Remove obsolete `docker-run-default-args` (use `docker-image-run-default-args`).
