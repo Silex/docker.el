@@ -466,7 +466,7 @@ default directory set to workdir."
   "Transient for showing containers diffs."
   :man-page "docker-container-diff"
   [:description docker-generic-action-description
-  ("d" "Diff" docker-generic-action-with-buffer)])
+   ("d" "Diff" docker-generic-action-with-buffer)])
 
 (defclass docker-exec-prefix (transient-prefix) nil)
 
