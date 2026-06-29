@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Add support for `docker exec`.
+- Add `--runtime` argument selection to `docker image run`.
+
 ## 2.5.0 (2026-01-26)
 
 - Switch to terminal backend selector.

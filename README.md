@@ -53,7 +53,7 @@ Then select an action and follow the instructions.
 
 ## Supported commands
 
-- docker container: attach, cp, diff, inspect, kill, logs, pause, rename, restart, rm, start, stop, unpause
+- docker container: attach, cp, diff, exec, inspect, kill, logs, pause, rename, restart, rm, start, stop, unpause
 - docker image: history, inspect, pull, push, rm, run, tag
 - docker network: rm
 - docker volume: rm
@@ -78,6 +78,8 @@ Here is a list of other customizations you can set:
 | docker-compose-command                | The docker-compose binary to use           | `docker-compose`     |
 | docker-container-columns              | Columns definition for containers          | `/bin/sh`            |
 | docker-container-default-sort-key     | Sort key for containers                    | `("Image")`          |
+| docker-container-exec-custom-args     | Custom arguments to use for docker exec    | `nil`                |
+| docker-container-exec-default-args    | Base arguments to use for docker exec      | `("-i" "-t")`        |
 | docker-container-shell-file-name      | Shell to use when entering containers      | `/bin/sh`            |
 | docker-container-tramp-method         | Tramp prefix when connecting to containers | `docker`             |
 | docker-image-columns                  | Columns definition for images              | Too complex to show  |
@@ -108,6 +110,10 @@ You can match on the repository name for an image to customize the initial infix
 
 So when `docker run` is called on an image whose repository name matches the regular expression `^postgres`, the option
 `"-e POSTGRES_PASSWORD=postgres"` will appear as set along with the defaults specified by `docker-image-run-default-args`.
+
+The same mechanism is available for `docker exec` via `docker-container-exec-custom-args` and
+`docker-container-exec-default-args`, except the regular expression is matched against the container name instead of the
+image repository.
 
 ## Terminal support
 
