@@ -344,6 +344,48 @@ default directory set to workdir."
         (eat-other-window)
       (error "The eat package is not installed"))))
 
+(defvar ghostel-buffer-name)
+
+;;;###autoload (autoload 'docker-container-ghostel "docker-container" nil t)
+(defun docker-container-ghostel (container)
+  "Open `ghostel' in CONTAINER."
+  (interactive (list (docker-container-read-name)))
+  (if (fboundp 'ghostel)
+      (let* ((container-address (format "%s:%s:/" docker-container-tramp-method container))
+             (file-prefix (let ((prefix (file-remote-p default-directory)))
+                            (if prefix
+                                (format "%s|" (s-chop-suffix ":" prefix))
+                              "/")))
+             (default-directory (format "%s%s" file-prefix container-address))
+             (ghostel-buffer-name (format "*ghostel:%s" default-directory))
+             (display-buffer-overriding-action '((display-buffer-pop-up-window))))
+        (ghostel))
+    (error "The ghostel package is not installed")))
+
+;;;###autoload (autoload 'docker-container-ghostel-env "docker-container" nil t)
+(aio-defun docker-container-ghostel-env (container)
+  "Open `ghostel' in CONTAINER with the environment variable set and
+default directory set to workdir."
+  (interactive (list
+                (docker-container-read-name)))
+  (docker-container-assert-tramp-docker)
+  (let* ((container-address (format "%s:%s:" docker-container-tramp-method container))
+         (file-prefix (let ((prefix (file-remote-p default-directory)))
+                        (if prefix
+                            (format "%s|" (s-chop-suffix ":" prefix))
+                          "/")))
+         (container-config (cdr (assq 'Config (aref (json-read-from-string (aio-await (docker-run-docker-async "inspect" container))) 0))))
+         (container-workdir (cdr (assq 'WorkingDir container-config)))
+         (container-env (cdr (assq 'Env container-config)))
+         (default-directory (format "%s%s%s" file-prefix container-address container-workdir))
+         ;; process-environment doesn't work with tramp if you call this function more than one per emacs session
+         (tramp-remote-process-environment (append container-env nil))
+         (ghostel-buffer-name (format "*ghostel-env:%s" default-directory))
+         (display-buffer-overriding-action '((display-buffer-pop-up-window))))
+    (if (fboundp 'ghostel)
+        (ghostel)
+      (error "The ghostel package is not installed"))))
+
 (defun docker-container-cp-from-selection (container-path host-path)
   "Run \"docker cp\" from CONTAINER-PATH to HOST-PATH for selected container."
   (interactive "sContainer path: \nFHost path: ")
@@ -445,6 +487,20 @@ default directory set to workdir."
   (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
     (docker-container-eat-env it)))
+
+(defun docker-container-ghostel-selection ()
+  "Run `docker-container-ghostel' on the containers selection."
+  (interactive)
+  (docker-utils-ensure-items)
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-container-ghostel it)))
+
+(defun docker-container-ghostel-env-selection ()
+  "Run `docker-container-ghostel-env' on the containers selection."
+  (interactive)
+  (docker-utils-ensure-items)
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-container-ghostel-env it)))
 
 (docker-utils-transient-define-prefix docker-container-attach ()
   "Transient for attaching to containers."
@@ -585,7 +641,9 @@ ACTION is the docker action, ARGS are the transient arguments."
    ("v" "Vterm" docker-container-vterm-selection)
    ("V" "Vterm with env" docker-container-vterm-env-selection)
    ("a" "Eat" docker-container-eat-selection)
-   ("A" "Eat with env" docker-container-eat-env-selection)])
+   ("A" "Eat with env" docker-container-eat-env-selection)
+   ("g" "Ghostel" docker-container-ghostel-selection)
+   ("G" "Ghostel with env" docker-container-ghostel-env-selection)])
 
 (docker-utils-transient-define-prefix docker-container-start ()
   "Transient for starting containers."
