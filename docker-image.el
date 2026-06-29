@@ -372,17 +372,17 @@ applied to the buffer."
   [:description docker-generic-action-description
    ("D" "Remove" docker-generic-action-multiple-ids)])
 
-(defclass docker-run-prefix (transient-prefix) nil)
+(defclass docker-image-run-prefix (transient-prefix) nil)
 
-(cl-defmethod transient-init-value ((obj docker-run-prefix))
-  "Helper that modify OBJ DOCKER-RUN-PREFIX to handle `docker-image-run-custom-args'."
+(cl-defmethod transient-init-value ((obj docker-image-run-prefix))
+  "Helper that modify OBJ DOCKER-IMAGE-RUN-PREFIX to handle `docker-image-run-custom-args'."
   (oset obj value
         (docker-utils-compute-args docker-image-run-default-args docker-image-run-custom-args)))
 
 (docker-utils-transient-define-prefix docker-image-run ()
   "Transient for running images."
   :man-page "docker-image-run"
-  :class 'docker-run-prefix
+  :class 'docker-image-run-prefix
   ["Arguments"
    ("D" "With display" "-v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY")
    ("M" "Mount volume" "--mount " read-string)
