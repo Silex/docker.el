@@ -150,6 +150,7 @@ REGEX is a (string) regular expression and ARGS is a list of strings
 corresponding to arguments.
 
 Also note if you do not specify `docker-image-run-default-args', they will be ignored."
+  :group 'docker-image
   :type '(repeat (list string (repeat string))))
 
 (defalias 'docker-image-inspect 'docker-inspect)
