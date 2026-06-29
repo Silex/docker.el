@@ -139,8 +139,6 @@ Note this can be overriden for specific images using
   :group 'docker-image
   :type '(repeat string))
 
-(make-obsolete-variable 'docker-run-default-args 'docker-image-run-default-args "Docker 2.1.0")
-
 (defcustom docker-image-run-custom-args
   nil
   "List which can be used to customize the default arguments for docker run.
