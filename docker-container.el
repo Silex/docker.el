@@ -98,9 +98,9 @@ string that transforms the displayed values in the column."
 
 (defcustom docker-container-exec-default-args
   '("-i" "-t")
-  "Default infix args used when docker run is invoked.
+  "Default infix args used when docker exec is invoked.
 
-Note this can be overriden for specific images using
+Note this can be overriden for specific containers using
 `docker-container-exec-custom-args'."
   :group 'docker-container
   :type '(repeat string))
@@ -113,7 +113,7 @@ Its elements should be of the form (REGEX ARGS) where
 REGEX is a (string) regular expression and ARGS is a list of strings
 corresponding to arguments.
 
-Also note if you do not specify `docker-exec-default-args', they will be ignored."
+Also note if you do not specify `docker-container-exec-default-args', they will be ignored."
   :group 'docker-container
   :type '(repeat (list string (repeat string))))
 
