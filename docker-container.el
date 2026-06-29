@@ -468,17 +468,17 @@ default directory set to workdir."
   [:description docker-generic-action-description
    ("d" "Diff" docker-generic-action-with-buffer)])
 
-(defclass docker-exec-prefix (transient-prefix) nil)
+(defclass docker-container-exec-prefix (transient-prefix) nil)
 
-(cl-defmethod transient-init-value ((obj docker-exec-prefix))
-  "Helper that modify OBJ DOCKER-EXEC-PREFIX to handle `docker-image-exec-custom-args'."
+(cl-defmethod transient-init-value ((obj docker-container-exec-prefix))
+  "Helper that modify OBJ DOCKER-CONTAINER-EXEC-PREFIX to handle `docker-container-exec-custom-args'."
   (oset obj value
         (docker-utils-compute-args docker-container-exec-default-args docker-container-exec-custom-args)))
 
 (docker-utils-transient-define-prefix docker-container-exec ()
   "Transient for running commands on containers."
   :man-page "docker-container-exec"
-  :class 'docker-exec-prefix
+  :class 'docker-container-exec-prefix
   ["Arguments"
    ("P" "Privileged" "--privileged")
    ("d" "Detach" "-d")
