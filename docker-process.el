@@ -32,6 +32,8 @@
 (require 'docker-group)
 (require 'docker-utils)
 
+(declare-function ghostel-exec "ghostel")
+
 (defcustom docker-run-as-root nil
   "Run docker as root."
   :group 'docker
