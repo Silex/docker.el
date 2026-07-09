@@ -7,6 +7,7 @@
 - Add support for `docker exec`.
 - Add `--runtime` argument selection to `docker image run`.
 - Remove obsolete `docker-run-default-args` (use `docker-image-run-default-args`).
+- Fix `docker image rm` transient keys to match the bare-letter convention (`f`, `n`).
 
 ## 2.5.0 (2026-01-26)
 

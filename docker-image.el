@@ -366,8 +366,8 @@ applied to the buffer."
   "Transient for removing images."
   :man-page "docker-image-rm"
   ["Arguments"
-   ("-f" "Force" "-f")
-   ("-n" "Don't prune" "--no-prune")]
+   ("f" "Force" "-f")
+   ("n" "Don't prune" "--no-prune")]
   [:description docker-generic-action-description
    ("D" "Remove" docker-generic-action-multiple-ids)])
 
