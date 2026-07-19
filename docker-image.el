@@ -391,6 +391,7 @@ applied to the buffer."
    ("W" "Web ports" "-p 80:80 -p 443:443 -p 8080:8080")
    ("d" "Detach" "-d")
    ("e" "Environment" "-e " read-string)
+   ("f" "Platform" "--platform " read-string)
    ("i" "Interactive" "-i")
    ("l" "Link" "--link " read-string)
    ("m" "Name" "--name " read-string)
