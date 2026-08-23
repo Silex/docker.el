@@ -136,6 +136,12 @@ The result is the tabulated list id for an entry is propertized with
 
 (docker-utils-define-transient-arguments docker-context-ls)
 
+(transient-define-prefix docker-context-ls ()
+  "Empty transient to list contexts.
+
+Contrary to other menus no option is required to list the context, yet
+this definition is required to ensure the context listing.")
+
 (docker-utils-transient-define-prefix docker-context-rm ()
   "Transient for removing contexts."
   :man-page "docker-context-rm"
