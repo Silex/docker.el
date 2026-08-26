@@ -65,8 +65,8 @@ When set to `auto', prefer eat, then ghostel, then vterm, then shell."
 (defmacro docker-with-sudo (&rest body)
   "Ensure `default-directory' is set correctly according to `docker-run-as-root' then execute BODY."
   (declare (indent defun))
-  `(let ((default-directory (if (and docker-run-as-root (not (file-remote-p default-directory)))
-                                "/sudo::"
+  `(let ((default-directory (if docker-run-as-root
+                                (tramp-file-name-with-sudo default-directory)
                               default-directory)))
      ,@body))
 
