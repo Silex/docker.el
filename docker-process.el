@@ -162,7 +162,6 @@ If INTERACTIVE is nil, fall back to shell mode since vterm is interactive."
   (if (not interactive)
       ;; vterm is interactive only, fall back to shell for non-interactive output
       (apply #'docker-run-async-with-buffer-shell program nil args)
-    (defvar vterm-kill-buffer-on-exit)
     (defvar vterm-shell)
     (if (fboundp 'vterm-other-window)
         (let* ((process-args (-remove 's-blank? (-flatten args)))

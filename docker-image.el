@@ -339,8 +339,6 @@ applied to the buffer."
   ["Actions"
    ("l" "List" tablist-revert)])
 
-(docker-utils-define-transient-arguments docker-image-history)
-
 (docker-utils-transient-define-prefix docker-image-history ()
   "Transient for showing image history."
   :man-page "docker-history"
