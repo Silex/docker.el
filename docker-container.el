@@ -325,7 +325,7 @@ default directory set to workdir."
                                 (format "%s|" (s-chop-suffix ":" prefix))
                               "/")))
              (default-directory (format "%s%s" file-prefix container-address))
-             (eat-buffer-name (format "*eat:%s" default-directory)))
+             (eat-buffer-name (docker-utils-generate-new-buffer-name "docker" "eat:" default-directory)))
         (eat-other-window))
     (error "The eat package is not installed")))
 
@@ -349,7 +349,7 @@ default directory set to workdir."
          (default-directory (format "%s%s%s" file-prefix container-address container-workdir))
          ;; process-environment doesn't work with tramp if you call this function more than one per emacs session
          (tramp-remote-process-environment (append container-env nil))
-         (eat-buffer-name (format "*eat-env:%s" default-directory)))
+         (eat-buffer-name (docker-utils-generate-new-buffer-name "docker" "eat-env:" default-directory)))
     (eat-other-window)))
 
 (defvar ghostel-buffer-name)
@@ -366,7 +366,7 @@ default directory set to workdir."
                                 (format "%s|" (s-chop-suffix ":" prefix))
                               "/")))
              (default-directory (format "%s%s" file-prefix container-address))
-             (ghostel-buffer-name (format "*ghostel:%s" default-directory))
+             (ghostel-buffer-name (docker-utils-generate-new-buffer-name "docker" "ghostel:" default-directory))
              (display-buffer-overriding-action '((display-buffer-pop-up-window))))
         (ghostel))
     (error "The ghostel package is not installed")))
@@ -391,7 +391,7 @@ default directory set to workdir."
          (default-directory (format "%s%s%s" file-prefix container-address container-workdir))
          ;; process-environment doesn't work with tramp if you call this function more than one per emacs session
          (tramp-remote-process-environment (append container-env nil))
-         (ghostel-buffer-name (format "*ghostel-env:%s" default-directory))
+         (ghostel-buffer-name (docker-utils-generate-new-buffer-name "docker" "ghostel-env:" default-directory))
          (display-buffer-overriding-action '((display-buffer-pop-up-window))))
     (ghostel)))
 

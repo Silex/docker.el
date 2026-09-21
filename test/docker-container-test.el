@@ -147,6 +147,36 @@
                        (format "The %s package is not installed" (cdr entry))))
         (should-not inspected)))))
 
+(ert-deftest docker-container-test-terminal-buffer-names ()
+  (let ((default-directory "/tmp/"))
+    (dolist (entry '((docker-container-eat eat-other-window eat-buffer-name
+                                           "* docker eat: /docker:web:/ *")
+                     (docker-container-ghostel ghostel ghostel-buffer-name
+                                               "* docker ghostel: /docker:web:/ *")))
+      (let (captured)
+        (cl-letf (((symbol-function 'docker-container-assert-tramp-docker) #'ignore)
+                  ((symbol-function (nth 1 entry))
+                   (lambda (&rest _) (setq captured (symbol-value (nth 2 entry))))))
+          (funcall (car entry) "web"))
+        (should (equal captured (nth 3 entry)))))))
+
+(ert-deftest docker-container-test-env-terminal-buffer-names ()
+  (let ((default-directory "/tmp/"))
+    (dolist (entry '((docker-container-eat-env eat-other-window eat-buffer-name
+                                               "* docker eat-env: /docker:web:/app *")
+                     (docker-container-ghostel-env ghostel ghostel-buffer-name
+                                                   "* docker ghostel-env: /docker:web:/app *")))
+      (let (captured)
+        (cl-letf (((symbol-function 'docker-container-assert-tramp-docker) #'ignore)
+                  ((symbol-function 'docker-run-docker-async)
+                   (lambda (&rest _)
+                     (docker-container-test-resolved
+                      "[{\"Config\":{\"WorkingDir\":\"/app\",\"Env\":[\"A=1\"]}}]")))
+                  ((symbol-function (nth 1 entry))
+                   (lambda (&rest _) (setq captured (symbol-value (nth 2 entry))))))
+          (aio-wait-for (funcall (car entry) "web")))
+        (should (equal captured (nth 3 entry)))))))
+
 (ert-deftest docker-container-test-status-face ()
   (should (equal (docker-container-status-face "Up 3 hours") 'docker-face-status-up))
   (should (equal (docker-container-status-face "Exited (0) 3 hours ago") 'docker-face-status-down))
