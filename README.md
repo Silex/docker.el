@@ -1,5 +1,5 @@
-[![MELPA](http://melpa.org/packages/docker-badge.svg)](http://melpa.org/#/docker)
-[![MELPA Stable](http://stable.melpa.org/packages/docker-badge.svg)](http://stable.melpa.org/#/docker)
+[![MELPA](https://melpa.org/packages/docker-badge.svg)](https://melpa.org/#/docker)
+[![MELPA Stable](https://stable.melpa.org/packages/docker-badge.svg)](https://stable.melpa.org/#/docker)
 ![CI status](https://github.com/Silex/docker.el/actions/workflows/ci.yml/badge.svg)
 
 # docker.el
@@ -20,11 +20,11 @@ Supports docker containers, images, volumes, networks, contexts and docker-compo
 
 ## Installation
 
-The recommended way to install docker.el is through [MELPA](https://github.com/milkypostman/melpa).
+The recommended way to install docker.el is through [MELPA](https://melpa.org).
 
 Here is a example [use-package](https://github.com/jwiegley/use-package) configuration:
 
-``` elisp
+```elisp
 (use-package docker
   :ensure t
   :bind ("C-c d" . docker))
@@ -33,10 +33,10 @@ Here is a example [use-package](https://github.com/jwiegley/use-package) configu
 ## Quickstart
 
 Use <kbd>M-x docker</kbd>, select a resource then mark or unmark items using the following keybindings (for more
-marking possibilities, check out https://github.com/politza/tablist):
+marking possibilities, check out https://github.com/emacsorphanage/tablist):
 
 | Binding            | Description          |
-|--------------------|----------------------|
+| ------------------ | -------------------- |
 | <kbd>?</kbd>       | List actions         |
 | <kbd>l</kbd>       | Configure listing    |
 | <kbd>m</kbd>       | Mark item            |
@@ -57,7 +57,7 @@ Then select an action and follow the instructions.
 - docker image: history, inspect, pull, push, rm, run, tag
 - docker network: rm
 - docker volume: rm
-- docker context: ls, use
+- docker context: inspect, ls, rm, use
 - docker-compose: build, config, create, down, exec, logs, pause, pull, push, remove, restart, run, start, stop, unpause, up
 
 You can also enter `dired` or open a file inside a container or volume.
@@ -85,28 +85,31 @@ it and saved with the other transient histories.
 Here is a list of other customizations you can set:
 
 | Variable                              | Description                                | Default              |
-|---------------------------------------|--------------------------------------------|----------------------|
+| ------------------------------------- | ------------------------------------------ | -------------------- |
 | docker-command                        | The docker binary to use                   | `docker`             |
-| docker-compose-command                | The docker-compose binary to use           | `docker-compose`     |
-| docker-container-columns              | Columns definition for containers          | `/bin/sh`            |
+| docker-compose-command                | The docker compose binary to use           | `docker compose`     |
+| docker-container-columns              | Columns definition for containers          | Too complex to show  |
 | docker-container-default-sort-key     | Sort key for containers                    | `("Image")`          |
 | docker-container-exec-custom-args     | Custom arguments to use for docker exec    | `nil`                |
 | docker-container-exec-default-args    | Base arguments to use for docker exec      | `("-i" "-t")`        |
 | docker-container-shell-file-name      | Shell to use when entering containers      | `/bin/sh`            |
 | docker-container-tramp-method         | Tramp prefix when connecting to containers | `docker`             |
+| docker-context-columns                | Columns definition for contexts            | Too complex to show  |
+| docker-context-default-sort-key       | Sort key for contexts                      | `("Name")`           |
 | docker-image-columns                  | Columns definition for images              | Too complex to show  |
 | docker-image-default-sort-key         | Sort key for images                        | `("Repository")`     |
 | docker-image-history-columns          | Columns definition for image history       | Too complex to show  |
 | docker-image-history-default-sort-key | Sort key for image history                 | `("Created" . t)`    |
+| docker-image-run-custom-args          | Custom arguments to use for docker run     | `nil`                |
 | docker-image-run-default-args         | Base arguments to use for docker run       | `("-i" "-t" "--rm")` |
 | docker-inspect-view-mode              | Mode used in `docker inspect` buffers      | Too complex to show  |
 | docker-network-columns                | Columns definition for networks            | Too complex to show  |
 | docker-network-default-sort-key       | Sort key for networks                      | `("Name")`           |
 | docker-pop-to-buffer-action           | Action for `docker-utils-pop-to-buffer`    | `nil`                |
 | docker-run-as-root                    | Runs docker as root when enabled           | `nil`                |
-| docker-terminal-backend               | Terminal backend for live buffers          | `auto`               |
 | docker-show-messages                  | If non-nil message docker commands         | `t`                  |
 | docker-show-status                    | When to compute status                     | `local-only`         |
+| docker-terminal-backend               | Terminal backend for live buffers          | `auto`               |
 | docker-volume-columns                 | Columns definition for volumes             | Too complex to show  |
 | docker-volume-default-sort-key        | Sort key for volumes                       | `("Driver")`         |
 
