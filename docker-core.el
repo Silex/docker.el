@@ -25,6 +25,7 @@
 (eval-when-compile
   (setq-local byte-compile-warnings '(not docstrings)))
 
+(require 'ansi-color)
 (require 'aio)
 (require 'transient)
 
