@@ -137,10 +137,13 @@ The result is the tabulated list id for an entry is propertized with
 (docker-utils-define-transient-arguments docker-context-ls)
 
 (transient-define-prefix docker-context-ls ()
-  "Empty transient to list contexts.
+  "Transient for listing contexts.
 
-Contrary to other menus no option is required to list the context, yet
-this definition is required to ensure the context listing.")
+\"docker context ls\" takes no argument worth exposing, but the prefix must
+exist: `docker-context-ls-arguments' reads its default value on every refresh."
+  :man-page "docker-context-ls"
+  ["Actions"
+   ("l" "List" tablist-revert)])
 
 (docker-utils-transient-define-prefix docker-context-rm ()
   "Transient for removing contexts."
@@ -159,7 +162,8 @@ this definition is required to ensure the context listing.")
   ["Docker contexts help"
    ("D" "Remove"  docker-context-rm)
    ("I" "Inspect" docker-context-inspect)
-   ("X" "Use"     docker-context-use)])
+   ("X" "Use"     docker-context-use)
+   ("l" "List"    docker-context-ls)])
 
 (defvar docker-context-mode-map
   (let ((map (make-sparse-keymap)))
@@ -167,6 +171,7 @@ this definition is required to ensure the context listing.")
     (define-key map "D" 'docker-context-rm)
     (define-key map "I" 'docker-context-inspect)
     (define-key map "X" 'docker-context-use)
+    (define-key map "l" 'docker-context-ls)
     map)
   "Keymap for `docker-context-mode'.")
 

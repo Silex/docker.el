@@ -6,6 +6,7 @@
 
 ;;; Code:
 (require 'ert)
+(require 'docker-container)
 (require 'docker-context)
 (require 'docker-image)
 (require 'docker-network)
@@ -44,6 +45,14 @@
     (should (get-text-property 0 'docker-context-active (car marked)))
     (should (equal (get-text-property 0 'font-lock-face (aref (cadr marked) 0))
                    'docker-face-active))))
+
+(ert-deftest docker-resources-test-list-transient-is-bound ()
+  (dolist (entry '((docker-container-mode-map . docker-container-ls)
+                   (docker-context-mode-map . docker-context-ls)
+                   (docker-image-mode-map . docker-image-ls)
+                   (docker-network-mode-map . docker-network-ls)
+                   (docker-volume-mode-map . docker-volume-ls)))
+    (should (equal (lookup-key (symbol-value (car entry)) "l") (cdr entry)))))
 
 (provide 'docker-resources-test)
 
