@@ -31,3 +31,5 @@ jobs:
         run: eask install-deps --dev; eask uninstall docker
       - name: Test byte compilation against MELPA ${{ matrix.melpa_version }}
         run: eask compile --strict --debug -v 5
+      - name: Run the test suite against MELPA ${{ matrix.melpa_version }}
+        run: eask test ert ./test/*.el

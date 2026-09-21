@@ -1,0 +1,129 @@
+;;; docker-container-test.el --- Tests for docker-container  -*- lexical-binding: t -*-
+
+;;; Commentary:
+
+;; Tests for the tramp paths the container entry points build.
+
+;;; Code:
+(require 'ert)
+(require 'docker-container)
+
+(defmacro docker-container-test-capture-directory (terminal &rest body)
+  "Evaluate BODY with TERMINAL stubbed and return the `default-directory' it saw."
+  (declare (indent 1))
+  `(let (captured)
+     (cl-letf (((symbol-function ,terminal)
+                (lambda (&rest args)
+                  (setq captured default-directory)
+                  (when (bufferp (car args)) (kill-buffer (car args))))))
+       ,@body)
+     captured))
+
+(ert-deftest docker-container-test-eshell-directory ()
+  (let ((default-directory "/tmp/"))
+    (should (equal (docker-container-test-capture-directory 'eshell
+                     (docker-container-eshell "web"))
+                   "/docker:web:/"))))
+
+(ert-deftest docker-container-test-eshell-directory-from-a-remote-host ()
+  (let ((default-directory "/ssh:host:/srv/"))
+    (should (equal (docker-container-test-capture-directory 'eshell
+                     (docker-container-eshell "web"))
+                   "/ssh:host|docker:web:/"))))
+
+(ert-deftest docker-container-test-eshell-honours-the-tramp-method ()
+  (let ((default-directory "/tmp/")
+        (docker-container-tramp-method "podman"))
+    (should (equal (docker-container-test-capture-directory 'eshell
+                     (docker-container-eshell "web"))
+                   "/podman:web:/"))))
+
+(ert-deftest docker-container-test-eshell-buffer-name ()
+  (let ((default-directory "/tmp/")
+        captured)
+    (cl-letf (((symbol-function 'eshell)
+               (lambda (&rest _) (setq captured eshell-buffer-name))))
+      (docker-container-eshell "web"))
+    (should (equal captured "* docker eshell: /docker:web:/ *"))))
+
+(ert-deftest docker-container-test-shell-directory ()
+  (let ((default-directory "/tmp/"))
+    (should (equal (docker-container-test-capture-directory 'shell
+                     (docker-container-shell "web"))
+                   "/docker:web:/"))))
+
+(ert-deftest docker-container-test-shell-directory-from-a-remote-host ()
+  (let ((default-directory "/ssh:host:/srv/"))
+    (should (equal (docker-container-test-capture-directory 'shell
+                     (docker-container-shell "web"))
+                   "/ssh:host|docker:web:/"))))
+
+(ert-deftest docker-container-test-shell-buffer-name ()
+  (let ((default-directory "/tmp/")
+        captured)
+    (cl-letf (((symbol-function 'shell)
+               (lambda (buffer) (setq captured (buffer-name buffer)))))
+      (docker-container-shell "web"))
+    (should (equal captured "* docker shell: /docker:web:/ *"))
+    (kill-buffer captured)))
+
+(ert-deftest docker-container-test-shell-reads-the-shell-with-a-prefix-argument ()
+  (let ((default-directory "/tmp/")
+        captured)
+    (cl-letf (((symbol-function 'read-shell-command) (lambda (&rest _) "/bin/bash"))
+              ((symbol-function 'shell)
+               (lambda (buffer) (setq captured shell-file-name) (kill-buffer buffer))))
+      (docker-container-shell "web" t))
+    (should (equal captured "/bin/bash"))))
+
+(ert-deftest docker-container-test-vterm-directory ()
+  (let ((default-directory "/tmp/"))
+    (should (equal (docker-container-test-capture-directory 'vterm-other-window
+                     (docker-container-vterm "web"))
+                   "/docker:web:/"))))
+
+(ert-deftest docker-container-test-vterm-directory-from-a-remote-host ()
+  (let ((default-directory "/ssh:host:/srv/"))
+    (should (equal (docker-container-test-capture-directory 'vterm-other-window
+                     (docker-container-vterm "web"))
+                   "/ssh:host|docker:web:/"))))
+
+(ert-deftest docker-container-test-eat-directory ()
+  (let ((default-directory "/tmp/"))
+    (should (equal (docker-container-test-capture-directory 'eat-other-window
+                     (docker-container-eat "web"))
+                   "/docker:web:/"))))
+
+(ert-deftest docker-container-test-ghostel-directory ()
+  (let ((default-directory "/tmp/"))
+    (should (equal (docker-container-test-capture-directory 'ghostel
+                     (docker-container-ghostel "web"))
+                   "/docker:web:/"))))
+
+(ert-deftest docker-container-test-terminals-report-a-missing-package ()
+  (dolist (entry '((docker-container-vterm . "vterm")
+                   (docker-container-eat . "eat")
+                   (docker-container-ghostel . "ghostel")))
+    (should (equal (cadr (should-error (funcall (car entry) "web")))
+                   (format "The %s package is not installed" (cdr entry))))))
+
+(ert-deftest docker-container-test-status-face ()
+  (should (equal (docker-container-status-face "Up 3 hours") 'docker-face-status-up))
+  (should (equal (docker-container-status-face "Exited (0) 3 hours ago") 'docker-face-status-down))
+  (should (equal (docker-container-status-face "Created") 'docker-face-status-other)))
+
+(ert-deftest docker-container-test-propertize-entry ()
+  (let* ((docker-container-columns '((:name "Names") (:name "Status")))
+         (entry (docker-container-propertize-entry (list "web" (vector "web" "Up 3 hours")))))
+    (should (equal (get-text-property 0 'font-lock-face (aref (cadr entry) 1))
+                   'docker-face-status-up))))
+
+(ert-deftest docker-container-test-read-shell ()
+  (let ((docker-container-shell-file-name "/bin/sh"))
+    (should (equal (docker-container--read-shell) "/bin/sh"))
+    (cl-letf (((symbol-function 'read-shell-command) (lambda (&rest _) "/bin/bash")))
+      (should (equal (docker-container--read-shell t) "/bin/bash")))))
+
+(provide 'docker-container-test)
+
+;;; docker-container-test.el ends here

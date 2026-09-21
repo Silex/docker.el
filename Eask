@@ -7,7 +7,7 @@
 
 (package-file "docker.el")
 
-(script "test" "echo \"Error: no test specified\" && exit 1")
+(script "test" "eask test ert ./test/*.el")
 
 (source "gnu")
 (source "melpa")
