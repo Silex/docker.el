@@ -33,3 +33,16 @@ jobs:
         run: eask compile --strict --debug -v 5
       - name: Run the test suite against MELPA ${{ matrix.melpa_version }}
         run: eask test ert ./test/*.el
+
+  lint:
+    runs-on: ubuntu-latest
+    container: silex/emacs:30.2-ci-eask
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: eask install-deps --dev && eask uninstall docker
+      - name: Lint docstrings
+        run: eask lint checkdoc --strict
+      - name: Lint package metadata
+        run: eask lint package --strict && eask lint keywords --strict
