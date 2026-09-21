@@ -98,6 +98,9 @@
     (should (equal (docker-utils-columns-getter symbol)
                    '(("Id" 16 "{{ json .ID }}" nil nil))))))
 
+(ert-deftest docker-utils-test-pop-to-buffer-action-is-customizable ()
+  (should (custom-variable-p 'docker-pop-to-buffer-action)))
+
 (provide 'docker-utils-test)
 
 ;;; docker-utils-test.el ends here
