@@ -126,6 +126,27 @@
         (funcall (car entry) "web"))
       (should asserted))))
 
+(defun docker-container-test-resolved (value)
+  "Return a promise already resolved with VALUE."
+  (let ((promise (aio-promise)))
+    (aio-resolve promise (lambda () value))
+    promise))
+
+(ert-deftest docker-container-test-env-entry-points-check-the-terminal-first ()
+  (dolist (entry '((docker-container-vterm-env . "vterm")
+                   (docker-container-eat-env . "eat")
+                   (docker-container-ghostel-env . "ghostel")))
+    (let (inspected)
+      (cl-letf (((symbol-function 'docker-container-assert-tramp-docker) #'ignore)
+                ((symbol-function 'docker-run-docker-async)
+                 (lambda (&rest _)
+                   (setq inspected t)
+                   (docker-container-test-resolved
+                    "[{\"Config\":{\"WorkingDir\":\"/app\",\"Env\":[\"A=1\"]}}]"))))
+        (should (equal (cadr (should-error (aio-wait-for (funcall (car entry) "web"))))
+                       (format "The %s package is not installed" (cdr entry))))
+        (should-not inspected)))))
+
 (ert-deftest docker-container-test-status-face ()
   (should (equal (docker-container-status-face "Up 3 hours") 'docker-face-status-up))
   (should (equal (docker-container-status-face "Exited (0) 3 hours ago") 'docker-face-status-down))

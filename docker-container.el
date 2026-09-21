@@ -191,6 +191,10 @@ Also note if you do not specify `docker-container-exec-default-args', they will 
               (docker-utils-package-p 'docker-tramp))
     (error "Tramp docker support was not detected, try installing docker-tramp")))
 
+(declare-function eat-other-window "eat")
+(declare-function ghostel "ghostel")
+(declare-function vterm-other-window "vterm")
+
 (defvar eshell-buffer-name)
 
 ;;;###autoload (autoload 'docker-container-eshell "docker-container" nil t)
@@ -292,6 +296,8 @@ default directory set to workdir."
   (interactive (list
                 (docker-container-read-name)))
   (docker-container-assert-tramp-docker)
+  (unless (fboundp 'vterm-other-window)
+    (error "The vterm package is not installed"))
   (let* ((container-address (format "%s:%s:" docker-container-tramp-method container))
          (file-prefix (let ((prefix (file-remote-p default-directory)))
                         (if prefix
@@ -303,9 +309,7 @@ default directory set to workdir."
          (default-directory (format "%s%s%s" file-prefix container-address container-workdir))
          ;; process-environment doesn't work with tramp if you call this function more than one per emacs session
          (tramp-remote-process-environment (append container-env nil)))
-    (if (fboundp 'vterm-other-window)
-        (vterm-other-window (docker-utils-generate-new-buffer-name "docker" "vterm-env:" default-directory))
-      (error "The vterm package is not installed"))))
+    (vterm-other-window (docker-utils-generate-new-buffer-name "docker" "vterm-env:" default-directory))))
 
 (defvar eat-buffer-name)
 
@@ -332,6 +336,8 @@ default directory set to workdir."
   (interactive (list
                 (docker-container-read-name)))
   (docker-container-assert-tramp-docker)
+  (unless (fboundp 'eat-other-window)
+    (error "The eat package is not installed"))
   (let* ((container-address (format "%s:%s:" docker-container-tramp-method container))
          (file-prefix (let ((prefix (file-remote-p default-directory)))
                         (if prefix
@@ -344,9 +350,7 @@ default directory set to workdir."
          ;; process-environment doesn't work with tramp if you call this function more than one per emacs session
          (tramp-remote-process-environment (append container-env nil))
          (eat-buffer-name (format "*eat-env:%s" default-directory)))
-    (if (fboundp 'eat-other-window)
-        (eat-other-window)
-      (error "The eat package is not installed"))))
+    (eat-other-window)))
 
 (defvar ghostel-buffer-name)
 
@@ -374,6 +378,8 @@ default directory set to workdir."
   (interactive (list
                 (docker-container-read-name)))
   (docker-container-assert-tramp-docker)
+  (unless (fboundp 'ghostel)
+    (error "The ghostel package is not installed"))
   (let* ((container-address (format "%s:%s:" docker-container-tramp-method container))
          (file-prefix (let ((prefix (file-remote-p default-directory)))
                         (if prefix
@@ -387,9 +393,7 @@ default directory set to workdir."
          (tramp-remote-process-environment (append container-env nil))
          (ghostel-buffer-name (format "*ghostel-env:%s" default-directory))
          (display-buffer-overriding-action '((display-buffer-pop-up-window))))
-    (if (fboundp 'ghostel)
-        (ghostel)
-      (error "The ghostel package is not installed"))))
+    (ghostel)))
 
 (defun docker-container-cp-from-selection (container-path host-path)
   "Run \"docker cp\" from CONTAINER-PATH to HOST-PATH for selected container."
