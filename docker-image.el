@@ -22,9 +22,6 @@
 ;;; Commentary:
 
 ;;; Code:
-(eval-when-compile
-  (setq-local byte-compile-warnings '(not docstrings)))
-
 (require 's)
 (require 'aio)
 (require 'dash)
@@ -69,13 +66,11 @@ and FLIP is a boolean to specify the sort order."
     (:name "Size" :width 10 :template "{{ json .Size }}" :sort docker-utils-human-size-predicate :format nil))
   "Column specification for docker images.
 
-The order of entries defines the displayed column order.
-'Template' is the Go template passed to `docker-image-ls' to create the column
-data.   It should return a string delimited with double quotes.
-'Sort function' is a binary predicate that should return true when the first
-argument should be sorted before the second.
-'Format function' is a function from string to string that transforms the
-displayed values in the column."
+The order of entries defines the displayed column order.  Template is the Go
+template passed to `docker-image-ls' to create the column data; it should
+return a string delimited with double quotes.  Sort function is a binary
+predicate returning non-nil when the first argument sorts before the second.
+Format function transforms the displayed value from string to string."
   :group 'docker-image
   :set 'docker-utils-columns-setter
   :get 'docker-utils-columns-getter
@@ -113,13 +108,11 @@ and FLIP is a boolean to specify the sort order."
     (:name "Comment" :width 20 :template "{{ json .Comment }}" :sort nil :format nil))
   "Column specification for docker image history.
 
-The order of entries defines the displayed column order.
-'Template' is the Go template passed to `docker-image-history' to create the column
-data.   It should return a string delimited with double quotes.
-'Sort function' is a binary predicate that should return true when the first
-argument should be sorted before the second.
-'Format function' is a function from string to string that transforms the
-displayed values in the column."
+The order of entries defines the displayed column order.  Template is the Go
+template passed to `docker-image-history' to create the column data; it should
+return a string delimited with double quotes.  Sort function is a binary
+predicate returning non-nil when the first argument sorts before the second.
+Format function transforms the displayed value from string to string."
   :group 'docker-image
   :set 'docker-utils-columns-setter
   :get 'docker-utils-columns-getter
@@ -147,7 +140,8 @@ Its elements should be of the form (REGEX ARGS) where
 REGEX is a (string) regular expression and ARGS is a list of strings
 corresponding to arguments.
 
-Also note if you do not specify `docker-image-run-default-args', they will be ignored."
+Note that they are ignored unless `docker-image-run-default-args' is also
+set."
   :group 'docker-image
   :type '(repeat (list string (repeat string))))
 
@@ -180,16 +174,17 @@ be the list (repository tag id).  See `docker-image-id-template'."
     (--map-when (-contains? dangling it) (docker-image-entry-set-dangling it) entries)))
 
 (defun docker-image-dangling-p (entry-id)           ;
-  "Predicate for if ENTRY-ID is dangling.
+  "Return non-nil when ENTRY-ID is dangling.
 
-For example (docker-image-dangling-p (tabulated-list-get-id)) is t when the entry under point is dangling."
+For example (docker-image-dangling-p (tabulated-list-get-id)) is non-nil when
+the entry under point is dangling."
   (get-text-property 0 'docker-image-dangling entry-id))
 
 (defun docker-image-entry-set-dangling (entry)
   "Mark ENTRY (output of `docker-image-entries') as dangling.
 
-The result is the tabulated list id for an entry is propertized with
-'docker-image-dangling and the entry is fontified with 'docker-face-dangling."
+The tabulated list id is propertized with the docker-image-dangling property
+and the entry is fontified with the docker-face-dangling face."
   (list (propertize (car entry) 'docker-image-dangling t)
         (apply #'vector (--map (propertize it 'font-lock-face 'docker-face-dangling) (cadr entry)))))
 
@@ -236,7 +231,7 @@ The result is the tabulated list id for an entry is propertized with
    (apply #'docker-image-history-entries docker-image-history-image docker-image-history-args)))
 
 (defun docker-image-history-show (image &optional args)
-  "Display history for IMAGE."
+  "Display the history of IMAGE, passing ARGS to \"docker image history\"."
   (let ((buffer (docker-utils-generate-new-buffer "docker-image-history" image)))
     (with-current-buffer buffer
       (docker-image-history-mode)
@@ -293,9 +288,11 @@ applied to the buffer."
       (forward-line))))
 
 (aio-defun docker-image-default-runtime ()
+  "Return a promise with the default runtime reported by docker."
   (s-trim (aio-await (docker-run-docker-async "info" "-f" "{{.DefaultRuntime}}"))))
 
 (aio-defun docker-image-runtimes ()
+  "Return a promise with the available runtimes, the default one first."
   (let ((default (aio-await (docker-image-default-runtime))))
     (--> (docker-run-docker-async "info" "-f" "'{{range $name, $_ := .Runtimes}}{{println $name}}{{end}}'")
          aio-await
@@ -307,6 +304,7 @@ applied to the buffer."
          (cons default it))))
 
 (defun docker-image-read-runtime (prompt initial-input history)
+  "Read a docker runtime using PROMPT, INITIAL-INPUT and HISTORY."
   (completing-read prompt
                    (let ((runtimes (aio-wait-for (docker-image-runtimes))))
                      ;; Complete with the runtimes in the order given by
@@ -375,7 +373,9 @@ applied to the buffer."
 (defclass docker-image-run-prefix (transient-prefix) nil)
 
 (cl-defmethod transient-init-value ((obj docker-image-run-prefix))
-  "Helper that modify OBJ DOCKER-IMAGE-RUN-PREFIX to handle `docker-image-run-custom-args'."
+  "Set the OBJ value from the docker run arguments.
+
+See `docker-image-run-default-args' and `docker-image-run-custom-args'."
   (oset obj value
         (docker-utils-compute-args docker-image-run-default-args docker-image-run-custom-args)))
 

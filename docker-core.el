@@ -22,9 +22,6 @@
 ;;; Commentary:
 
 ;;; Code:
-(eval-when-compile
-  (setq-local byte-compile-warnings '(not docstrings)))
-
 (require 'ansi-color)
 (require 'aio)
 (require 'transient)
@@ -111,8 +108,10 @@
     (docker-run-docker-async-with-buffer-noninteractive (s-split " " action) args it)))
 
 (aio-defun docker-generic-action-with-buffer (action args)
-  "Run \"`docker-command' ACTION ARGS\", wait for completion, then display output.
-This collects all output before displaying, suitable for non-interactive commands."
+  "Run \"`docker-command' ACTION ARGS\", wait, then display the output.
+
+All output is collected before it is displayed, which suits the commands that
+are not interactive."
   (interactive (list (docker-get-transient-action)
                      (transient-args transient-current-command)))
   (--each (docker-utils-get-marked-items-ids)

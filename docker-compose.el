@@ -22,9 +22,6 @@
 ;;; Commentary:
 
 ;;; Code:
-(eval-when-compile
-  (setq-local byte-compile-warnings '(not docstrings)))
-
 (require 'crm)
 (require 's)
 (require 'aio)
@@ -45,11 +42,15 @@
   :type 'string)
 
 (defun docker-compose-run-docker-compose-async (action &rest args)
-  "Execute \"`docker-compose-command' ACTION ARGS\" and return a promise with the results."
+  "Execute \"`docker-compose-command' ACTION ARGS\".
+
+Return a promise with the results."
   (apply #'docker-run-async docker-compose-command (docker-compose-arguments) action args))
 
 (defun docker-compose-run-docker-compose-async-with-buffer (action &rest args)
-  "Execute \"`docker-compose-command' ACTION ARGS\" and display output in a new buffer."
+  "Execute \"`docker-compose-command' ACTION ARGS\".
+
+Display the output in a new buffer."
   (apply #'docker-run-async-with-buffer-interactive docker-compose-command (docker-compose-arguments) action args))
 
 (aio-defun docker-compose-services ()

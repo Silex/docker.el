@@ -22,9 +22,6 @@
 ;;; Commentary:
 
 ;;; Code:
-(eval-when-compile
-  (setq-local byte-compile-warnings '(not docstrings)))
-
 (require 'ansi-color)
 (require 's)
 (require 'aio)
@@ -64,7 +61,7 @@ When set to `auto', prefer eat, then ghostel, then vterm, then shell."
 
 
 (defmacro docker-with-sudo (&rest body)
-  "Ensure `default-directory' is set correctly according to `docker-run-as-root' then execute BODY."
+  "Set `default-directory' according to `docker-run-as-root', then execute BODY."
   (declare (indent defun))
   `(let ((default-directory (if (and docker-run-as-root (not (file-remote-p default-directory)))
                                 "/sudo::"
@@ -206,8 +203,10 @@ If INTERACTIVE is nil, fall back to shell mode since ghostel is interactive."
       (error "The ghostel package is not installed"))))
 
 (defun docker-process-filter-noninteractive (proc string)
-  "Process filter for non-interactive streaming buffers.
-Strips carriage returns and applies ANSI color codes."
+  "Insert STRING from PROC into the buffer PROC writes to.
+
+Carriage returns are stripped and ANSI color codes are applied, which is what
+a non-interactive streaming buffer needs."
   (when (buffer-live-p (process-buffer proc))
     (with-current-buffer (process-buffer proc)
       (let ((inhibit-read-only t)

@@ -22,9 +22,6 @@
 ;;; Commentary:
 
 ;;; Code:
-(eval-when-compile
-  (setq-local byte-compile-warnings '(not docstrings)))
-
 (require 's)
 (require 'aio)
 (require 'dash)
@@ -42,7 +39,7 @@
 
 (defconst docker-volume-id-template
   "{{ json .Name }}"
-  "This Go template extracts the volume id which will be passed to transient commands.")
+  "Go template extracting the volume id passed to transient commands.")
 
 (defcustom docker-volume-default-sort-key '("Driver" . nil)
   "Sort key for docker volumes.
@@ -64,13 +61,11 @@ and FLIP is a boolean to specify the sort order."
     (:name "Name" :width 40 :template "{{ json .Name }}" :sort nil :format nil))
   "Column specification for docker volumes.
 
-The order of entries defines the displayed column order.
-'Template' is the Go template passed to `docker-volume-ls' to create the column
-data.   It should return a string delimited with double quotes.
-'Sort function' is a binary predicate that should return true when the first
-argument should be sorted before the second.
-'Format function' is a function from string to string that transforms the
-displayed values in the column."
+The order of entries defines the displayed column order.  Template is the Go
+template passed to `docker-volume-ls' to create the column data; it should
+return a string delimited with double quotes.  Sort function is a binary
+predicate returning non-nil when the first argument sorts before the second.
+Format function transforms the displayed value from string to string."
   :group 'docker-volume
   :set 'docker-utils-columns-setter
   :get 'docker-utils-columns-getter
@@ -97,16 +92,17 @@ displayed values in the column."
     (--map-when (-contains? dangling it) (docker-volume-entry-set-dangling it) entries)))
 
 (defun docker-volume-dangling-p (entry-id)
-  "Predicate for if ENTRY-ID is dangling.
+  "Return non-nil when ENTRY-ID is dangling.
 
-For example (docker-volume-dangling-p (tabulated-list-get-id)) is t when the entry under point is dangling."
+For example (docker-volume-dangling-p (tabulated-list-get-id)) is non-nil
+when the entry under point is dangling."
   (get-text-property 0 'docker-volume-dangling entry-id))
 
 (defun docker-volume-entry-set-dangling (entry)
   "Mark ENTRY (output of `docker-volume-entries') as dangling.
 
-The result is the tabulated list id for an entry is propertized with
-'docker-volume-dangling and the entry is fontified with 'docker-face-dangling."
+The tabulated list id is propertized with the docker-volume-dangling property
+and the entry is fontified with the docker-face-dangling face."
   (list (propertize (car entry) 'docker-volume-dangling t)
         (apply #'vector (--map (propertize it 'font-lock-face 'docker-face-dangling) (cadr entry)))))
 

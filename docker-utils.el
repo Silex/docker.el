@@ -22,9 +22,6 @@
 ;;; Commentary:
 
 ;;; Code:
-(eval-when-compile
-  (setq-local byte-compile-warnings '(not docstrings)))
-
 (require 's)
 (require 'aio)
 (require 'dash)
@@ -192,7 +189,10 @@ Execute BODY in a buffer named with the help of NAME."
      (pop-to-buffer (current-buffer))))
 
 (defmacro docker-utils-transient-define-prefix (name arglist &rest args)
-  "Wrapper around `transient-define-prefix' forwarding NAME, ARGLIST and ARGS and calling `docker-utils-ensure-items'."
+  "Wrapper around `transient-define-prefix' that requires a selection.
+
+NAME, ARGLIST and ARGS are forwarded to it, and `docker-utils-ensure-items'
+runs before the transient is set up."
   `(transient-define-prefix ,name ,arglist
      ,@args
      (interactive)
@@ -200,7 +200,9 @@ Execute BODY in a buffer named with the help of NAME."
      (transient-setup ',name)))
 
 (defmacro docker-utils-define-transient-arguments (name)
-  "Define the transient arguments function using NAME that return the latest transient value or its default."
+  "Define NAME-arguments, returning the latest value of the NAME transient.
+
+It falls back to the transient default value when the history is empty."
   `(defun ,(intern (format "%s-arguments" name)) ()
      ,(format "Return the latest used arguments in the `%s' transient." name)
      (let ((history (alist-get ',name transient-history))
@@ -218,7 +220,7 @@ Execute BODY in a buffer named with the help of NAME."
        (tabulated-list-print t))))
 
 (defcustom docker-pop-to-buffer-action nil
-  "Action to use internally when `docker-utils-pop-to-buffer' calls `pop-to-buffer'."
+  "Action `docker-utils-pop-to-buffer' passes to `pop-to-buffer'."
   :group 'docker
   :type 'sexp)
 
@@ -250,7 +252,9 @@ Execute BODY in a buffer named with the help of NAME."
     (< (docker-utils-human-size-to-bytes a) (docker-utils-human-size-to-bytes b)))
 
 (defun docker-utils-columns-list-format (columns-spec)
-  "Convert COLUMNS-SPEC (a list of plists) to 'tabulated-list-format', i.e. a vector of (name width sort-fn)."
+  "Convert COLUMNS-SPEC, a list of plists, to a `tabulated-list-format' vector.
+
+Each element of the vector is (NAME WIDTH SORT-FN)."
   (apply 'vector
   (--map-indexed
    (-let* (((&plist :name name :width width :sort sort-fn-inner) it)
@@ -276,8 +280,9 @@ COLUMN-SPEC is the value of docker-X-columns."
 (defun docker-utils-parse (column-specs line)
   "Convert a LINE from \"docker ls\" to a `tabulated-list-entries' entry.
 
-LINE is expected to be a JSON formatted array, and COLUMN-SPECS is the relevant
-defcustom (e.g. `docker-image-columns`) used to apply any custom format functions."
+LINE is expected to be a JSON formatted array.  COLUMN-SPECS is the relevant
+defcustom (e.g. `docker-image-columns') used to apply any custom format
+functions."
   (condition-case nil
       (let* ((data (json-read-from-string line)))
         ;; apply format function, if any

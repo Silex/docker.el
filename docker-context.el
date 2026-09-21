@@ -22,9 +22,6 @@
 ;;; Commentary:
 
 ;;; Code:
-(eval-when-compile
-  (setq-local byte-compile-warnings '(not docstrings)))
-
 (require 's)
 (require 'aio)
 (require 'dash)
@@ -42,7 +39,7 @@
 
 (defconst docker-context-id-template
   "{{ json .Name }}"
-  "This Go template extracts the context id which will be passed to transient commands.")
+  "Go template extracting the context id passed to transient commands.")
 
 (defcustom docker-context-default-sort-key '("Name" . nil)
   "Sort key for docker contexts.
@@ -65,13 +62,11 @@ and FLIP is a boolean to specify the sort order."
     (:name "Endpoint" :width 40 :template "{{ json .DockerEndpoint }}" :sort nil :format nil))
   "Column specification for docker contexts.
 
-The order of entries defines the displayed column order.
-'Template' is the Go template passed to `docker-context-ls' to create the column
-data.   It should return a string delimited with double quotes.
-'Sort function' is a binary predicate that should return true when the first
-argument should be sorted before the second.
-'Format function' is a function from string to string that transforms the
-displayed values in the column."
+The order of entries defines the displayed column order.  Template is the Go
+template passed to `docker-context-ls' to create the column data; it should
+return a string delimited with double quotes.  Sort function is a binary
+predicate returning non-nil when the first argument sorts before the second.
+Format function transforms the displayed value from string to string."
   :group 'docker-context
   :set 'docker-utils-columns-setter
   :get 'docker-utils-columns-getter
@@ -111,8 +106,8 @@ displayed values in the column."
 (defun docker-context-entry-set-active (entry)
   "Mark ENTRY (output of `docker-context-entries') as active.
 
-The result is the tabulated list id for an entry is propertized with
-'docker-context-active and the entry is fontified with 'docker-face-active."
+The tabulated list id is propertized with the docker-context-active property
+and the entry is fontified with the docker-face-active face."
   (list (propertize (car entry) 'docker-context-active t)
         (apply #'vector (--map (propertize it 'font-lock-face 'docker-face-active) (cadr entry)))))
 

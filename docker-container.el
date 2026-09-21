@@ -23,9 +23,6 @@
 ;;; Commentary:
 
 ;;; Code:
-(eval-when-compile
-  (setq-local byte-compile-warnings '(not docstrings)))
-
 (require 's)
 (require 'aio)
 (require 'dash)
@@ -43,7 +40,7 @@
 
 (defconst docker-container-id-template
   "{{ json .Names }}"
-  "This Go template extracts the container id which will be passed to transient commands.")
+  "Go template extracting the container id passed to transient commands.")
 
 (defcustom docker-container-shell-file-name "/bin/sh"
   "Shell to use when entering containers."
@@ -80,12 +77,11 @@ and FLIP is a boolean to specify the sort order."
     (:name "Names" :width 10 :template "{{ json .Names }}" :sort nil :format nil))
   "Column specification for docker containers.
 
-The order of entries defines the displayed column order.  'Template' is
-the Go template passed to `docker-container-ls' to create the column data.
-It should return a string delimited with double quotes.  'Sort function' is
-a binary predicate that should return true when the first argument should be
-sorted before the second.  'Format function' is a function from string to
-string that transforms the displayed values in the column."
+The order of entries defines the displayed column order.  Template is the Go
+template passed to `docker-container-ls' to create the column data; it should
+return a string delimited with double quotes.  Sort function is a binary
+predicate returning non-nil when the first argument sorts before the second.
+Format function transforms the displayed value from string to string."
   :group 'docker-container
   :set 'docker-utils-columns-setter
   :get 'docker-utils-columns-getter
@@ -113,14 +109,17 @@ Its elements should be of the form (REGEX ARGS) where
 REGEX is a (string) regular expression and ARGS is a list of strings
 corresponding to arguments.
 
-Also note if you do not specify `docker-container-exec-default-args', they will be ignored."
+Note that they are ignored unless `docker-container-exec-default-args' is
+also set."
   :group 'docker-container
   :type '(repeat (list string (repeat string))))
 
 (defalias 'docker-container-inspect 'docker-inspect)
 
 (defun docker-container--read-shell (&optional read-shell-name)
-  "Return `docker-container-shell-file-name' or read a shell name if READ-SHELL-NAME is truthy."
+  "Return `docker-container-shell-file-name'.
+
+When READ-SHELL-NAME is non-nil, read the shell name instead."
   (if read-shell-name (read-shell-command "Shell: ") docker-container-shell-file-name))
 
 (defun docker-container-status-face (status)
@@ -182,7 +181,7 @@ Also note if you do not specify `docker-container-exec-default-args', they will 
    (docker-container-entries-propertized (docker-container-ls-arguments))))
 
 (defun docker-container-read-name ()
-  "Read an container name."
+  "Read a container name."
   (docker-utils-completing-read "Container: " (-map #'car (aio-wait-for (docker-container-entries))) 'docker-container-name))
 
 (defun docker-container-assert-tramp-docker ()
@@ -367,6 +366,8 @@ default directory set to workdir."
                               "/")))
              (default-directory (format "%s%s" file-prefix container-address))
              (ghostel-buffer-name (docker-utils-generate-new-buffer-name "docker" "ghostel:" default-directory))
+             ;; ghostel pops to its buffer in the selected window, so this is
+             ;; what vterm-other-window and eat-other-window do for the others.
              (display-buffer-overriding-action '((display-buffer-pop-up-window))))
         (ghostel))
     (error "The ghostel package is not installed")))
@@ -392,6 +393,8 @@ default directory set to workdir."
          ;; process-environment doesn't work with tramp if you call this function more than one per emacs session
          (tramp-remote-process-environment (append container-env nil))
          (ghostel-buffer-name (docker-utils-generate-new-buffer-name "docker" "ghostel-env:" default-directory))
+         ;; ghostel pops to its buffer in the selected window, so this is
+         ;; what vterm-other-window and eat-other-window do for the others.
          (display-buffer-overriding-action '((display-buffer-pop-up-window))))
     (ghostel)))
 
@@ -537,7 +540,10 @@ default directory set to workdir."
 (defclass docker-container-exec-prefix (transient-prefix) nil)
 
 (cl-defmethod transient-init-value ((obj docker-container-exec-prefix))
-  "Helper that modify OBJ DOCKER-CONTAINER-EXEC-PREFIX to handle `docker-container-exec-custom-args'."
+  "Set the OBJ value from the docker exec arguments.
+
+See `docker-container-exec-default-args' and
+`docker-container-exec-custom-args'."
   (oset obj value
         (docker-utils-compute-args docker-container-exec-default-args docker-container-exec-custom-args)))
 
@@ -570,7 +576,7 @@ default directory set to workdir."
    ("f" "Open file" docker-container-find-file-selection)])
 
 (docker-utils-transient-define-prefix docker-container-kill ()
-  "Transient for kill signaling containers"
+  "Transient for sending a signal to containers."
   :man-page "docker-container-kill"
   ["Arguments"
    ("s" "Signal" "-s " :class docker-option :history-key docker-container-signal)]
@@ -578,8 +584,10 @@ default directory set to workdir."
    ("K" "Kill" docker-generic-action-multiple-ids)])
 
 (defun docker-container-logs-action (action args)
-  "Show container logs, streaming if -f flag is present, otherwise collect then display.
-ACTION is the docker action, ARGS are the transient arguments."
+  "Run the log ACTION with the transient ARGS.
+
+With -f in ARGS the output streams into the buffer; otherwise it is collected
+and displayed once the command finishes."
   (interactive (list (docker-get-transient-action)
                      (transient-args transient-current-command)))
   (if (member "-f" args)
@@ -619,7 +627,7 @@ ACTION is the docker action, ARGS are the transient arguments."
    ("P" "Pause" docker-generic-action-multiple-ids)])
 
 (docker-utils-transient-define-prefix docker-container-unpause ()
-  "Transient for pausing containers."
+  "Transient for unpausing containers."
   :man-page "docker-container-unpause"
   [:description docker-generic-action-description
    ("N" "Unpause" docker-generic-action-multiple-ids)])
@@ -662,7 +670,7 @@ ACTION is the docker action, ARGS are the transient arguments."
    ("S" "Start" docker-generic-action-multiple-ids)])
 
 (docker-utils-transient-define-prefix docker-container-stop ()
-  "Transient for stoping containers."
+  "Transient for stopping containers."
   :man-page "docker-container-stop"
   ["Arguments"
    ("t" docker-option-timeout)]
