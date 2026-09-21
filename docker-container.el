@@ -243,7 +243,8 @@ and ENV is the list of \"VAR=VALUE\" strings the container sets."
   (docker-container-assert-tramp-docker)
   (dired (format "/%s:%s:%s" docker-container-tramp-method container directory)))
 
-(defalias 'docker-container-dired 'docker-container-find-directory)
+(define-obsolete-function-alias 'docker-container-dired
+  'docker-container-find-directory "2.6.0")
 
 ;;;###autoload (autoload 'docker-container-find-file "docker-container" nil t)
 (defun docker-container-find-file (container file)

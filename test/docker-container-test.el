@@ -230,6 +230,11 @@
       (docker-container-shell-command "web"))
     (should (equal default-command "docker exec -u root web"))))
 
+(ert-deftest docker-container-test-dired-alias-is-obsolete ()
+  (should (eq (indirect-function 'docker-container-dired)
+              (indirect-function 'docker-container-find-directory)))
+  (should (get 'docker-container-dired 'byte-obsolete-info)))
+
 (ert-deftest docker-container-test-status-face ()
   (should (equal (docker-container-status-face "Up 3 hours") 'docker-face-status-up))
   (should (equal (docker-container-status-face "Exited (0) 3 hours ago") 'docker-face-status-down))
