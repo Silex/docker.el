@@ -102,14 +102,19 @@ Only complete files matching PREDICATE, if non-nil."
   (docker-compose-read-files prompt initial-input history
                              (lambda (file) (or (directory-name-p file) (string-match-p "\\.ya?ml\\'" file)))))
 
-(aio-defun docker-compose-run-action-for-one-service (action args services)
-  "Run \"docker-compose ACTION ARGS SERVICES\"."
+(aio-defun docker-compose-run-action-for-services (action args services)
+  "Run \"docker-compose ACTION ARGS SERVICES\".
+
+SERVICES is read from the user when it is nil."
   (interactive (list
                 (-last-item (s-split "-" (symbol-name transient-current-command)))
                 (transient-args transient-current-command)
                 nil))
-  (setq services (aio-await (docker-compose-read-services-names)))
-  (docker-compose-run-docker-compose-async-with-buffer action args services))
+  (let ((services (or services (aio-await (docker-compose-read-services-names)))))
+    (docker-compose-run-docker-compose-async-with-buffer action args services)))
+
+(define-obsolete-function-alias 'docker-compose-run-action-for-one-service
+  'docker-compose-run-action-for-services "2.6.0")
 
 (defun docker-compose-run-action-for-all-services (action args)
   "Run \"docker-compose ACTION ARGS\"."
@@ -119,14 +124,16 @@ Only complete files matching PREDICATE, if non-nil."
   (docker-compose-run-docker-compose-async-with-buffer action args))
 
 (aio-defun docker-compose-run-action-with-command (action args service command)
-  "Run \"docker-compose ACTION ARGS SERVICE COMMAND\"."
+  "Run \"docker-compose ACTION ARGS SERVICE COMMAND\".
+
+SERVICE is read from the user when it is nil."
   (interactive (list
                 (-last-item (s-split "-" (symbol-name transient-current-command)))
                 (transient-args transient-current-command)
                 nil
                 (docker-utils-read-string "Command: " 'docker-container-command)))
-  (setq service (aio-await (docker-compose-read-service-name)))
-  (docker-compose-run-docker-compose-async-with-buffer action args service command))
+  (let ((service (or service (aio-await (docker-compose-read-service-name)))))
+    (docker-compose-run-docker-compose-async-with-buffer action args service command)))
 
 (transient-define-prefix docker-compose-build ()
   "Transient for \"docker-compose build\"."
@@ -140,7 +147,7 @@ Only complete files matching PREDICATE, if non-nil."
    ("p" "Attempt to pull a newer version of the image" "--pull")
    ("r" "Build images in parallel" "--parallel")]
   ["Actions"
-   ("B" "Build" docker-compose-run-action-for-one-service)
+   ("B" "Build" docker-compose-run-action-for-services)
    ("A" "All services" docker-compose-run-action-for-all-services)])
 
 (transient-define-prefix docker-compose-config ()
@@ -162,7 +169,7 @@ Only complete files matching PREDICATE, if non-nil."
    ("f" "Force recreate" "--force-recreate")
    ("n" "No recreate" "--no-recreate")]
   ["Actions"
-   ("C" "Create" docker-compose-run-action-for-one-service)
+   ("C" "Create" docker-compose-run-action-for-services)
    ("A" "All services" docker-compose-run-action-for-all-services)])
 
 (transient-define-prefix docker-compose-down ()
@@ -173,7 +180,7 @@ Only complete files matching PREDICATE, if non-nil."
    ("t" docker-option-timeout)
    ("v" "Remove volumes" "--volumes")]
   ["Actions"
-   ("W" "Down" docker-compose-run-action-for-one-service)
+   ("W" "Down" docker-compose-run-action-for-services)
    ("A" "All services" docker-compose-run-action-for-all-services)])
 
 (transient-define-prefix docker-compose-exec ()
@@ -198,7 +205,7 @@ Only complete files matching PREDICATE, if non-nil."
    ("n" "No color" "--no-color")
    ("t" "Timestamps" "--timestamps")]
   ["Actions"
-   ("L" "Logs" docker-compose-run-action-for-one-service)
+   ("L" "Logs" docker-compose-run-action-for-services)
    ("A" "All services" docker-compose-run-action-for-all-services)])
 
 (transient-define-prefix docker-compose-pull ()
@@ -209,7 +216,7 @@ Only complete files matching PREDICATE, if non-nil."
    ("i" "Ignore pull failures" "--ignore-pull-failures")
    ("n" "No parallel" "--no-parallel")]
   ["Actions"
-   ("F" "Pull" docker-compose-run-action-for-one-service)
+   ("F" "Pull" docker-compose-run-action-for-services)
    ("A" "All services" docker-compose-run-action-for-all-services)])
 
 (transient-define-prefix docker-compose-push ()
@@ -218,7 +225,7 @@ Only complete files matching PREDICATE, if non-nil."
   ["Arguments"
    ("i" "Ignore push failures" "--ignore-push-failures")]
   ["Actions"
-   ("P" "Push" docker-compose-run-action-for-one-service)
+   ("P" "Push" docker-compose-run-action-for-services)
    ("A" "All services" docker-compose-run-action-for-all-services)])
 
 (transient-define-prefix docker-compose-restart ()
@@ -227,7 +234,7 @@ Only complete files matching PREDICATE, if non-nil."
   ["Arguments"
    ("t" docker-option-timeout)]
   ["Actions"
-   ("T" "Restart" docker-compose-run-action-for-one-service)
+   ("T" "Restart" docker-compose-run-action-for-services)
    ("A" "All services" docker-compose-run-action-for-all-services)])
 
 (transient-define-prefix docker-compose-rm ()
@@ -238,7 +245,7 @@ Only complete files matching PREDICATE, if non-nil."
    ("s" "Stop" "--stop")
    ("v" "Remove anonymous volumes" "-v")]
   ["Actions"
-   ("D" "Remove" docker-compose-run-action-for-one-service)
+   ("D" "Remove" docker-compose-run-action-for-services)
    ("A" "All services" docker-compose-run-action-for-all-services)])
 
 (transient-define-prefix docker-compose-run ()
@@ -264,7 +271,7 @@ Only complete files matching PREDICATE, if non-nil."
   "Transient for \"docker-compose start\"."
   :man-page "docker-compose start"
   ["Actions"
-   ("S" "Start" docker-compose-run-action-for-one-service)
+   ("S" "Start" docker-compose-run-action-for-services)
    ("A" "All services" docker-compose-run-action-for-all-services)])
 
 (transient-define-prefix docker-compose-stop ()
@@ -273,7 +280,7 @@ Only complete files matching PREDICATE, if non-nil."
   ["Arguments"
    ("t" docker-option-timeout)]
   ["Actions"
-   ("O" "Stop" docker-compose-run-action-for-one-service)
+   ("O" "Stop" docker-compose-run-action-for-services)
    ("A" "All services" docker-compose-run-action-for-all-services)])
 
 (transient-define-prefix docker-compose-up ()
@@ -289,21 +296,21 @@ Only complete files matching PREDICATE, if non-nil."
    ("r" "Remove orphans" "--remove-orphans")
    ("t" docker-option-timeout)]
   ["Actions"
-   ("U" "Up" docker-compose-run-action-for-one-service)
+   ("U" "Up" docker-compose-run-action-for-services)
    ("A" "All services" docker-compose-run-action-for-all-services)])
 
 (transient-define-prefix docker-compose-pause ()
   "Transient for \"docker-compose pause\"."
   :man-page "docker-compose pause"
   ["Actions"
-   ("Z" "Pause" docker-compose-run-action-for-one-service)
+   ("Z" "Pause" docker-compose-run-action-for-services)
    ("A" "All services" docker-compose-run-action-for-all-services)])
 
 (transient-define-prefix docker-compose-unpause ()
   "Transient for \"docker-compose unpause\"."
   :man-page "docker-compose unpause"
   ["Actions"
-   ("N" "Unpause" docker-compose-run-action-for-one-service)
+   ("N" "Unpause" docker-compose-run-action-for-services)
    ("A" "All services" docker-compose-run-action-for-all-services)])
 
 (docker-utils-define-transient-arguments docker-compose)
