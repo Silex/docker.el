@@ -269,9 +269,9 @@ and ENV is the list of \"VAR=VALUE\" strings the container sets."
 
 ;;;###autoload (autoload 'docker-container-shell-env "docker-container" nil t)
 (aio-defun docker-container-shell-env (container &optional read-shell)
-  "Open `shell' in CONTAINER with the environment variable set
-and default directory set to workdir. When READ-SHELL is not
-nil, ask the user for it."
+  "Open `shell' in CONTAINER with its environment and working directory.
+
+When READ-SHELL is not nil, ask the user for the shell."
   (interactive (list
                 (docker-container-read-name)
                 current-prefix-arg))
@@ -279,7 +279,8 @@ nil, ask the user for it."
   (let* ((shell-file-name (docker-container--read-shell read-shell))
          (context (aio-await (docker-container--env-context container)))
          (default-directory (car context))
-         ;; process-environment doesn't work with tramp if you call this function more than one per emacs session
+         ;; `docker exec' already passes the container's variables except PATH,
+         ;; which tramp replaces with `tramp-remote-path'; this restores it.
          (tramp-remote-process-environment (cdr context)))
     (shell (docker-utils-generate-new-buffer "docker" "shell-env:" default-directory))))
 
@@ -295,8 +296,7 @@ nil, ask the user for it."
 
 ;;;###autoload (autoload 'docker-container-vterm-env "docker-container" nil t)
 (aio-defun docker-container-vterm-env (container)
-  "Open `vterm' in CONTAINER with the environment variable set and
-default directory set to workdir."
+  "Open `vterm' in CONTAINER with its environment and working directory."
   (interactive (list
                 (docker-container-read-name)))
   (docker-container-assert-tramp-docker)
@@ -304,7 +304,8 @@ default directory set to workdir."
     (error "The vterm package is not installed"))
   (let* ((context (aio-await (docker-container--env-context container)))
          (default-directory (car context))
-         ;; process-environment doesn't work with tramp if you call this function more than one per emacs session
+         ;; `docker exec' already passes the container's variables except PATH,
+         ;; which tramp replaces with `tramp-remote-path'; this restores it.
          (tramp-remote-process-environment (cdr context)))
     (vterm-other-window (docker-utils-generate-new-buffer-name "docker" "vterm-env:" default-directory))))
 
@@ -323,8 +324,7 @@ default directory set to workdir."
 
 ;;;###autoload (autoload 'docker-container-eat-env "docker-container" nil t)
 (aio-defun docker-container-eat-env (container)
-  "Open `eat' in CONTAINER with the environment variable set and
-default directory set to workdir."
+  "Open `eat' in CONTAINER with its environment and working directory."
   (interactive (list
                 (docker-container-read-name)))
   (docker-container-assert-tramp-docker)
@@ -332,7 +332,8 @@ default directory set to workdir."
     (error "The eat package is not installed"))
   (let* ((context (aio-await (docker-container--env-context container)))
          (default-directory (car context))
-         ;; process-environment doesn't work with tramp if you call this function more than one per emacs session
+         ;; `docker exec' already passes the container's variables except PATH,
+         ;; which tramp replaces with `tramp-remote-path'; this restores it.
          (tramp-remote-process-environment (cdr context))
          (eat-buffer-name (docker-utils-generate-new-buffer-name "docker" "eat-env:" default-directory)))
     (eat-other-window)))
@@ -355,8 +356,7 @@ default directory set to workdir."
 
 ;;;###autoload (autoload 'docker-container-ghostel-env "docker-container" nil t)
 (aio-defun docker-container-ghostel-env (container)
-  "Open `ghostel' in CONTAINER with the environment variable set and
-default directory set to workdir."
+  "Open `ghostel' in CONTAINER with its environment and working directory."
   (interactive (list
                 (docker-container-read-name)))
   (docker-container-assert-tramp-docker)
@@ -364,7 +364,8 @@ default directory set to workdir."
     (error "The ghostel package is not installed"))
   (let* ((context (aio-await (docker-container--env-context container)))
          (default-directory (car context))
-         ;; process-environment doesn't work with tramp if you call this function more than one per emacs session
+         ;; `docker exec' already passes the container's variables except PATH,
+         ;; which tramp replaces with `tramp-remote-path'; this restores it.
          (tramp-remote-process-environment (cdr context))
          (ghostel-buffer-name (docker-utils-generate-new-buffer-name "docker" "ghostel-env:" default-directory))
          ;; ghostel pops to its buffer in the selected window, so this is
