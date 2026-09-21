@@ -1,8 +1,9 @@
 ;;; docker.el --- Interface to Docker  -*- lexical-binding: t -*-
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
+;; Maintainer: Philippe Vaucher <philippe.vaucher@gmail.com>
 ;; URL: https://github.com/Silex/docker.el
-;; Keywords: filename, convenience
+;; Keywords: files, convenience
 ;; Version: 2.5.0
 ;; Package-Requires: ((aio "1.0") (dash "2.19.1") (emacs "28.1") (s "1.13.0") (tablist "1.1") (transient "0.4.3"))
 

@@ -3,7 +3,7 @@
   "Interface to Docker")
 
 (website-url "https://github.com/Silex/docker.el")
-(keywords "filename" "convenience")
+(keywords "files" "convenience")
 
 (package-file "docker.el")
 
