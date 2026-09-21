@@ -466,6 +466,7 @@ default directory set to workdir."
   (--each (docker-utils-get-marked-items-ids)
     (docker-container-vterm-env it)))
 
+;;;###autoload (autoload 'docker-container-shell-command "docker-container" nil t)
 (defun docker-container-shell-command (container)
   "Run exec of a CONTAINER."
   (interactive (list (docker-container-read-name)))
