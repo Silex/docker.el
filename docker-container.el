@@ -185,12 +185,19 @@ Also note if you do not specify `docker-container-exec-default-args', they will 
   "Read an container name."
   (docker-utils-completing-read "Container: " (-map #'car (aio-wait-for (docker-container-entries))) 'docker-container-name))
 
+(defun docker-container-assert-tramp-docker ()
+  "Assert tramp docker support is available."
+  (unless (or (assoc docker-container-tramp-method tramp-methods)
+              (docker-utils-package-p 'docker-tramp))
+    (error "Tramp docker support was not detected, try installing docker-tramp")))
+
 (defvar eshell-buffer-name)
 
 ;;;###autoload (autoload 'docker-container-eshell "docker-container" nil t)
 (defun docker-container-eshell (container)
   "Open `eshell' in CONTAINER."
   (interactive (list (docker-container-read-name)))
+  (docker-container-assert-tramp-docker)
   (let* ((container-address (format "%s:%s:/" docker-container-tramp-method container))
          (file-prefix (let ((prefix (file-remote-p default-directory)))
                         (if prefix
@@ -199,12 +206,6 @@ Also note if you do not specify `docker-container-exec-default-args', they will 
          (default-directory (format "%s%s" file-prefix container-address))
          (eshell-buffer-name (docker-utils-generate-new-buffer-name "docker" "eshell:" default-directory)))
     (eshell)))
-
-(defun docker-container-assert-tramp-docker ()
-  "Assert tramp docker support is available."
-  (unless (or (assoc docker-container-tramp-method tramp-methods)
-              (docker-utils-package-p 'docker-tramp))
-    (error "Tramp docker support was not detected, try installing docker-tramp")))
 
 ;;;###autoload (autoload 'docker-container-find-directory "docker-container" nil t)
 (defun docker-container-find-directory (container directory)
@@ -236,6 +237,7 @@ Also note if you do not specify `docker-container-exec-default-args', they will 
   (interactive (list
                 (docker-container-read-name)
                 current-prefix-arg))
+  (docker-container-assert-tramp-docker)
   (let* ((shell-file-name (docker-container--read-shell read-shell))
          (container-address (format "%s:%s:/" docker-container-tramp-method container))
          (file-prefix (let ((prefix (file-remote-p default-directory)))
@@ -272,6 +274,7 @@ nil, ask the user for it."
 (defun docker-container-vterm (container)
   "Open `vterm' in CONTAINER."
   (interactive (list (docker-container-read-name)))
+  (docker-container-assert-tramp-docker)
   (if (fboundp 'vterm-other-window)
       (let* ((container-address (format "%s:%s:/" docker-container-tramp-method container))
              (file-prefix (let ((prefix (file-remote-p default-directory)))
@@ -310,6 +313,7 @@ default directory set to workdir."
 (defun docker-container-eat (container)
   "Open `eat' in CONTAINER."
   (interactive (list (docker-container-read-name)))
+  (docker-container-assert-tramp-docker)
   (if (fboundp 'eat-other-window)
       (let* ((container-address (format "%s:%s:/" docker-container-tramp-method container))
              (file-prefix (let ((prefix (file-remote-p default-directory)))
@@ -350,6 +354,7 @@ default directory set to workdir."
 (defun docker-container-ghostel (container)
   "Open `ghostel' in CONTAINER."
   (interactive (list (docker-container-read-name)))
+  (docker-container-assert-tramp-docker)
   (if (fboundp 'ghostel)
       (let* ((container-address (format "%s:%s:/" docker-container-tramp-method container))
              (file-prefix (let ((prefix (file-remote-p default-directory)))
