@@ -184,6 +184,33 @@ When READ-SHELL-NAME is non-nil, read the shell name instead."
   "Read a container name."
   (docker-utils-completing-read "Container: " (-map #'car (aio-wait-for (docker-container-entries))) 'docker-container-name))
 
+(defun docker-container--default-directory (container &optional workdir directory)
+  "Return the tramp directory for CONTAINER, at WORKDIR when it is given.
+
+It is built on top of DIRECTORY, `default-directory' by default, so a remote
+host stays as the first hop of a multi-hop path."
+  (let* ((prefix (file-remote-p (or directory default-directory)))
+         (file-prefix (if prefix (format "%s|" (s-chop-suffix ":" prefix)) "/")))
+    (format "%s%s:%s:%s" file-prefix docker-container-tramp-method container (or workdir "/"))))
+
+(aio-defun docker-container--config (container)
+  "Return a promise with the Config object docker reports for CONTAINER."
+  (let* ((json (aio-await (docker-run-docker-async "inspect" container)))
+         (data (json-read-from-string json)))
+    (cdr (assq 'Config (aref data 0)))))
+
+(aio-defun docker-container--env-context (container)
+  "Return a promise with the working directory and environment of CONTAINER.
+
+The value is (DIRECTORY . ENV).  DIRECTORY is the tramp directory at the
+container's working directory, built on top of the caller's `default-directory',
+and ENV is the list of \"VAR=VALUE\" strings the container sets."
+  ;; Read before the await, while a caller's binding of `default-directory' applies.
+  (let* ((directory default-directory)
+         (config (aio-await (docker-container--config container))))
+    (cons (docker-container--default-directory container (cdr (assq 'WorkingDir config)) directory)
+          (append (cdr (assq 'Env config)) nil))))
+
 (defun docker-container-assert-tramp-docker ()
   "Assert tramp docker support is available."
   (unless (or (assoc docker-container-tramp-method tramp-methods)
@@ -201,12 +228,7 @@ When READ-SHELL-NAME is non-nil, read the shell name instead."
   "Open `eshell' in CONTAINER."
   (interactive (list (docker-container-read-name)))
   (docker-container-assert-tramp-docker)
-  (let* ((container-address (format "%s:%s:/" docker-container-tramp-method container))
-         (file-prefix (let ((prefix (file-remote-p default-directory)))
-                        (if prefix
-                            (format "%s|" (s-chop-suffix ":" prefix))
-                          "/")))
-         (default-directory (format "%s%s" file-prefix container-address))
+  (let* ((default-directory (docker-container--default-directory container))
          (eshell-buffer-name (docker-utils-generate-new-buffer-name "docker" "eshell:" default-directory)))
     (eshell)))
 
@@ -242,12 +264,7 @@ When READ-SHELL-NAME is non-nil, read the shell name instead."
                 current-prefix-arg))
   (docker-container-assert-tramp-docker)
   (let* ((shell-file-name (docker-container--read-shell read-shell))
-         (container-address (format "%s:%s:/" docker-container-tramp-method container))
-         (file-prefix (let ((prefix (file-remote-p default-directory)))
-                        (if prefix
-                            (format "%s|" (s-chop-suffix ":" prefix))
-                          "/")))
-         (default-directory (format "%s%s" file-prefix container-address)))
+         (default-directory (docker-container--default-directory container)))
     (shell (docker-utils-generate-new-buffer "docker" "shell:" default-directory))))
 
 ;;;###autoload (autoload 'docker-container-shell-env "docker-container" nil t)
@@ -260,17 +277,10 @@ nil, ask the user for it."
                 current-prefix-arg))
   (docker-container-assert-tramp-docker)
   (let* ((shell-file-name (docker-container--read-shell read-shell))
-         (container-address (format "%s:%s:" docker-container-tramp-method container))
-         (file-prefix (let ((prefix (file-remote-p default-directory)))
-                        (if prefix
-                            (format "%s|" (s-chop-suffix ":" prefix))
-                          "/")))
-         (container-config (cdr (assq 'Config (aref (json-read-from-string (aio-await (docker-run-docker-async "inspect" container))) 0))))
-         (container-workdir (cdr (assq 'WorkingDir container-config)))
-         (container-env (cdr (assq 'Env container-config)))
-         (default-directory (format "%s%s%s" file-prefix container-address container-workdir))
+         (context (aio-await (docker-container--env-context container)))
+         (default-directory (car context))
          ;; process-environment doesn't work with tramp if you call this function more than one per emacs session
-         (tramp-remote-process-environment (append container-env nil)))
+         (tramp-remote-process-environment (cdr context)))
     (shell (docker-utils-generate-new-buffer "docker" "shell-env:" default-directory))))
 
 ;;;###autoload (autoload 'docker-container-vterm "docker-container" nil t)
@@ -279,12 +289,7 @@ nil, ask the user for it."
   (interactive (list (docker-container-read-name)))
   (docker-container-assert-tramp-docker)
   (if (fboundp 'vterm-other-window)
-      (let* ((container-address (format "%s:%s:/" docker-container-tramp-method container))
-             (file-prefix (let ((prefix (file-remote-p default-directory)))
-                            (if prefix
-                                (format "%s|" (s-chop-suffix ":" prefix))
-                              "/")))
-             (default-directory (format "%s%s" file-prefix container-address)))
+      (let* ((default-directory (docker-container--default-directory container)))
         (vterm-other-window (docker-utils-generate-new-buffer-name "docker" "vterm:" default-directory)))
     (error "The vterm package is not installed")))
 
@@ -297,17 +302,10 @@ default directory set to workdir."
   (docker-container-assert-tramp-docker)
   (unless (fboundp 'vterm-other-window)
     (error "The vterm package is not installed"))
-  (let* ((container-address (format "%s:%s:" docker-container-tramp-method container))
-         (file-prefix (let ((prefix (file-remote-p default-directory)))
-                        (if prefix
-                            (format "%s|" (s-chop-suffix ":" prefix))
-                          "/")))
-         (container-config (cdr (assq 'Config (aref (json-read-from-string (aio-await (docker-run-docker-async "inspect" container))) 0))))
-         (container-workdir (cdr (assq 'WorkingDir container-config)))
-         (container-env (cdr (assq 'Env container-config)))
-         (default-directory (format "%s%s%s" file-prefix container-address container-workdir))
+  (let* ((context (aio-await (docker-container--env-context container)))
+         (default-directory (car context))
          ;; process-environment doesn't work with tramp if you call this function more than one per emacs session
-         (tramp-remote-process-environment (append container-env nil)))
+         (tramp-remote-process-environment (cdr context)))
     (vterm-other-window (docker-utils-generate-new-buffer-name "docker" "vterm-env:" default-directory))))
 
 (defvar eat-buffer-name)
@@ -318,12 +316,7 @@ default directory set to workdir."
   (interactive (list (docker-container-read-name)))
   (docker-container-assert-tramp-docker)
   (if (fboundp 'eat-other-window)
-      (let* ((container-address (format "%s:%s:/" docker-container-tramp-method container))
-             (file-prefix (let ((prefix (file-remote-p default-directory)))
-                            (if prefix
-                                (format "%s|" (s-chop-suffix ":" prefix))
-                              "/")))
-             (default-directory (format "%s%s" file-prefix container-address))
+      (let* ((default-directory (docker-container--default-directory container))
              (eat-buffer-name (docker-utils-generate-new-buffer-name "docker" "eat:" default-directory)))
         (eat-other-window))
     (error "The eat package is not installed")))
@@ -337,17 +330,10 @@ default directory set to workdir."
   (docker-container-assert-tramp-docker)
   (unless (fboundp 'eat-other-window)
     (error "The eat package is not installed"))
-  (let* ((container-address (format "%s:%s:" docker-container-tramp-method container))
-         (file-prefix (let ((prefix (file-remote-p default-directory)))
-                        (if prefix
-                            (format "%s|" (s-chop-suffix ":" prefix))
-                          "/")))
-         (container-config (cdr (assq 'Config (aref (json-read-from-string (aio-await (docker-run-docker-async "inspect" container))) 0))))
-         (container-workdir (cdr (assq 'WorkingDir container-config)))
-         (container-env (cdr (assq 'Env container-config)))
-         (default-directory (format "%s%s%s" file-prefix container-address container-workdir))
+  (let* ((context (aio-await (docker-container--env-context container)))
+         (default-directory (car context))
          ;; process-environment doesn't work with tramp if you call this function more than one per emacs session
-         (tramp-remote-process-environment (append container-env nil))
+         (tramp-remote-process-environment (cdr context))
          (eat-buffer-name (docker-utils-generate-new-buffer-name "docker" "eat-env:" default-directory)))
     (eat-other-window)))
 
@@ -359,12 +345,7 @@ default directory set to workdir."
   (interactive (list (docker-container-read-name)))
   (docker-container-assert-tramp-docker)
   (if (fboundp 'ghostel)
-      (let* ((container-address (format "%s:%s:/" docker-container-tramp-method container))
-             (file-prefix (let ((prefix (file-remote-p default-directory)))
-                            (if prefix
-                                (format "%s|" (s-chop-suffix ":" prefix))
-                              "/")))
-             (default-directory (format "%s%s" file-prefix container-address))
+      (let* ((default-directory (docker-container--default-directory container))
              (ghostel-buffer-name (docker-utils-generate-new-buffer-name "docker" "ghostel:" default-directory))
              ;; ghostel pops to its buffer in the selected window, so this is
              ;; what vterm-other-window and eat-other-window do for the others.
@@ -381,17 +362,10 @@ default directory set to workdir."
   (docker-container-assert-tramp-docker)
   (unless (fboundp 'ghostel)
     (error "The ghostel package is not installed"))
-  (let* ((container-address (format "%s:%s:" docker-container-tramp-method container))
-         (file-prefix (let ((prefix (file-remote-p default-directory)))
-                        (if prefix
-                            (format "%s|" (s-chop-suffix ":" prefix))
-                          "/")))
-         (container-config (cdr (assq 'Config (aref (json-read-from-string (aio-await (docker-run-docker-async "inspect" container))) 0))))
-         (container-workdir (cdr (assq 'WorkingDir container-config)))
-         (container-env (cdr (assq 'Env container-config)))
-         (default-directory (format "%s%s%s" file-prefix container-address container-workdir))
+  (let* ((context (aio-await (docker-container--env-context container)))
+         (default-directory (car context))
          ;; process-environment doesn't work with tramp if you call this function more than one per emacs session
-         (tramp-remote-process-environment (append container-env nil))
+         (tramp-remote-process-environment (cdr context))
          (ghostel-buffer-name (docker-utils-generate-new-buffer-name "docker" "ghostel-env:" default-directory))
          ;; ghostel pops to its buffer in the selected window, so this is
          ;; what vterm-other-window and eat-other-window do for the others.

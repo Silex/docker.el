@@ -177,6 +177,38 @@
           (aio-wait-for (funcall (car entry) "web")))
         (should (equal captured (nth 3 entry)))))))
 
+(ert-deftest docker-container-test-env-context ()
+  (let ((default-directory "/ssh:host:/srv/"))
+    (cl-letf (((symbol-function 'docker-run-docker-async)
+               (lambda (&rest _)
+                 (docker-container-test-resolved
+                  "[{\"Config\":{\"WorkingDir\":\"/app\",\"Env\":[\"A=1\",\"B=2\"]}}]"))))
+      (should (equal (aio-wait-for (docker-container--env-context "web"))
+                     '("/ssh:host|docker:web:/app" "A=1" "B=2"))))))
+
+(ert-deftest docker-container-test-env-entry-points-keep-the-caller-host ()
+  (dolist (entry '((docker-container-shell-env . shell)
+                   (docker-container-vterm-env . vterm-other-window)
+                   (docker-container-eat-env . eat-other-window)
+                   (docker-container-ghostel-env . ghostel)))
+    (let (captured promise)
+      (with-temp-buffer
+        (setq default-directory "/tmp/")
+        (cl-letf (((symbol-function 'docker-container-assert-tramp-docker) #'ignore)
+                  ((symbol-function 'docker-run-docker-async)
+                   (lambda (&rest _)
+                     (docker-container-test-resolved
+                      "[{\"Config\":{\"WorkingDir\":\"/app\",\"Env\":[\"A=1\"]}}]")))
+                  ((symbol-function (cdr entry))
+                   (lambda (&rest args)
+                     (setq captured default-directory)
+                     (when (bufferp (car args)) (kill-buffer (car args))))))
+          ;; The caller's binding has ended by the time the await resumes.
+          (let ((default-directory "/ssh:host:/srv/"))
+            (setq promise (funcall (car entry) "web")))
+          (aio-wait-for promise)))
+      (should (equal captured "/ssh:host|docker:web:/app")))))
+
 (ert-deftest docker-container-test-status-face ()
   (should (equal (docker-container-status-face "Up 3 hours") 'docker-face-status-up))
   (should (equal (docker-container-status-face "Exited (0) 3 hours ago") 'docker-face-status-down))
