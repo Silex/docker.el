@@ -185,8 +185,7 @@ the entry under point is dangling."
 
 The tabulated list id is propertized with the docker-image-dangling property
 and the entry is fontified with the docker-face-dangling face."
-  (list (propertize (car entry) 'docker-image-dangling t)
-        (apply #'vector (--map (propertize it 'font-lock-face 'docker-face-dangling) (cadr entry)))))
+  (docker-utils-entry-set-property entry 'docker-image-dangling 'docker-face-dangling))
 
 (aio-defun docker-image-update-status-async ()
   "Write the status to `docker-status-strings'."
@@ -272,20 +271,11 @@ and the entry is fontified with the docker-face-dangling face."
     (tablist-revert)))
 
 (defun docker-image-mark-dangling ()
-  "Mark only the dangling images listed in the current buffer.
-
-This clears any user marks first and respects any tablist filters
-applied to the buffer."
+  "Mark only the dangling images listed in the current buffer."
   (interactive)
   (unless (derived-mode-p 'docker-image-mode)
     (user-error "Not in a docker images buffer"))
-  (tablist-unmark-all-marks)
-  (save-excursion
-    (goto-char (point-min))
-    (while (not (eobp))
-      (when (docker-image-dangling-p (tabulated-list-get-id))
-        (tablist-put-mark))
-      (forward-line))))
+  (docker-utils-mark-dangling #'docker-image-dangling-p))
 
 (aio-defun docker-image-default-runtime ()
   "Return a promise with the default runtime reported by docker."

@@ -232,6 +232,27 @@ It falls back to the transient default value when the history is empty."
      name)
    docker-pop-to-buffer-action))
 
+(defun docker-utils-entry-set-property (entry property face)
+  "Return ENTRY with PROPERTY set on its id and FACE applied to its columns.
+
+ENTRY is the output of a docker-X-entries function, and PROPERTY is the
+symbol the matching docker-X-dangling-p predicate looks for."
+  (list (propertize (car entry) property t)
+        (apply #'vector (--map (propertize it 'font-lock-face face) (cadr entry)))))
+
+(defun docker-utils-mark-dangling (predicate)
+  "Mark the entries of the current buffer that satisfy PREDICATE.
+
+PREDICATE is called with the tabulated list id of each entry.  Any user marks
+are cleared first, and any tablist filter applied to the buffer is respected."
+  (tablist-unmark-all-marks)
+  (save-excursion
+    (goto-char (point-min))
+    (while (not (eobp))
+      (when (funcall predicate (tabulated-list-get-id))
+        (tablist-put-mark))
+      (forward-line))))
+
 (defun docker-utils-unit-multiplier (str)
   "Return the correct multiplier for STR."
   (let* ((unit (or str "B"))

@@ -105,8 +105,7 @@ when the entry under point is dangling."
 
 The tabulated list id is propertized with the docker-network-dangling property
 and the entry is fontified with the docker-face-dangling face."
-  (list (propertize (car entry) 'docker-network-dangling t)
-        (apply #'vector (--map (propertize it 'font-lock-face 'docker-face-dangling) (cadr entry)))))
+  (docker-utils-entry-set-property entry 'docker-network-dangling 'docker-face-dangling))
 
 (aio-defun docker-network-update-status-async ()
   "Write the status to `docker-status-strings'."
@@ -133,20 +132,11 @@ and the entry is fontified with the docker-face-dangling face."
   (completing-read "Network: " (-map #'car (aio-wait-for (docker-network-entries)))))
 
 (defun docker-network-mark-dangling ()
-  "Mark only the dangling networks listed in the current buffer.
-
-This clears any user marks first and respects any tablist filters
-applied to the buffer."
+  "Mark only the dangling networks listed in the current buffer."
   (interactive)
   (unless (derived-mode-p 'docker-network-mode)
     (user-error "Not in a docker networks buffer"))
-  (tablist-unmark-all-marks)
-  (save-excursion
-    (goto-char (point-min))
-    (while (not (eobp))
-      (when (docker-network-dangling-p (tabulated-list-get-id))
-        (tablist-put-mark))
-      (forward-line))))
+  (docker-utils-mark-dangling #'docker-network-dangling-p))
 
 (docker-utils-define-transient-arguments docker-network-ls)
 

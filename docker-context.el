@@ -108,8 +108,7 @@ Format function transforms the displayed value from string to string."
 
 The tabulated list id is propertized with the docker-context-active property
 and the entry is fontified with the docker-face-active face."
-  (list (propertize (car entry) 'docker-context-active t)
-        (apply #'vector (--map (propertize it 'font-lock-face 'docker-face-active) (cadr entry)))))
+  (docker-utils-entry-set-property entry 'docker-context-active 'docker-face-active))
 
 
 (aio-defun docker-context-update-status-async ()
