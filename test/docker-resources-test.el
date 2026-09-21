@@ -46,6 +46,33 @@
     (should (equal (get-text-property 0 'font-lock-face (aref (cadr marked) 0))
                    'docker-face-active))))
 
+(ert-deftest docker-resources-test-mark-dangling-stays-in-the-current-buffer ()
+  (dolist (entry '((docker-image-mark-dangling "*docker-images*" docker-image-mode)
+                   (docker-network-mark-dangling "*docker-networks*" docker-network-mode)
+                   (docker-volume-mark-dangling "*docker-volumes*" docker-volume-mode)))
+    (unwind-protect
+        (with-temp-buffer
+          (let ((buffer (current-buffer))
+                (major-mode (nth 2 entry)))
+            (cl-letf (((symbol-function 'tablist-unmark-all-marks) #'ignore)
+                      ((symbol-function 'tablist-put-mark) #'ignore)
+                      ((symbol-function 'tabulated-list-get-id) #'ignore))
+              (funcall (car entry)))
+            (should (eq (current-buffer) buffer))
+            (should-not (get-buffer (nth 1 entry)))))
+      (when (get-buffer (nth 1 entry)) (kill-buffer (nth 1 entry))))))
+
+(ert-deftest docker-resources-test-mark-dangling-refuses-other-buffers ()
+  (dolist (command '(docker-image-mark-dangling
+                     docker-network-mark-dangling
+                     docker-volume-mark-dangling))
+    (with-temp-buffer
+      (let (unmarked)
+        (cl-letf (((symbol-function 'tablist-unmark-all-marks)
+                   (lambda () (setq unmarked t))))
+          (should-error (funcall command) :type 'user-error))
+        (should-not unmarked)))))
+
 (ert-deftest docker-resources-test-list-transient-is-bound ()
   (dolist (entry '((docker-container-mode-map . docker-container-ls)
                    (docker-context-mode-map . docker-context-ls)

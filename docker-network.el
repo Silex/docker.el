@@ -137,12 +137,13 @@ The result is the tabulated list id for an entry is propertized with
   (completing-read "Network: " (-map #'car (aio-wait-for (docker-network-entries)))))
 
 (defun docker-network-mark-dangling ()
-  "Mark only the dangling networks listed in *docker-networks*.
+  "Mark only the dangling networks listed in the current buffer.
 
 This clears any user marks first and respects any tablist filters
 applied to the buffer."
   (interactive)
-  (switch-to-buffer "*docker-networks*")
+  (unless (derived-mode-p 'docker-network-mode)
+    (user-error "Not in a docker networks buffer"))
   (tablist-unmark-all-marks)
   (save-excursion
     (goto-char (point-min))

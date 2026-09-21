@@ -149,12 +149,13 @@ The result is the tabulated list id for an entry is propertized with
     (docker-volume-dired it)))
 
 (defun docker-volume-mark-dangling ()
-  "Mark only the dangling volumes listed in *docker-volumes*.
+  "Mark only the dangling volumes listed in the current buffer.
 
 This clears any user marks first and respects any tablist filters
 applied to the buffer."
   (interactive)
-  (switch-to-buffer "*docker-volumes*")
+  (unless (derived-mode-p 'docker-volume-mode)
+    (user-error "Not in a docker volumes buffer"))
   (tablist-unmark-all-marks)
   (save-excursion
     (goto-char (point-min))

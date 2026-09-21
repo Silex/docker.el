@@ -277,12 +277,13 @@ The result is the tabulated list id for an entry is propertized with
     (tablist-revert)))
 
 (defun docker-image-mark-dangling ()
-  "Mark only the dangling images listed in *docker-images*.
+  "Mark only the dangling images listed in the current buffer.
 
 This clears any user marks first and respects any tablist filters
 applied to the buffer."
   (interactive)
-  (switch-to-buffer "*docker-images*")
+  (unless (derived-mode-p 'docker-image-mode)
+    (user-error "Not in a docker images buffer"))
   (tablist-unmark-all-marks)
   (save-excursion
     (goto-char (point-min))
