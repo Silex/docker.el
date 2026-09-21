@@ -12,6 +12,10 @@
   (should (equal (docker-utils-generate-new-buffer-name "docker" "shell:" "/docker:web:/")
                  "* docker shell: /docker:web:/ *")))
 
+(ert-deftest docker-utils-test-generate-new-buffer-name-without-args ()
+  (should (equal (docker-utils-generate-new-buffer-name "docker exec web bash")
+                 "* docker exec web bash *")))
+
 (ert-deftest docker-utils-test-generate-new-buffer ()
   (let ((buffer (docker-utils-generate-new-buffer "docker" "logs:")))
     (unwind-protect
@@ -52,6 +56,12 @@
   (cl-letf (((symbol-function 'tablist-get-marked-items) (lambda () nil)))
     (should (equal (docker-utils-compute-args '("-i" "-t") '(("^we" ("-u" "root"))))
                    '("-i" "-t")))))
+
+(ert-deftest docker-utils-test-compute-args-with-an-explicit-name ()
+  (cl-letf (((symbol-function 'tablist-get-marked-items)
+             (lambda () (error "The marked items should not be read"))))
+    (should (equal (docker-utils-compute-args '("-i" "-t") '(("^we" ("-u" "root"))) "web")
+                   '("-u" "root")))))
 
 (ert-deftest docker-utils-test-make-format-string ()
   (should (equal (docker-utils-make-format-string

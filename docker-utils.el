@@ -152,10 +152,11 @@ from the last history entry instead.  Empty input unsets the option."
   "Get the id part of `tablist-get-marked-items'."
   (-map #'car (tablist-get-marked-items)))
 
-(defun docker-utils-compute-args (default custom)
-  "Helper function for merging DEFAULT and CUSTOM args."
-  (let* ((objs (tablist-get-marked-items))
-         (name (caar objs))
+(defun docker-utils-compute-args (default custom &optional name)
+  "Return the CUSTOM args whose regexp matches NAME, or DEFAULT when none does.
+
+CUSTOM holds (REGEXP ARGS) elements.  NAME defaults to the first marked item."
+  (let* ((name (or name (caar (tablist-get-marked-items))))
          (matched-args (when name
                          (--first (string-match (car it) name)
                                   custom))))
@@ -170,7 +171,7 @@ from the last history entry instead.  Empty input unsets the option."
 
 (defun docker-utils-generate-new-buffer-name (program &rest args)
   "Wrapper around `generate-new-buffer-name' using PROGRAM and ARGS."
-  (generate-new-buffer-name (format "* %s %s *" program (s-join " " args))))
+  (generate-new-buffer-name (format "* %s *" (s-join " " (cons program args)))))
 
 (defun docker-utils-generate-new-buffer (program &rest args)
   "Wrapper around `generate-new-buffer' using PROGRAM and ARGS."

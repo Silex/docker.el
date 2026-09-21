@@ -446,14 +446,23 @@ When READ-SHELL is not nil, ask the user for the shell."
 
 ;;;###autoload (autoload 'docker-container-shell-command "docker-container" nil t)
 (defun docker-container-shell-command (container)
-  "Run exec of a CONTAINER."
+  "Run a command in CONTAINER, prompting with a \"docker exec\" line.
+
+The line starts with the exec arguments for CONTAINER, see
+`docker-container-exec-default-args' and `docker-container-exec-custom-args',
+and is run as typed."
   (interactive (list (docker-container-read-name)))
-  (let* ((default-command (string-join (append (list docker-command)
+  (let* ((exec-args (docker-utils-compute-args docker-container-exec-default-args
+                                               docker-container-exec-custom-args
+                                               container))
+         (default-command (string-join (append (list docker-command)
                                                (docker-arguments)
-                                               (list "exec" container))
+                                               (list "exec")
+                                               exec-args
+                                               (list container))
                                        " "))
          (command (read-shell-command "Run: " default-command)))
-    (shell-command command)))
+    (docker-run-async-with-buffer-interactive command)))
 
 (defun docker-container-shell-command-selection ()
   "Run `docker exec' on the containers selection."
