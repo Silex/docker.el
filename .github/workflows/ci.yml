@@ -23,12 +23,12 @@ jobs:
     container: silex/emacs:${{ matrix.emacs_version }}-ci-eask
     steps:
       - name: Check out repository code
-        uses: actions/checkout@main
+        uses: actions/checkout@v4
       - name: Set package source
         if: ${{ matrix.melpa_version == 'stable' }}
-        run: eask source delete melpa; eask source add melpa-stable
+        run: eask source delete melpa && eask source add melpa-stable
       - name: Install dependencies
-        run: eask install-deps --dev; eask uninstall docker
+        run: eask install-deps --dev && eask uninstall docker
       - name: Test byte compilation against MELPA ${{ matrix.melpa_version }}
         run: eask compile --strict --debug -v 5
       - name: Run the test suite against MELPA ${{ matrix.melpa_version }}
