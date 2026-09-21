@@ -90,10 +90,13 @@ Format function transforms the displayed value from string to string."
     (-map (-partial #'docker-utils-parse docker-context-columns) lines)))
 
 (aio-defun docker-context-active-name (&rest args)
+  "Return a promise with the name of the active context.
+
+ARGS are passed to \"docker context ls\"."
   (let* ((fmt "{{ json .Current }} {{ json .Name }}")
-	 (data (aio-await (docker-run-docker-async "context" "ls" args (format "--format=\"%s\"" fmt))))
-	 (lines (s-split "\n" data t))
-	 (active-line (-first (lambda (line) (string-match-p "true" (car (s-split " " line)))) lines)))
+         (data (aio-await (docker-run-docker-async "context" "ls" args (format "--format=\"%s\"" fmt))))
+         (lines (s-split "\n" data t))
+         (active-line (-first (lambda (line) (string-match-p "true" (car (s-split " " line)))) lines)))
     (when active-line
       (cadr (split-string active-line "\"")))))
 
@@ -109,7 +112,6 @@ Format function transforms the displayed value from string to string."
 The tabulated list id is propertized with the docker-context-active property
 and the entry is fontified with the docker-face-active face."
   (docker-utils-entry-set-property entry 'docker-context-active 'docker-face-active))
-
 
 (aio-defun docker-context-update-status-async ()
   "Write the status to `docker-status-strings'."
@@ -143,13 +145,13 @@ exist: `docker-context-ls-arguments' reads its default value on every refresh."
   "Transient for removing contexts."
   :man-page "docker-context-rm"
   [:description docker-generic-action-description
-		("D" "Remove" docker-generic-action-multiple-ids)])
+   ("D" "Remove" docker-generic-action-multiple-ids)])
 
 (docker-utils-transient-define-prefix docker-context-use ()
   "Transient for using contexts."
   :man-page "docker-context-use"
   [:description docker-generic-action-description
-		("X" "Use" docker-generic-action)])
+   ("X" "Use" docker-generic-action)])
 
 (transient-define-prefix docker-context-help ()
   "Help transient for docker contexts."

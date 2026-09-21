@@ -664,7 +664,7 @@ and displayed once the command finishes."
 
 (transient-define-prefix docker-container-help ()
   "Help transient for docker containers."
-  ["Docker Containers"
+  ["Docker containers help"
    ["Lifecycle"
     ("K" "Kill"       docker-container-kill)
     ("O" "Stop"       docker-container-stop)

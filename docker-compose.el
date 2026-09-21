@@ -73,10 +73,10 @@ Display the output in a new buffer."
    ;; projects with 'ls' argument
    (if (string-match-p "\\bdocker\\s-+compose\\b" docker-compose-command)
        (split-string
-	(shell-command-to-string
-	 (concat docker-compose-command " ls" " --all" " -q"))
-	"\n"
-	t))
+        (shell-command-to-string
+         (concat docker-compose-command " ls" " --all" " -q"))
+        "\n"
+        t))
    nil nil initial-input history))
 
 (defun docker-compose-read-log-level (prompt &optional initial-input history)

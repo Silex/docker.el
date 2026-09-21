@@ -35,7 +35,7 @@
   :group 'docker
   :type 'string)
 
-(defvar docker-open-hook ()
+(defvar docker-open-hook nil
   "Called when `docker' transient is opened.")
 
 (defvar docker-status-strings '(:containers "" :images "" :networks "" :volumes "" :contexts "")
@@ -157,11 +157,11 @@ are not interactive."
    (5 "Tk" "TLS key" "--tlskey " docker-read-certificate :class docker-option)
    (5 "l" "Log level" "--log-level " docker-read-log-level :class docker-option)]
   ["Docker"
-   ("c" (lambda ()(plist-get docker-status-strings :containers)) docker-containers)
-   ("i" (lambda ()(plist-get docker-status-strings :images))     docker-images)
-   ("n" (lambda ()(plist-get docker-status-strings :networks))   docker-networks)
-   ("v" (lambda ()(plist-get docker-status-strings :volumes))    docker-volumes)
-   ("x" (lambda ()(plist-get docker-status-strings :contexts))   docker-contexts)]
+   ("c" (lambda () (plist-get docker-status-strings :containers)) docker-containers)
+   ("i" (lambda () (plist-get docker-status-strings :images))     docker-images)
+   ("n" (lambda () (plist-get docker-status-strings :networks))   docker-networks)
+   ("v" (lambda () (plist-get docker-status-strings :volumes))    docker-volumes)
+   ("x" (lambda () (plist-get docker-status-strings :contexts))   docker-contexts)]
   ["Other"
    ("C" "Compose" docker-compose)]
   (interactive)

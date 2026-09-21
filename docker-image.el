@@ -173,7 +173,7 @@ be the list (repository tag id).  See `docker-image-id-template'."
         (dangling (aio-await (docker-image-entries args "--filter dangling=true"))))
     (--map-when (-contains? dangling it) (docker-image-entry-set-dangling it) entries)))
 
-(defun docker-image-dangling-p (entry-id)           ;
+(defun docker-image-dangling-p (entry-id)
   "Return non-nil when ENTRY-ID is dangling.
 
 For example (docker-image-dangling-p (tabulated-list-get-id)) is non-nil when

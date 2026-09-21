@@ -271,23 +271,23 @@ are cleared first, and any tablist filter applied to the buffer is respected."
 
 (defun docker-utils-human-size-predicate (a b)
   "Sort A and B by image size."
-    (< (docker-utils-human-size-to-bytes a) (docker-utils-human-size-to-bytes b)))
+  (< (docker-utils-human-size-to-bytes a) (docker-utils-human-size-to-bytes b)))
 
 (defun docker-utils-columns-list-format (columns-spec)
   "Convert COLUMNS-SPEC, a list of plists, to a `tabulated-list-format' vector.
 
 Each element of the vector is (NAME WIDTH SORT-FN)."
   (apply 'vector
-  (--map-indexed
-   (-let* (((&plist :name name :width width :sort sort-fn-inner) it)
-           (sort-fn (if sort-fn-inner
-                        (let ((idx it-index)) ;; Rebind the closure var!
-                          ;; Sort fn is called with (id [entries..])
-                          ;; Extract the column value and pass to inner function
-                          (-on sort-fn-inner (lambda (x) (elt (cadr x) idx))))
-                      t)))
-     (list name width sort-fn))
-   columns-spec)))
+         (--map-indexed
+          (-let* (((&plist :name name :width width :sort sort-fn-inner) it)
+                  (sort-fn (if sort-fn-inner
+                               (let ((idx it-index)) ;; Rebind the closure var!
+                                 ;; Sort fn is called with (id [entries..])
+                                 ;; Extract the column value and pass to inner function
+                                 (-on sort-fn-inner (lambda (x) (elt (cadr x) idx))))
+                             t)))
+            (list name width sort-fn))
+          columns-spec)))
 
 (defun docker-utils-make-format-string (id-template column-spec)
   "Make the format string to pass to docker-ls commands.

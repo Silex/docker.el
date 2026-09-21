@@ -59,7 +59,6 @@ When set to `auto', prefer eat, then ghostel, then vterm, then shell."
 
 (make-obsolete-variable 'docker-run-async-with-buffer-function 'docker-terminal-backend "2.5.0")
 
-
 (defmacro docker-with-sudo (&rest body)
   "Set `default-directory' according to `docker-run-as-root', then execute BODY."
   (declare (indent defun))
