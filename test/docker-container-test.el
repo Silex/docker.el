@@ -48,6 +48,12 @@
       (docker-container-eshell "web"))
     (should (equal captured "* docker eshell: /docker:web:/ *"))))
 
+(ert-deftest docker-container-test-default-directory-without-a-workdir ()
+  (let ((default-directory "/tmp/"))
+    (should (equal (docker-container--default-directory "web") "/docker:web:/"))
+    (should (equal (docker-container--default-directory "web" nil) "/docker:web:/"))
+    (should (equal (docker-container--default-directory "web" "") "/docker:web:/"))))
+
 (ert-deftest docker-container-test-shell-directory ()
   (let ((default-directory "/tmp/"))
     (should (equal (docker-container-test-capture-directory 'shell

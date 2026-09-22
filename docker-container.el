@@ -191,7 +191,9 @@ It is built on top of DIRECTORY, `default-directory' by default, so a remote
 host stays as the first hop of a multi-hop path."
   (let* ((prefix (file-remote-p (or directory default-directory)))
          (file-prefix (if prefix (format "%s|" (s-chop-suffix ":" prefix)) "/")))
-    (format "%s%s:%s:%s" file-prefix docker-container-tramp-method container (or workdir "/"))))
+    ;; Docker reports an empty WorkingDir for an image that sets none.
+    (format "%s%s:%s:%s" file-prefix docker-container-tramp-method container
+            (if (s-blank? workdir) "/" workdir))))
 
 (aio-defun docker-container--config (container)
   "Return a promise with the Config object docker reports for CONTAINER."
