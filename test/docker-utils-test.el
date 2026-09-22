@@ -22,6 +22,24 @@
         (should (equal (buffer-name buffer) "* docker logs: *"))
       (kill-buffer buffer))))
 
+(ert-deftest docker-utils-test-mark-dangling-skips-lines-without-an-id ()
+  (let (ids marked)
+    (with-temp-buffer
+      (insert "header\n")
+      (insert (propertize "abcdef\n" 'tabulated-list-id
+                          (propertize "abcdef" 'docker-utils-test-dangling t)))
+      (cl-letf (((symbol-function 'tablist-unmark-all-marks) #'ignore)
+                ((symbol-function 'tablist-put-mark)
+                 (lambda () (push (line-number-at-pos) marked))))
+        ;; The predicate reads a text property of the id, like the real ones do,
+        ;; so it signals when it is handed the nil id of the header line.
+        (docker-utils-mark-dangling
+         (lambda (id)
+           (push id ids)
+           (get-text-property 0 'docker-utils-test-dangling id)))))
+    (should (equal ids '("abcdef")))
+    (should (equal marked '(2)))))
+
 (ert-deftest docker-utils-test-unit-multiplier ()
   (should (equal (docker-utils-unit-multiplier nil) 1))
   (should (equal (docker-utils-unit-multiplier "B") 1))

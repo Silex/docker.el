@@ -244,14 +244,17 @@ symbol the matching docker-X-dangling-p predicate looks for."
 (defun docker-utils-mark-dangling (predicate)
   "Mark the entries of the current buffer that satisfy PREDICATE.
 
-PREDICATE is called with the tabulated list id of each entry.  Any user marks
-are cleared first, and any tablist filter applied to the buffer is respected."
+PREDICATE is called with the tabulated list id of each entry.  Lines carrying
+no id, such as the header when `tabulated-list-use-header-line' is nil, are
+skipped.  Any user marks are cleared first, and any tablist filter applied to
+the buffer is respected."
   (tablist-unmark-all-marks)
   (save-excursion
     (goto-char (point-min))
     (while (not (eobp))
-      (when (funcall predicate (tabulated-list-get-id))
-        (tablist-put-mark))
+      (let ((id (tabulated-list-get-id)))
+        (when (and id (funcall predicate id))
+          (tablist-put-mark)))
       (forward-line))))
 
 (defun docker-utils-unit-multiplier (str)
