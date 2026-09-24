@@ -110,6 +110,27 @@ Execute BODY in a buffer named with the help of NAME."
      name)
    docker-pop-to-buffer-action))
 
+;; Absent before Emacs 29, where hops always stay in the file name.
+(defvar tramp-show-ad-hoc-proxies)
+
+(defun docker-utils-sudo-directory (directory)
+  "Return DIRECTORY as a sudo TRAMP file name on the same host.
+A local DIRECTORY becomes \"/sudo::DIRECTORY\", a remote one gets a sudo hop
+appended, and a DIRECTORY already using sudo is returned unchanged."
+  (if (not (file-remote-p directory))
+      (concat "/sudo::" (expand-file-name directory))
+    (let ((vec (tramp-dissect-file-name directory)))
+      (cond
+       ((equal (tramp-file-name-method vec) "sudo") directory)
+       ((not (tramp-multi-hop-p vec)) (user-error "Cannot add a sudo hop to %s" directory))
+       (t (let ((tramp-show-ad-hoc-proxies t))
+            (tramp-make-tramp-file-name
+             (make-tramp-file-name :method "sudo"
+                                   :user "root"
+                                   :host (tramp-file-name-host vec)
+                                   :localname (tramp-file-name-localname vec)
+                                   :hop (tramp-make-tramp-hop-name vec)))))))))
+
 (defun docker-utils-unit-multiplier (str)
   "Return the correct multiplier for STR."
   (let* ((unit (or str "B"))
