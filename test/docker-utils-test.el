@@ -129,6 +129,15 @@
 (ert-deftest docker-utils-test-pop-to-buffer-action-is-customizable ()
   (should (custom-variable-p 'docker-pop-to-buffer-action)))
 
+(ert-deftest docker-utils-test-sudo-directory ()
+  (let ((tramp-default-proxies-alist nil))
+    (should (equal (docker-utils-sudo-directory "/srv/project/") "/sudo::/srv/project/"))
+    (should (equal (docker-utils-sudo-directory "/ssh:myhost:/srv/project/")
+                   "/ssh:myhost|sudo:root@myhost:/srv/project/"))
+    (should (equal (docker-utils-sudo-directory "/sudo::/srv/project/") "/sudo::/srv/project/"))
+    (should (equal (docker-utils-sudo-directory "/ssh:myhost|sudo:myhost:/srv/project/")
+                   "/ssh:myhost|sudo:myhost:/srv/project/"))))
+
 (provide 'docker-utils-test)
 
 ;;; docker-utils-test.el ends here

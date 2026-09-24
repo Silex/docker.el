@@ -140,6 +140,24 @@ then shell.
 Non-interactive streaming buffers (for example `docker logs -f`) always use a shell buffer so output can be
 rendered with ANSI color and kept read-only.
 
+## Running as root
+
+The simplest setup is to add your user to the `docker` group, so no root access is needed.
+
+Otherwise, docker.el runs everything from `default-directory`, which also decides the host. Open a
+sudo directory and run <kbd>M-x docker</kbd> from there: docker commands started from it run as
+root, on that host.
+
+<kbd>M-x docker-open-dired-as-root</kbd> opens the current directory as root in `dired`, locally
+or on the current remote host. With a prefix argument, it asks which directory to open.
+
+The same by hand:
+
+```
+C-x d /sudo::/path/to/project/ RET
+C-x d /ssh:myhost|sudo:myhost:/path/to/project/ RET
+```
+
 ## Contributions
 
 They are very welcome, either as suggestions or as pull requests by opening tickets

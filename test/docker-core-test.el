@@ -50,6 +50,13 @@ sites write to are `special-mode', so comint never loads it either."
           (should (eq reverted list-buffer)))
       (kill-buffer list-buffer))))
 
+(ert-deftest docker-core-test-open-dired-as-root ()
+  (let ((tramp-default-proxies-alist nil)
+        opened)
+    (cl-letf (((symbol-function 'dired) (lambda (directory) (setq opened directory))))
+      (docker-open-dired-as-root "/ssh:myhost:/srv/project/"))
+    (should (equal opened "/ssh:myhost|sudo:root@myhost:/srv/project/"))))
+
 (provide 'docker-core-test)
 
 ;;; docker-core-test.el ends here

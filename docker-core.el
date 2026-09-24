@@ -168,6 +168,16 @@ are not interactive."
   (run-hooks 'docker-open-hook)
   (transient-setup 'docker))
 
+;;;###autoload (autoload 'docker-open-dired-as-root "docker" nil t)
+(defun docker-open-dired-as-root (directory)
+  "Open DIRECTORY as root in `dired', on the same host.
+Interactively, DIRECTORY is `default-directory', or is read with a prefix
+argument.  Docker commands started from there run as root."
+  (interactive (list (if current-prefix-arg
+                         (read-directory-name "Open as root: ")
+                       default-directory)))
+  (dired (docker-utils-sudo-directory directory)))
+
 (provide 'docker-core)
 
 ;;; docker-core.el ends here
