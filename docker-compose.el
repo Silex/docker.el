@@ -25,6 +25,7 @@
 (eval-when-compile
   (setq-local byte-compile-warnings '(not docstrings)))
 
+(require 'crm)
 (require 's)
 (require 'aio)
 (require 'dash)
@@ -63,8 +64,8 @@
   "Read one service name."
   (completing-read "Service: " (aio-await (docker-compose-services))))
 
-(defun docker-compose-read-project (prompt &rest _args)
-  "Read the `docker-compose' project forwarding PROMPT."
+(defun docker-compose-read-project (prompt &optional initial-input history)
+  "Read the `docker-compose' project with PROMPT, INITIAL-INPUT and HISTORY."
   (completing-read
    prompt
    ;; in docker compose v2, we can obtain the list of
@@ -74,23 +75,31 @@
 	(shell-command-to-string
 	 (concat docker-compose-command " ls" " --all" " -q"))
 	"\n"
-	t))))
+	t))
+   nil nil initial-input history))
 
-(defun docker-compose-read-log-level (prompt &rest _args)
-  "Read the `docker-compose' log level forwarding PROMPT."
-  (completing-read prompt '(DEBUG INFO WARNING ERROR CRITICAL)))
+(defun docker-compose-read-log-level (prompt &optional initial-input history)
+  "Read the `docker-compose' log level with PROMPT, INITIAL-INPUT and HISTORY."
+  (completing-read prompt '(DEBUG INFO WARNING ERROR CRITICAL) nil nil initial-input history))
 
 (defun docker-compose-read-directory (prompt &optional initial-input _history)
   "Wrapper around `read-directory-name' forwarding PROMPT and INITIAL-INPUT."
   (read-directory-name prompt nil nil t initial-input))
 
-(defun docker-compose-read-environment-file (prompt &optional initial-input _history)
-  "Wrapper around `read-file-name' forwarding PROMPT and INITIAL-INPUT."
-  (read-file-name prompt nil nil t initial-input))
+(defun docker-compose-read-files (prompt initial-input history &optional predicate)
+  "Read file names separated by \"|\" with PROMPT, INITIAL-INPUT and HISTORY.
+Only complete files matching PREDICATE, if non-nil."
+  (let ((crm-separator docker-option-separator-regexp))
+    (completing-read-multiple prompt #'read-file-name-internal predicate nil initial-input history)))
 
-(defun docker-compose-read-compose-file (prompt &optional initial-input _history)
-  "Wrapper around `read-file-name' forwarding PROMPT and INITIAL-INPUT."
-  (read-file-name prompt nil nil t initial-input (apply-partially 'string-match ".*\\.yml\\|.*\\.yaml")))
+(defun docker-compose-read-environment-files (prompt &optional initial-input history)
+  "Read environment files with PROMPT, INITIAL-INPUT and HISTORY."
+  (docker-compose-read-files prompt initial-input history))
+
+(defun docker-compose-read-compose-files (prompt &optional initial-input history)
+  "Read compose files with PROMPT, INITIAL-INPUT and HISTORY."
+  (docker-compose-read-files prompt initial-input history
+                             (lambda (file) (or (directory-name-p file) (string-match-p "\\.ya?ml\\'" file)))))
 
 (aio-defun docker-compose-run-action-for-one-service (action args services)
   "Run \"docker-compose ACTION ARGS SERVICES\"."
@@ -122,10 +131,10 @@
   "Transient for \"docker-compose build\"."
   :man-page "docker-compose build"
   ["Arguments"
-   ("b" "Build argument" "--build-arg " read-string)
+   ("b" "Build argument" "--build-arg " :class docker-option :multi-value repeat :history-key docker-compose-build-arg)
    ("c" "Compress build context" "--compress")
    ("f" "Always remove intermediate containers" "--force-rm")
-   ("m" "Memory limit" "--memory " transient-read-number-N0)
+   ("m" "Memory limit" "--memory " transient-read-number-N0 :class docker-option)
    ("n" "Do not use cache" "--no-cache")
    ("p" "Attempt to pull a newer version of the image" "--pull")
    ("r" "Build images in parallel" "--parallel")]
@@ -160,7 +169,7 @@
   :man-page "docker-compose down"
   ["Arguments"
    ("o" "Remove orphans" "--remove-orphans")
-   ("t" "Timeout" "--timeout " transient-read-number-N0)
+   ("t" docker-option-timeout)
    ("v" "Remove volumes" "--volumes")]
   ["Actions"
    ("W" "Down" docker-compose-run-action-for-one-service)
@@ -173,9 +182,9 @@
    ("P" "Privileged" "--privileged")
    ("T" "Disable pseudo-tty" "-T")
    ("d" "Detach" "-d")
-   ("e" "Env KEY=VAL" "-e " read-string)
-   ("u" "User " "--user " read-string)
-   ("w" "Workdir" "--workdir " read-string)]
+   ("e" docker-option-env)
+   ("u" docker-option-user)
+   ("w" docker-option-workdir)]
   ["Actions"
    ("E" "Exec" docker-compose-run-action-with-command)])
 
@@ -183,7 +192,7 @@
   "Transient for \"docker-compose logs\"."
   :man-page "docker-compose logs"
   ["Arguments"
-   ("T" "Tail" "--tail " read-string)
+   ("T" docker-option-tail)
    ("f" "Follow" "--follow")
    ("n" "No color" "--no-color")
    ("t" "Timestamps" "--timestamps")]
@@ -215,7 +224,7 @@
   "Transient for \"docker-compose restart\"."
   :man-page "docker-compose restart"
   ["Arguments"
-   ("t" "Timeout" "--timeout " transient-read-number-N0)]
+   ("t" docker-option-timeout)]
   ["Actions"
    ("T" "Restart" docker-compose-run-action-for-one-service)
    ("A" "All services" docker-compose-run-action-for-all-services)])
@@ -236,17 +245,17 @@
   :man-page "docker-compose run"
   :value '("--rm")
   ["Arguments"
-   ("E" "Entrypoint" "--entrypoint " read-string)
-   ("N" "Name" "--name " read-string)
+   ("E" docker-option-entrypoint)
+   ("N" docker-option-name)
    ("T" "Disable pseudo-tty" "-T")
    ("d" "Detach" "-d")
-   ("e" "Env KEY=VAL" "-e " read-string)
-   ("l" "Label" "--label " read-string)
+   ("e" docker-option-env)
+   ("l" "Label" "--label " :class docker-option :multi-value repeat :history-key docker-container-label)
    ("n" "No deps" "--no-deps")
    ("r" "Remove container when it exits" "--rm")
    ("s" "Enable services ports" "--service-ports")
-   ("u" "User " "--user " read-string)
-   ("w" "Workdir" "--workdir " read-string)]
+   ("u" docker-option-user)
+   ("w" docker-option-workdir)]
   ["Actions"
    ("R" "Run" docker-compose-run-action-with-command)])
 
@@ -261,7 +270,7 @@
   "Transient for \"docker-compose stop\"."
   :man-page "docker-compose stop"
   ["Arguments"
-   ("t" "Timeout" "--timeout " transient-read-number-N0)]
+   ("t" docker-option-timeout)]
   ["Actions"
    ("O" "Stop" docker-compose-run-action-for-one-service)
    ("A" "All services" docker-compose-run-action-for-all-services)])
@@ -277,7 +286,7 @@
    ("n" "No deps" "--no-deps")
    ("q" "Quiet pull" "--quiet-pull")
    ("r" "Remove orphans" "--remove-orphans")
-   ("t" "Timeout" "--timeout " transient-read-number-N0)]
+   ("t" docker-option-timeout)]
   ["Actions"
    ("U" "Up" docker-compose-run-action-for-one-service)
    ("A" "All services" docker-compose-run-action-for-all-services)])
@@ -305,13 +314,13 @@
   ["Arguments"
    ("a" "No ANSI" "--no-ansi")
    ("c" "Compatibility" "--compatibility")
-   ("d" "Project directory" "--project-directory " docker-compose-read-directory)
-   ("e" "Environment file" "--env-file " docker-compose-read-environment-file)
-   ("f" "Compose file" "--file " docker-compose-read-compose-file)
-   ("h" "Host" "--host " read-string)
-   ("l" "Log level" "--log-level " docker-compose-read-log-level)
-   ("p" "Project name" "--project-name " docker-compose-read-project)
-   ("r" "Profile" "--profile " read-string)
+   ("d" "Project directory" "--project-directory " docker-compose-read-directory :class docker-option)
+   ("e" "Environment file" "--env-file " docker-compose-read-environment-files :class docker-option :multi-value repeat)
+   ("f" "Compose file" "--file " docker-compose-read-compose-files :class docker-option :multi-value repeat)
+   ("h" docker-option-host)
+   ("l" "Log level" "--log-level " docker-compose-read-log-level :class docker-option)
+   ("p" "Project name" "--project-name " docker-compose-read-project :class docker-option)
+   ("r" "Profile" "--profile " :class docker-option :multi-value repeat :history-key docker-compose-profile)
    ("v" "Verbose" "--verbose")]
   [["Images"
     ("B" "Build"      docker-compose-build)
