@@ -215,7 +215,7 @@ The result is the tabulated list id for an entry is propertized with
 
 (defun docker-image-read-name ()
   "Read an image name."
-  (completing-read "Image: " (-map #'car (aio-wait-for (docker-image-entries)))))
+  (docker-utils-completing-read "Image: " (-map #'car (aio-wait-for (docker-image-entries))) 'docker-image-name))
 
 (defvar-local docker-image-history-image nil
   "Image name used by the current history buffer.")
@@ -262,7 +262,7 @@ The result is the tabulated list id for an entry is propertized with
 
 (defun docker-image-run-selection (command)
   "Run \"docker image run\" with COMMAND on the images selection."
-  (interactive "sCommand: ")
+  (interactive (list (docker-utils-read-string "Command: " 'docker-container-command)))
   (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
     (docker-run-docker-async-with-buffer-interactive "container" "run" (transient-args 'docker-image-run) it command)))
@@ -272,7 +272,7 @@ The result is the tabulated list id for an entry is propertized with
   (interactive)
   (docker-utils-ensure-items)
   (let* ((ids (docker-utils-get-marked-items-ids))
-         (promises (--map (docker-run-docker-async "tag" it (read-string (format "Tag for %s: " it))) ids)))
+         (promises (--map (docker-run-docker-async "tag" it (docker-utils-read-string (format "Tag for %s: " it) 'docker-image-tag)) ids)))
     (aio-await (aio-all promises))
     (tablist-revert)))
 

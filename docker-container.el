@@ -183,7 +183,7 @@ Also note if you do not specify `docker-container-exec-default-args', they will 
 
 (defun docker-container-read-name ()
   "Read an container name."
-  (completing-read "Container: " (-map #'car (aio-wait-for (docker-container-entries)))))
+  (docker-utils-completing-read "Container: " (-map #'car (aio-wait-for (docker-container-entries))) 'docker-container-name))
 
 (defvar eshell-buffer-name)
 
@@ -426,7 +426,7 @@ default directory set to workdir."
   (interactive)
   (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
-    (aio-await (docker-run-docker-async "rename" it (read-string (format "Rename \"%s\" to: " it)))))
+    (aio-await (docker-run-docker-async "rename" it (docker-utils-read-string (format "Rename \"%s\" to: " it) 'docker-container-name))))
   (tablist-revert))
 
 (defun docker-container-shell-selection (prefix)
@@ -548,7 +548,7 @@ default directory set to workdir."
 
 (defun docker-container-exec-selection (command)
   "Run \"docker container exec\" with COMMAND on the containers selection."
-  (interactive "sCommand: ")
+  (interactive (list (docker-utils-read-string "Command: " 'docker-container-command)))
   (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
     (docker-run-docker-async-with-buffer-interactive "container" "exec" (transient-args 'docker-container-exec) it command)))
