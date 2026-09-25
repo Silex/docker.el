@@ -114,7 +114,7 @@
                 (-last-item (s-split "-" (symbol-name transient-current-command)))
                 (transient-args transient-current-command)
                 nil
-                (read-string "Command: ")))
+                (docker-utils-read-string "Command: " 'docker-container-command)))
   (setq service (aio-await (docker-compose-read-service-name)))
   (docker-compose-run-docker-compose-async-with-buffer action args service command))
 
