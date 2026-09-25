@@ -70,6 +70,18 @@ permanently. See https://magit.vc/manual/transient/Saving-Values.html#Saving-Val
 There are also hidden items (e.g on `M-x docker` where you could specify the host or TLS settings), see
 https://magit.vc/manual/transient/Enabling-and-Disabling-Suffixes.html for more information.
 
+Pressing the key of an option that is already set opens its current value for editing; clearing
+the input unsets it. Options docker accepts several times (`-e`, `-v`, `--mount`, `-p`,
+`--network`, `--filter`, compose `--file`, ...) take all their values in one prompt, separated by
+`|`, so values may contain commas:
+
+```text
+Mount volume (separate with |): type=bind,source=/data,target=/data | type=volume,source=cache,target=/cache
+```
+
+Each kind of value keeps its own history (`M-p` / `M-n`), shared between the transients that use
+it and saved with the other transient histories.
+
 Here is a list of other customizations you can set:
 
 | Variable                              | Description                                | Default              |
