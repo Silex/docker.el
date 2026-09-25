@@ -152,9 +152,9 @@ This collects all output before displaying, suitable for non-interactive command
    (5 "H" docker-option-host)
    (5 "Tt" "TLS" "--tls")
    (5 "Tv" "TLS verify remote" "--tlsverify")
-   (5 "Ta" "TLS CA" "--tlscacert" docker-read-certificate)
-   (5 "Tc" "TLS certificate" "--tlscert" docker-read-certificate)
-   (5 "Tk" "TLS key" "--tlskey" docker-read-certificate)
+   (5 "Ta" "TLS CA" "--tlscacert " docker-read-certificate :class docker-option)
+   (5 "Tc" "TLS certificate" "--tlscert " docker-read-certificate :class docker-option)
+   (5 "Tk" "TLS key" "--tlskey " docker-read-certificate :class docker-option)
    (5 "l" "Log level" "--log-level " docker-read-log-level :class docker-option)]
   ["Docker"
    ("c" (lambda ()(plist-get docker-status-strings :containers)) docker-containers)
