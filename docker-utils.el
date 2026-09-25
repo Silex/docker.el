@@ -33,6 +33,123 @@
 (require 'tablist)
 (require 'transient)
 
+(defvar docker-utils-history nil
+  "History list bound while reading with `docker-utils-with-history'.")
+
+(defun docker-utils-with-history (key reader)
+  "Call READER with a history variable holding the `transient-history' entry KEY.
+READER receives the symbol to pass as HIST; the updated list is stored back
+under KEY, so it is saved with the other transient histories."
+  (let ((docker-utils-history (alist-get key transient-history)))
+    (prog1 (funcall reader 'docker-utils-history)
+      (setf (alist-get key transient-history) docker-utils-history))))
+
+(defun docker-utils-read-string (prompt key)
+  "Read a string with PROMPT using the history KEY."
+  (docker-utils-with-history key (lambda (history) (read-string prompt nil history))))
+
+(defun docker-utils-completing-read (prompt collection key)
+  "Read a string with PROMPT, completing from COLLECTION, using the history KEY."
+  (docker-utils-with-history key (lambda (history) (completing-read prompt collection nil nil nil history))))
+
+(defconst docker-option-separator-regexp "[ \t]*|[ \t]*"
+  "Regexp separating the values of a repeatable `docker-option'.")
+
+(defclass docker-option (transient-option)
+  ((always-read :initform t))
+  "Command-line option whose current value is edited in place.
+A repeatable option (`:multi-value repeat') reads all its values in one prompt,
+separated by \"|\".")
+
+(cl-defmethod transient-prompt ((obj docker-option))
+  "Prompt for OBJ based on its description."
+  (let ((description (oref obj description)))
+    (if (or (oref obj prompt) (not (stringp description)))
+        (cl-call-next-method)
+      (format (if (eq (oref obj multi-value) 'repeat) "%s (separate with |): " "%s: ")
+              description))))
+
+(cl-defmethod transient-infix-read ((obj docker-option))
+  "Read the value of OBJ, starting from its current value.
+When OBJ is unset and `transient-read-with-initial-input' is non-nil, start
+from the last history entry instead.  Empty input unsets the option."
+  (let* ((enable-recursive-minibuffers t)
+         (repeat (eq (oref obj multi-value) 'repeat))
+         (key (or (oref obj history-key) (oref obj command)))
+         (value (oref obj value))
+         (initial-input (cond ((and value repeat) (string-join value "|"))
+                              (value)
+                              (transient-read-with-initial-input (car (alist-get key transient-history)))))
+         (reader (or (oref obj reader) #'docker-option-read-string))
+         (input (docker-utils-with-history key
+                                           (lambda (history)
+                                             (funcall reader (transient-prompt obj) initial-input history)))))
+    (cond ((not (stringp input)) input)
+          (repeat (split-string input docker-option-separator-regexp t))
+          ((not (string-empty-p input)) input))))
+
+(defun docker-option-read-string (prompt initial-input history)
+  "Read a string with PROMPT, INITIAL-INPUT and HISTORY."
+  (read-string prompt initial-input history))
+
+(cl-defmethod transient-format-value ((obj docker-option))
+  "Format the value of OBJ, without the argument's trailing space when unset."
+  (let ((formatted (cl-call-next-method))
+        (argument (oref obj argument)))
+    (if (or (oref obj value) (not (string-suffix-p " " argument)))
+        formatted
+      (concat (substring formatted 0 (1- (length argument)))
+              (substring formatted (length argument))))))
+
+(transient-define-infix docker-option-env ()
+  :description "Env KEY=VAL"
+  :class 'docker-option
+  :argument "-e "
+  :multi-value 'repeat
+  :history-key 'docker-container-environment)
+
+(transient-define-infix docker-option-user ()
+  :description "User"
+  :class 'docker-option
+  :argument "-u "
+  :history-key 'docker-container-user)
+
+(transient-define-infix docker-option-workdir ()
+  :description "Workdir"
+  :class 'docker-option
+  :argument "-w "
+  :history-key 'docker-container-workdir)
+
+(transient-define-infix docker-option-entrypoint ()
+  :description "Entrypoint"
+  :class 'docker-option
+  :argument "--entrypoint "
+  :history-key 'docker-container-entrypoint)
+
+(transient-define-infix docker-option-name ()
+  :description "Name"
+  :class 'docker-option
+  :argument "--name "
+  :history-key 'docker-container-name)
+
+(transient-define-infix docker-option-host ()
+  :description "Host"
+  :class 'docker-option
+  :argument "--host "
+  :history-key 'docker-host)
+
+(transient-define-infix docker-option-tail ()
+  :description "Tail"
+  :class 'docker-option
+  :argument "--tail "
+  :history-key 'docker-logs-tail)
+
+(transient-define-infix docker-option-timeout ()
+  :description "Timeout"
+  :class 'docker-option
+  :argument "-t "
+  :reader #'transient-read-number-N0)
+
 (defun docker-utils-get-marked-items-ids ()
   "Get the id part of `tablist-get-marked-items'."
   (-map #'car (tablist-get-marked-items)))
