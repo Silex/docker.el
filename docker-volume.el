@@ -169,8 +169,8 @@ applied to the buffer."
   "Transient for listing volumes."
   :man-page "docker-volume-ls"
   ["Arguments"
-   ("d" "Dangling" "--filter dangling=true")
-   ("f" "Filter" "--filter " read-string)]
+   ("d" "Dangling" "--filter=dangling=true")
+   ("f" "Filter" "--filter " :class docker-option :multi-value repeat :history-key docker-volume-filter)]
   ["Actions"
    ("l" "List" tablist-revert)])
 

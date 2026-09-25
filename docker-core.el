@@ -134,9 +134,9 @@ This collects all output before displaying, suitable for non-interactive command
         (funcall docker-inspect-view-mode)
         (view-mode)))))
 
-(defun docker-read-log-level (prompt &rest _args)
-  "Read the docker log level using PROMPT."
-  (completing-read prompt '(debug info warn error fatal)))
+(defun docker-read-log-level (prompt &optional initial-input history)
+  "Read the docker log level with PROMPT, INITIAL-INPUT and HISTORY."
+  (completing-read prompt '(debug info warn error fatal) nil nil initial-input history))
 
 (defun docker-read-certificate (prompt &optional initial-input _history)
   "Wrapper around `read-file-name' forwarding PROMPT and INITIAL-INPUT."
@@ -149,13 +149,13 @@ This collects all output before displaying, suitable for non-interactive command
   "Transient for docker."
   :man-page "docker"
   ["Arguments"
-   (5 "H" "Host" "--host " read-string)
+   (5 "H" docker-option-host)
    (5 "Tt" "TLS" "--tls")
    (5 "Tv" "TLS verify remote" "--tlsverify")
    (5 "Ta" "TLS CA" "--tlscacert" docker-read-certificate)
    (5 "Tc" "TLS certificate" "--tlscert" docker-read-certificate)
    (5 "Tk" "TLS key" "--tlskey" docker-read-certificate)
-   (5 "l" "Log level" "--log-level " docker-read-log-level)]
+   (5 "l" "Log level" "--log-level " docker-read-log-level :class docker-option)]
   ["Docker"
    ("c" (lambda ()(plist-get docker-status-strings :containers)) docker-containers)
    ("i" (lambda ()(plist-get docker-status-strings :images))     docker-images)
