@@ -192,7 +192,7 @@ If INTERACTIVE is nil, fall back to shell mode since ghostel is interactive."
     (if (fboundp 'ghostel)
         (progn
           (require 'ghostel)
-          (let* ((process-args (-remove 's-blank? (-flatten args)))
+          (let* ((process-args (mapcan (-partial #'s-split " ") (-remove 's-blank? (-flatten args))))
                  (buffer (generate-new-buffer
                           (apply #'docker-utils-generate-new-buffer-name program process-args))))
             ;; Display first so `ghostel-exec' sizes the terminal to the window.
