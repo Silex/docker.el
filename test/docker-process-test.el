@@ -18,7 +18,7 @@ in batch is none."
   `(cl-letf ,(--map (list (list 'symbol-function (list 'quote it)) '#'ignore)
                     (--map (pcase it
                              ('eat 'eat-other-window)
-                             ('ghostel 'ghostel)
+                             ('ghostel 'ghostel-exec)
                              ('vterm 'vterm-other-window))
                            (cadr available)))
      ,@body))
@@ -85,6 +85,46 @@ in batch is none."
     (cl-letf (((symbol-function 'eat-other-window) (lambda (arg) (setq command arg))))
       (docker-run-async-with-buffer-eat "docker" t "run" '("-p 80:80" "") "alpine")
       (should (equal command "docker run -p 80:80 alpine")))))
+
+(ert-deftest docker-process-test-ghostel-backend-builds-one-command ()
+  (let ((shell-command-switch "-lc")
+        args)
+    (cl-letf (((symbol-function 'ghostel-exec) (lambda (&rest rest) (setq args rest)))
+              ((symbol-function 'switch-to-buffer-other-window) #'ignore))
+      (docker-run-async-with-buffer-ghostel "docker compose" t "up" '("-d" "") "web"))
+    (should (equal (cdr args)
+                   (list shell-file-name (list "-lc" "docker compose up -d web"))))
+    (should (equal (buffer-name (car args)) "* docker compose up -d web *"))
+    (kill-buffer (car args))))
+
+(ert-deftest docker-process-test-ghostel-is-probed-on-its-own-entry-points ()
+  (cl-letf (((symbol-function 'ghostel-exec) #'ignore))
+    (should (docker--terminal-backend-available-p 'ghostel)))
+  (cl-letf (((symbol-function 'ghostel) #'ignore))
+    (should (docker--terminal-backend-available-p 'ghostel))))
+
+(ert-deftest docker-process-test-ghostel-backend-leaves-quoting-to-the-shell ()
+  (let (args)
+    (cl-letf (((symbol-function 'ghostel-exec) (lambda (&rest rest) (setq args rest)))
+              ((symbol-function 'switch-to-buffer-other-window) #'ignore))
+      (docker-run-async-with-buffer-ghostel "docker" t "container" "run" '("-v /a:/b") "alpine" "sh -c 'echo hi'"))
+    (should (equal (nth 2 args) (list "-c" "docker container run -v /a:/b alpine sh -c 'echo hi'")))
+    (kill-buffer (car args))))
+
+(ert-deftest docker-process-test-ghostel-backend-uses-the-remote-shell ()
+  (let ((connection-local-profile-alist nil)
+        (connection-local-criteria-alist nil)
+        (default-directory "/ssh:docker-test-host:/tmp/")
+        args)
+    (connection-local-set-profile-variables
+     'docker-process-test-remote-shell
+     '((shell-file-name . "/bin/remote-sh") (shell-command-switch . "-rc")))
+    (connection-local-set-profiles '(:machine "docker-test-host") 'docker-process-test-remote-shell)
+    (cl-letf (((symbol-function 'ghostel-exec) (lambda (&rest rest) (setq args rest)))
+              ((symbol-function 'switch-to-buffer-other-window) #'ignore))
+      (docker-run-async-with-buffer-ghostel "docker" t "ps"))
+    (should (equal (cdr args) (list "/bin/remote-sh" (list "-rc" "docker ps"))))
+    (kill-buffer (car args))))
 
 (ert-deftest docker-process-test-noninteractive-backends-fall-back-to-shell ()
   (dolist (backend '(docker-run-async-with-buffer-eat

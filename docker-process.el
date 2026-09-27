@@ -109,7 +109,7 @@ Prefer `docker-run-async-with-buffer-interactive' or
   "Return non-nil when BACKEND is available."
   (pcase backend
     ('eat (fboundp 'eat-other-window))
-    ('ghostel (fboundp 'ghostel))
+    ('ghostel (or (fboundp 'ghostel-exec) (fboundp 'ghostel)))
     ('vterm (fboundp 'vterm-other-window))
     ('shell t)
     (_ nil)))
@@ -189,15 +189,20 @@ If INTERACTIVE is nil, fall back to shell mode since eat is interactive."
 If INTERACTIVE is nil, fall back to shell mode since ghostel is interactive."
   (if (not interactive)
       (apply #'docker-run-async-with-buffer-shell program nil args)
-    (if (fboundp 'ghostel)
-        (progn
-          (require 'ghostel)
-          (let* ((process-args (mapcan (-partial #'s-split " ") (-remove 's-blank? (-flatten args))))
-                 (buffer (generate-new-buffer
-                          (apply #'docker-utils-generate-new-buffer-name program process-args))))
-            ;; Display first so `ghostel-exec' sizes the terminal to the window.
-            (switch-to-buffer-other-window buffer)
-            (ghostel-exec buffer program process-args)))
+    (unless (fboundp 'ghostel-exec)
+      (require 'ghostel nil t))
+    (if (fboundp 'ghostel-exec)
+        (let* ((process-args (-remove 's-blank? (-flatten args)))
+               (command (s-join " " (-insert-at 0 program process-args)))
+               (buffer (apply #'docker-utils-generate-new-buffer program process-args)))
+          ;; `ghostel-exec' shell-quotes the program and each argument separately,
+          ;; so the command goes through a shell like it does in the other backends.
+          ;; Display first so the terminal is sized to the window.
+          (switch-to-buffer-other-window buffer)
+          ;; Like `start-file-process-shell-command', use the shell of the host
+          ;; `default-directory' is on.
+          (with-connection-local-variables
+           (ghostel-exec buffer shell-file-name (list shell-command-switch command))))
       (error "The ghostel package is not installed"))))
 
 (defun docker-process-filter-noninteractive (proc string)
