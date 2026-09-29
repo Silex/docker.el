@@ -357,9 +357,8 @@ default directory set to workdir."
                                 (format "%s|" (s-chop-suffix ":" prefix))
                               "/")))
              (default-directory (format "%s%s" file-prefix container-address))
-             (ghostel-buffer-name (format "*ghostel:%s" default-directory))
-             (display-buffer-overriding-action '((display-buffer-pop-up-window))))
-        (ghostel))
+             (ghostel-buffer-name (format "*ghostel:%s" default-directory)))
+        (pop-to-buffer (ghostel-create)))
     (error "The ghostel package is not installed")))
 
 ;;;###autoload (autoload 'docker-container-ghostel-env "docker-container" nil t)
@@ -380,10 +379,9 @@ default directory set to workdir."
          (default-directory (format "%s%s%s" file-prefix container-address container-workdir))
          ;; process-environment doesn't work with tramp if you call this function more than one per emacs session
          (tramp-remote-process-environment (append container-env nil))
-         (ghostel-buffer-name (format "*ghostel-env:%s" default-directory))
-         (display-buffer-overriding-action '((display-buffer-pop-up-window))))
+         (ghostel-buffer-name (format "*ghostel-env:%s" default-directory)))
     (if (fboundp 'ghostel)
-        (ghostel)
+        (pop-to-buffer (ghostel-create))
       (error "The ghostel package is not installed"))))
 
 (defun docker-container-cp-from-selection (container-path host-path)
