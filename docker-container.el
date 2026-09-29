@@ -395,7 +395,9 @@ When READ-SHELL is not nil, ask the user for the shell."
   (interactive)
   (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
-    (docker-container-eshell it)))
+    ;; Each terminal becomes the current buffer, and the next container's
+    ;; directory is built on top of the current buffer's.
+    (save-current-buffer (docker-container-eshell it))))
 
 (defun docker-container-find-directory-selection (path)
   "Run `docker-container-find-directory' for PATH on the containers selection."
@@ -424,7 +426,9 @@ When READ-SHELL is not nil, ask the user for the shell."
   (interactive "P")
   (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
-    (docker-container-shell it prefix)))
+    ;; Each terminal becomes the current buffer, and the next container's
+    ;; directory is built on top of the current buffer's.
+    (save-current-buffer (docker-container-shell it prefix))))
 
 (defun docker-container-shell-env-selection (prefix)
   "Run `docker-container-shell-env' on the containers selection forwarding PREFIX."
@@ -438,7 +442,9 @@ When READ-SHELL is not nil, ask the user for the shell."
   (interactive)
   (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
-    (docker-container-vterm it)))
+    ;; Each terminal becomes the current buffer, and the next container's
+    ;; directory is built on top of the current buffer's.
+    (save-current-buffer (docker-container-vterm it))))
 
 (defun docker-container-vterm-env-selection ()
   "Run `docker-container-vterm-env' on the containers selection."
@@ -479,7 +485,9 @@ and is run as typed."
   (interactive)
   (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
-    (docker-container-eat it)))
+    ;; Each terminal becomes the current buffer, and the next container's
+    ;; directory is built on top of the current buffer's.
+    (save-current-buffer (docker-container-eat it))))
 
 (defun docker-container-eat-env-selection ()
   "Run `docker-container-eat-env' on the containers selection."
@@ -493,7 +501,9 @@ and is run as typed."
   (interactive)
   (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
-    (docker-container-ghostel it)))
+    ;; Each terminal becomes the current buffer, and the next container's
+    ;; directory is built on top of the current buffer's.
+    (save-current-buffer (docker-container-ghostel it))))
 
 (defun docker-container-ghostel-env-selection ()
   "Run `docker-container-ghostel-env' on the containers selection."

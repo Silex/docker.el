@@ -241,6 +241,39 @@
               (indirect-function 'docker-container-find-directory)))
   (should (get 'docker-container-dired 'byte-obsolete-info)))
 
+(ert-deftest docker-container-test-selections-build-each-directory-from-the-list ()
+  (dolist (entry '((docker-container-eshell-selection . eshell)
+                   (docker-container-shell-selection . shell)
+                   (docker-container-vterm-selection . vterm-other-window)
+                   (docker-container-eat-selection . eat-other-window)
+                   (docker-container-ghostel-selection . ghostel)))
+    (let (directories buffers)
+      (unwind-protect
+          (with-temp-buffer
+            (setq default-directory "/tmp/")
+            (cl-letf (((symbol-function 'docker-container-assert-tramp-docker) #'ignore)
+                      ((symbol-function 'docker-utils-ensure-items) #'ignore)
+                      ((symbol-function 'docker-utils-get-marked-items-ids)
+                       (lambda () '("web" "db")))
+                      ;; Like the real terminals, make the new buffer current.
+                      ((symbol-function (cdr entry))
+                       (lambda (&rest args)
+                         (let ((directory default-directory)
+                               (buffer (if (bufferp (car args)) (car args) (generate-new-buffer "terminal"))))
+                           (push directory directories)
+                           (push buffer buffers)
+                           (set-buffer buffer)
+                           (setq default-directory directory)))))
+              (if (eq (car entry) 'docker-container-shell-selection)
+                  (funcall (car entry) nil)
+                (funcall (car entry)))))
+        ;; Killing a buffer dissects its tramp directory, and Emacs 28 has no
+        ;; docker method.
+        (dolist (buffer buffers)
+          (with-current-buffer buffer (setq default-directory "/tmp/"))
+          (kill-buffer buffer)))
+      (should (equal (nreverse directories) '("/docker:web:/" "/docker:db:/"))))))
+
 (ert-deftest docker-container-test-status-face ()
   (should (equal (docker-container-status-face "Up 3 hours") 'docker-face-status-up))
   (should (equal (docker-container-status-face "Exited (0) 3 hours ago") 'docker-face-status-down))
