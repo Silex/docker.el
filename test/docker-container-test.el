@@ -123,24 +123,42 @@
 
 (ert-deftest docker-container-test-ghostel-directory ()
   (let ((default-directory "/tmp/"))
-    (should (equal (docker-container-test-capture-directory 'ghostel
+    (should (equal (docker-container-test-capture-directory 'ghostel-create
                      (docker-container-ghostel "web"))
                    "/docker:web:/"))))
 
+(ert-deftest docker-container-test-ghostel-leaves-the-display-prefixes-alone ()
+  (let ((default-directory "/tmp/"))
+    (dolist (command '(docker-container-ghostel docker-container-ghostel-env))
+      (let (captured)
+        (cl-letf (((symbol-function 'docker-container-assert-tramp-docker) #'ignore)
+                  ((symbol-function 'docker-run-docker-async)
+                   (lambda (&rest _)
+                     (docker-container-test-resolved
+                      "[{\"Config\":{\"WorkingDir\":\"/app\",\"Env\":[\"A=1\"]}}]")))
+                  ((symbol-function 'ghostel-create)
+                   (lambda (_name display)
+                     (setq captured (list display-buffer-overriding-action display)))))
+          (let ((result (funcall command "web")))
+            (when (aio-promise-p result) (aio-wait-for result))))
+        (should (equal captured (list display-buffer-overriding-action
+                                      '((display-buffer-pop-up-window)))))))))
+
 (ert-deftest docker-container-test-terminals-report-a-missing-package ()
-  (dolist (entry '((docker-container-vterm . "vterm")
-                   (docker-container-eat . "eat")
-                   (docker-container-ghostel . "ghostel")))
+  (dolist (entry '((docker-container-vterm . "The vterm package is not installed")
+                   (docker-container-eat . "The eat package is not installed")
+                   (docker-container-ghostel
+                    . "The ghostel package (0.52.0 or later) is not installed")))
     (cl-letf (((symbol-function 'docker-container-assert-tramp-docker) #'ignore))
       (should (equal (cadr (should-error (funcall (car entry) "web")))
-                     (format "The %s package is not installed" (cdr entry)))))))
+                     (cdr entry))))))
 
 (ert-deftest docker-container-test-shell-entry-points-assert-tramp-support ()
   (dolist (entry '((docker-container-eshell . eshell)
                    (docker-container-shell . shell)
                    (docker-container-vterm . vterm-other-window)
                    (docker-container-eat . eat-other-window)
-                   (docker-container-ghostel . ghostel)))
+                   (docker-container-ghostel . ghostel-create)))
     (let (asserted)
       (cl-letf (((symbol-function 'docker-container-assert-tramp-docker)
                  (lambda () (setq asserted t)))
@@ -156,9 +174,10 @@
     promise))
 
 (ert-deftest docker-container-test-env-entry-points-check-the-terminal-first ()
-  (dolist (entry '((docker-container-vterm-env . "vterm")
-                   (docker-container-eat-env . "eat")
-                   (docker-container-ghostel-env . "ghostel")))
+  (dolist (entry '((docker-container-vterm-env . "The vterm package is not installed")
+                   (docker-container-eat-env . "The eat package is not installed")
+                   (docker-container-ghostel-env
+                    . "The ghostel package (0.52.0 or later) is not installed")))
     (let (inspected)
       (cl-letf (((symbol-function 'docker-container-assert-tramp-docker) #'ignore)
                 ((symbol-function 'docker-run-docker-async)
@@ -167,27 +186,29 @@
                    (docker-container-test-resolved
                     "[{\"Config\":{\"WorkingDir\":\"/app\",\"Env\":[\"A=1\"]}}]"))))
         (should (equal (cadr (should-error (aio-wait-for (funcall (car entry) "web"))))
-                       (format "The %s package is not installed" (cdr entry))))
+                       (cdr entry)))
         (should-not inspected)))))
 
 (ert-deftest docker-container-test-terminal-buffer-names ()
   (let ((default-directory "/tmp/"))
-    (dolist (entry '((docker-container-eat eat-other-window eat-buffer-name
+    (dolist (entry `((docker-container-eat eat-other-window
+                                           ,(lambda (_) (symbol-value 'eat-buffer-name))
                                            "* docker eat: /docker:web:/ *")
-                     (docker-container-ghostel ghostel ghostel-buffer-name
+                     (docker-container-ghostel ghostel-create car
                                                "* docker ghostel: /docker:web:/ *")))
       (let (captured)
         (cl-letf (((symbol-function 'docker-container-assert-tramp-docker) #'ignore)
                   ((symbol-function (nth 1 entry))
-                   (lambda (&rest _) (setq captured (symbol-value (nth 2 entry))))))
+                   (lambda (&rest args) (setq captured (funcall (nth 2 entry) args)))))
           (funcall (car entry) "web"))
         (should (equal captured (nth 3 entry)))))))
 
 (ert-deftest docker-container-test-env-terminal-buffer-names ()
   (let ((default-directory "/tmp/"))
-    (dolist (entry '((docker-container-eat-env eat-other-window eat-buffer-name
+    (dolist (entry `((docker-container-eat-env eat-other-window
+                                               ,(lambda (_) (symbol-value 'eat-buffer-name))
                                                "* docker eat-env: /docker:web:/app *")
-                     (docker-container-ghostel-env ghostel ghostel-buffer-name
+                     (docker-container-ghostel-env ghostel-create car
                                                    "* docker ghostel-env: /docker:web:/app *")))
       (let (captured)
         (cl-letf (((symbol-function 'docker-container-assert-tramp-docker) #'ignore)
@@ -196,7 +217,7 @@
                      (docker-container-test-resolved
                       "[{\"Config\":{\"WorkingDir\":\"/app\",\"Env\":[\"A=1\"]}}]")))
                   ((symbol-function (nth 1 entry))
-                   (lambda (&rest _) (setq captured (symbol-value (nth 2 entry))))))
+                   (lambda (&rest args) (setq captured (funcall (nth 2 entry) args)))))
           (aio-wait-for (funcall (car entry) "web")))
         (should (equal captured (nth 3 entry)))))))
 
@@ -213,7 +234,7 @@
   (dolist (entry '((docker-container-shell-env . shell)
                    (docker-container-vterm-env . vterm-other-window)
                    (docker-container-eat-env . eat-other-window)
-                   (docker-container-ghostel-env . ghostel)))
+                   (docker-container-ghostel-env . ghostel-create)))
     (let (captured promise)
       (with-temp-buffer
         (setq default-directory "/tmp/")
@@ -263,7 +284,7 @@
                    (docker-container-shell-selection . shell)
                    (docker-container-vterm-selection . vterm-other-window)
                    (docker-container-eat-selection . eat-other-window)
-                   (docker-container-ghostel-selection . ghostel)))
+                   (docker-container-ghostel-selection . ghostel-create)))
     (let (directories buffers)
       (unwind-protect
           (with-temp-buffer

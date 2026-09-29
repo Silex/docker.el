@@ -226,7 +226,7 @@ and ENV is the list of \"VAR=VALUE\" strings the container sets."
     (error "Tramp docker support was not detected, try installing docker-tramp")))
 
 (declare-function eat-other-window "eat")
-(declare-function ghostel "ghostel")
+(declare-function ghostel-create "ghostel")
 (declare-function vterm-other-window "vterm")
 
 (defvar eshell-buffer-name)
@@ -347,21 +347,28 @@ When READ-SHELL is not nil, ask the user for the shell."
          (eat-buffer-name (docker-utils-generate-new-buffer-name "docker" "eat-env:" default-directory)))
     (eat-other-window)))
 
-(defvar ghostel-buffer-name)
+(defun docker-container--assert-ghostel ()
+  "Signal an error unless `ghostel-create' is available."
+  (unless (fboundp 'ghostel-create)
+    (require 'ghostel nil t))
+  (unless (fboundp 'ghostel-create)
+    (error "The ghostel package (0.52.0 or later) is not installed")))
+
+(defun docker-container--ghostel (name)
+  "Open a new ghostel terminal named NAME in `default-directory'."
+  ;; A display action ranks below `display-buffer-overriding-action', so
+  ;; `other-window-prefix' and `same-window-prefix' still apply.
+  (ghostel-create name '((display-buffer-pop-up-window))))
 
 ;;;###autoload (autoload 'docker-container-ghostel "docker-container" nil t)
 (defun docker-container-ghostel (container)
   "Open `ghostel' in CONTAINER."
   (interactive (list (docker-container-read-name)))
   (docker-container-assert-tramp-docker)
-  (if (fboundp 'ghostel)
-      (let* ((default-directory (docker-container--default-directory container))
-             (ghostel-buffer-name (docker-utils-generate-new-buffer-name "docker" "ghostel:" default-directory))
-             ;; ghostel pops to its buffer in the selected window, so this is
-             ;; what vterm-other-window and eat-other-window do for the others.
-             (display-buffer-overriding-action '((display-buffer-pop-up-window))))
-        (ghostel))
-    (error "The ghostel package is not installed")))
+  (docker-container--assert-ghostel)
+  (let ((default-directory (docker-container--default-directory container)))
+    (docker-container--ghostel
+     (docker-utils-generate-new-buffer-name "docker" "ghostel:" default-directory))))
 
 ;;;###autoload (autoload 'docker-container-ghostel-env "docker-container" nil t)
 (aio-defun docker-container-ghostel-env (container)
@@ -369,18 +376,14 @@ When READ-SHELL is not nil, ask the user for the shell."
   (interactive (list
                 (docker-container-read-name)))
   (docker-container-assert-tramp-docker)
-  (unless (fboundp 'ghostel)
-    (error "The ghostel package is not installed"))
+  (docker-container--assert-ghostel)
   (let* ((context (aio-await (docker-container--env-context container)))
          (default-directory (car context))
          ;; `docker exec' already passes the container's variables except PATH,
          ;; which tramp replaces with `tramp-remote-path'; this restores it.
-         (tramp-remote-process-environment (cdr context))
-         (ghostel-buffer-name (docker-utils-generate-new-buffer-name "docker" "ghostel-env:" default-directory))
-         ;; ghostel pops to its buffer in the selected window, so this is
-         ;; what vterm-other-window and eat-other-window do for the others.
-         (display-buffer-overriding-action '((display-buffer-pop-up-window))))
-    (ghostel)))
+         (tramp-remote-process-environment (cdr context)))
+    (docker-container--ghostel
+     (docker-utils-generate-new-buffer-name "docker" "ghostel-env:" default-directory))))
 
 (defun docker-container-cp-from-selection (container-path host-path)
   "Run \"docker cp\" from CONTAINER-PATH to HOST-PATH for selected container."
