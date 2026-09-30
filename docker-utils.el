@@ -226,10 +226,14 @@ It falls back to the transient default value when the history is empty."
   :type 'sexp)
 
 (defun docker-utils-pop-to-buffer (name)
-  "Like `pop-to-buffer', but suffix NAME with the host if on a remote host."
+  "Like `pop-to-buffer', but suffix NAME with the host if on a remote host.
+
+The suffix includes the user when the file name has one, so a sudo directory
+gets its own buffer rather than reusing the one opened as the login user."
   (pop-to-buffer
    (if (file-remote-p default-directory)
-       (with-parsed-tramp-file-name default-directory nil (concat name " - " host))
+       (with-parsed-tramp-file-name default-directory nil
+         (concat name " - " (if user (concat user "@" host) host)))
      name)
    docker-pop-to-buffer-action))
 

@@ -126,6 +126,18 @@
     (should (equal (docker-utils-columns-getter symbol)
                    '(("Id" 16 "{{ json .ID }}" nil nil))))))
 
+(ert-deftest docker-utils-test-pop-to-buffer-names ()
+  (let ((tramp-default-proxies-alist nil))
+    (dolist (entry `(("/tmp/" . "*docker-containers*")
+                     ("/ssh:myhost:/srv/" . "*docker-containers* - myhost")
+                     ("/ssh:myhost|sudo:myhost:/srv/" . "*docker-containers* - root@myhost")
+                     ("/sudo::/srv/" . ,(format "*docker-containers* - root@%s" (system-name)))))
+      (let ((default-directory (car entry))
+            name)
+        (cl-letf (((symbol-function 'pop-to-buffer) (lambda (buffer &rest _) (setq name buffer))))
+          (docker-utils-pop-to-buffer "*docker-containers*"))
+        (should (equal name (cdr entry)))))))
+
 (ert-deftest docker-utils-test-pop-to-buffer-action-is-customizable ()
   (should (custom-variable-p 'docker-pop-to-buffer-action)))
 
