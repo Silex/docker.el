@@ -80,6 +80,18 @@ in batch is none."
     (should (equal (cadr (should-error (docker-run-async-with-buffer-dispatch backend "docker" t)))
                    (format "The %s package is not installed" backend)))))
 
+(ert-deftest docker-process-test-process-command-flattens-and-drops-blanks ()
+  (should (equal (docker--process-command "docker" '("run" ("-p 80:80" "") "" "alpine"))
+                 "docker run -p 80:80 alpine")))
+
+(ert-deftest docker-process-test-vterm-backend-builds-one-command ()
+  (defvar vterm-shell)
+  (let (captured)
+    (cl-letf (((symbol-function 'vterm-other-window)
+               (lambda (name) (setq captured (cons vterm-shell name)))))
+      (docker-run-async-with-buffer-vterm "docker" t "run" '("-p 80:80" "") "alpine"))
+    (should (equal captured '("docker run -p 80:80 alpine" . "* docker run -p 80:80 alpine *")))))
+
 (ert-deftest docker-process-test-eat-backend-builds-one-command ()
   (let (command)
     (cl-letf (((symbol-function 'eat-other-window) (lambda (arg) (setq command arg))))

@@ -67,13 +67,18 @@ When set to `auto', prefer eat, then ghostel, then vterm, then shell."
                               default-directory)))
      ,@body))
 
+(defun docker--process-command (program args)
+  "Return the shell command line running PROGRAM with ARGS.
+
+ARGS may nest lists and hold blank strings, which are dropped."
+  (s-join " " (cons program (-remove #'s-blank? (-flatten args)))))
+
 (defun docker-run-start-file-process-shell-command (program &rest args)
   "Execute \"PROGRAM ARGS\" and return the process."
   (docker-with-sudo
-    (let* ((process-args (-remove 's-blank? (-flatten args)))
-           (command (s-join " " (-insert-at 0 program process-args))))
+    (let ((command (docker--process-command program args)))
       (when docker-show-messages (message "Running: %s" command))
-      (start-file-process-shell-command command (apply #'docker-utils-generate-new-buffer-name program process-args) command))))
+      (start-file-process-shell-command command (docker-utils-generate-new-buffer-name command) command))))
 
 (defun docker-run-async (program &rest args)
   "Execute \"PROGRAM ARGS\" and return a promise with the results."
@@ -160,10 +165,8 @@ If INTERACTIVE is nil, fall back to shell mode since vterm is interactive."
       (apply #'docker-run-async-with-buffer-shell program nil args)
     (defvar vterm-shell)
     (if (fboundp 'vterm-other-window)
-        (let* ((process-args (-remove 's-blank? (-flatten args)))
-               (vterm-shell (s-join " " (-insert-at 0 program process-args))))
-          (vterm-other-window
-           (apply #'docker-utils-generate-new-buffer-name program process-args)))
+        (let ((vterm-shell (docker--process-command program args)))
+          (vterm-other-window (docker-utils-generate-new-buffer-name vterm-shell)))
       (error "The vterm package is not installed"))))
 
 (defun docker-run-async-with-buffer-eat (program &optional interactive &rest args)
@@ -173,10 +176,8 @@ If INTERACTIVE is nil, fall back to shell mode since eat is interactive."
       (apply #'docker-run-async-with-buffer-shell program nil args)
     (defvar eat-buffer-name)
     (if (fboundp 'eat-other-window)
-        (let* ((process-args (-remove 's-blank? (-flatten args)))
-               (command (s-join " " (-insert-at 0 program process-args)))
-               (eat-buffer-name (apply #'docker-utils-generate-new-buffer-name
-                                       program process-args)))
+        (let* ((command (docker--process-command program args))
+               (eat-buffer-name (docker-utils-generate-new-buffer-name command)))
           (eat-other-window command))
       (error "The eat package is not installed"))))
 
@@ -188,9 +189,8 @@ If INTERACTIVE is nil, fall back to shell mode since ghostel is interactive."
     (unless (fboundp 'ghostel-exec)
       (require 'ghostel nil t))
     (if (fboundp 'ghostel-exec)
-        (let* ((process-args (-remove 's-blank? (-flatten args)))
-               (command (s-join " " (-insert-at 0 program process-args)))
-               (buffer (apply #'docker-utils-generate-new-buffer program process-args)))
+        (let* ((command (docker--process-command program args))
+               (buffer (docker-utils-generate-new-buffer command)))
           ;; `ghostel-exec' shell-quotes the program and each argument separately,
           ;; so the command goes through a shell like it does in the other backends.
           ;; Display first so the terminal is sized to the window.
