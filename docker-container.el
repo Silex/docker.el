@@ -190,6 +190,8 @@ When READ-SHELL-NAME is non-nil, read the shell name instead."
 (defun docker-container--default-directory (container &optional workdir directory)
   "Return the tramp directory for CONTAINER, at WORKDIR when it is given.
 
+WORKDIR may be any file name inside the container.
+
 It is built on top of DIRECTORY, `default-directory' by default, so its hops,
 such as a remote host or a sudo one, come before the container's."
   (let* ((prefix (let ((tramp-show-ad-hoc-proxies t))
@@ -243,11 +245,11 @@ and ENV is the list of \"VAR=VALUE\" strings the container sets."
   "Inside CONTAINER open DIRECTORY."
   (interactive
    (let* ((container-name (docker-container-read-name))
-          (tramp-filename (read-directory-name "Directory: " (format "/%s:%s:/" docker-container-tramp-method container-name))))
+          (tramp-filename (read-directory-name "Directory: " (docker-container--default-directory container-name))))
      (with-parsed-tramp-file-name tramp-filename nil
        (list host localname))))
   (docker-container-assert-tramp-docker)
-  (dired (format "/%s:%s:%s" docker-container-tramp-method container directory)))
+  (dired (docker-container--default-directory container directory)))
 
 (define-obsolete-function-alias 'docker-container-dired
   'docker-container-find-directory "2.6.0")
@@ -257,11 +259,11 @@ and ENV is the list of \"VAR=VALUE\" strings the container sets."
   "Open FILE inside CONTAINER."
   (interactive
    (let* ((container-name (docker-container-read-name))
-          (tramp-filename (read-file-name "File: " (format "/%s:%s:/" docker-container-tramp-method container-name))))
+          (tramp-filename (read-file-name "File: " (docker-container--default-directory container-name))))
      (with-parsed-tramp-file-name tramp-filename nil
        (list host localname))))
   (docker-container-assert-tramp-docker)
-  (find-file (format "/%s:%s:%s" docker-container-tramp-method container file)))
+  (find-file (docker-container--default-directory container file)))
 
 ;;;###autoload (autoload 'docker-container-shell "docker-container" nil t)
 (defun docker-container-shell (container &optional read-shell)

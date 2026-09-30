@@ -39,6 +39,16 @@
     (should (equal (docker-container--default-directory "web" nil "/sudo::/srv/")
                    (format "/sudo:root@%s|docker:web:/" (system-name))))))
 
+(ert-deftest docker-container-test-find-file-and-directory-keep-the-host ()
+  (let ((default-directory "/ssh:host:/srv/"))
+    (dolist (entry '((docker-container-find-file find-file "/etc/hosts")
+                     (docker-container-find-directory dired "/etc/")))
+      (let (opened)
+        (cl-letf (((symbol-function 'docker-container-assert-tramp-docker) #'ignore)
+                  ((symbol-function (nth 1 entry)) (lambda (name) (setq opened name))))
+          (funcall (nth 0 entry) "web" (nth 2 entry)))
+        (should (equal opened (concat "/ssh:host|docker:web:" (nth 2 entry))))))))
+
 (ert-deftest docker-container-test-eshell-honours-the-tramp-method ()
   (let ((default-directory "/tmp/")
         (docker-container-tramp-method "podman"))
