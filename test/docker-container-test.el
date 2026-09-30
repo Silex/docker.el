@@ -7,6 +7,7 @@
 ;;; Code:
 (require 'ert)
 (require 'docker-container)
+(require 'docker-test-helpers (expand-file-name "docker-test-helpers" (file-name-directory (or load-file-name buffer-file-name))))
 
 (defmacro docker-container-test-capture-directory (terminal &rest body)
   "Evaluate BODY with TERMINAL stubbed and return the `default-directory' it saw."
@@ -34,8 +35,8 @@
 
 (ert-deftest docker-container-test-default-directory-keeps-every-hop ()
   (let ((tramp-default-proxies-alist nil))
-    (should (equal (docker-container--default-directory "web" nil "/ssh:myhost|sudo:myhost:/srv/")
-                   "/ssh:myhost|sudo:root@myhost|docker:web:/"))
+    (docker-test-should-be-behind-hop (docker-container--default-directory "web" nil "/ssh:myhost|sudo:myhost:/srv/")
+                                      "/ssh:myhost|" "/sudo:root@myhost|docker:web:/")
     (should (equal (docker-container--default-directory "web" nil "/sudo::/srv/")
                    (format "/sudo:root@%s|docker:web:/" (system-name))))))
 

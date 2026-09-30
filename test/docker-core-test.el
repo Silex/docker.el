@@ -7,6 +7,7 @@
 ;;; Code:
 (require 'ert)
 (require 'docker-core)
+(require 'docker-test-helpers (expand-file-name "docker-test-helpers" (file-name-directory (or load-file-name buffer-file-name))))
 
 (defun docker-core-test-requires-p (library feature)
   "Return non-nil when LIBRARY pulled in FEATURE when it was loaded."
@@ -55,7 +56,7 @@ sites write to are `special-mode', so comint never loads it either."
         opened)
     (cl-letf (((symbol-function 'dired) (lambda (directory) (setq opened directory))))
       (docker-open-dired-as-root "/ssh:myhost:/srv/project/"))
-    (should (equal opened "/ssh:myhost|sudo:root@myhost:/srv/project/"))))
+    (docker-test-should-be-behind-hop opened "/ssh:myhost|" "/sudo:root@myhost:/srv/project/")))
 
 (provide 'docker-core-test)
 

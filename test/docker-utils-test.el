@@ -7,6 +7,7 @@
 ;;; Code:
 (require 'ert)
 (require 'docker-utils)
+(require 'docker-test-helpers (expand-file-name "docker-test-helpers" (file-name-directory (or load-file-name buffer-file-name))))
 
 (ert-deftest docker-utils-test-generate-new-buffer-name ()
   (should (equal (docker-utils-generate-new-buffer-name "docker" "shell:" "/docker:web:/")
@@ -144,8 +145,8 @@
 (ert-deftest docker-utils-test-sudo-directory ()
   (let ((tramp-default-proxies-alist nil))
     (should (equal (docker-utils-sudo-directory "/srv/project/") "/sudo::/srv/project/"))
-    (should (equal (docker-utils-sudo-directory "/ssh:myhost:/srv/project/")
-                   "/ssh:myhost|sudo:root@myhost:/srv/project/"))
+    (docker-test-should-be-behind-hop (docker-utils-sudo-directory "/ssh:myhost:/srv/project/")
+                                      "/ssh:myhost|" "/sudo:root@myhost:/srv/project/")
     (should (equal (docker-utils-sudo-directory "/sudo::/srv/project/") "/sudo::/srv/project/"))
     (should (equal (docker-utils-sudo-directory "/ssh:myhost|sudo:myhost:/srv/project/")
                    "/ssh:myhost|sudo:myhost:/srv/project/"))))
