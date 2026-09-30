@@ -106,7 +106,6 @@ Here is a list of other customizations you can set:
 | docker-network-columns                | Columns definition for networks            | Too complex to show  |
 | docker-network-default-sort-key       | Sort key for networks                      | `("Name")`           |
 | docker-pop-to-buffer-action           | Action for `docker-utils-pop-to-buffer`    | `nil`                |
-| docker-run-as-root                    | Runs docker as root when enabled           | `nil`                |
 | docker-show-messages                  | If non-nil message docker commands         | `t`                  |
 | docker-show-status                    | When to compute status                     | `local-only`         |
 | docker-terminal-backend               | Terminal backend for live buffers          | `auto`               |
@@ -150,6 +149,9 @@ root, on that host.
 
 <kbd>M-x docker-open-dired-as-root</kbd> opens the current directory as root in `dired`, locally
 or on the current remote host. With a prefix argument, it asks which directory to open.
+
+This replaces the obsolete `docker-run-as-root` option, which only applied to the docker commands
+run on the local machine and left out the terminals and container shells.
 
 The same by hand:
 

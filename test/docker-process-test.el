@@ -158,6 +158,9 @@ in batch is none."
         (default-directory "/tmp/"))
     (should (equal (docker-with-sudo default-directory) "/sudo::"))))
 
+(ert-deftest docker-process-test-run-as-root-is-obsolete ()
+  (should (get 'docker-run-as-root 'byte-obsolete-variable)))
+
 (ert-deftest docker-process-test-filter-strips-carriage-returns ()
   (let ((process (make-pipe-process :name "docker-process-test" :noquery t)))
     (unwind-protect

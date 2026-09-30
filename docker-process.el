@@ -33,9 +33,14 @@
 (declare-function ghostel-exec "ghostel")
 
 (defcustom docker-run-as-root nil
-  "Run docker as root."
+  "Obsolete; open docker.el from a sudo directory instead.
+See `docker-open-dired-as-root'."
   :group 'docker
   :type 'boolean)
+
+(make-obsolete-variable 'docker-run-as-root
+                        "open docker.el from a sudo directory, see `docker-open-dired-as-root'."
+                        "2.6.0")
 
 (defcustom docker-show-messages t
   "If non-nil `message' docker commands which are run."
@@ -62,7 +67,9 @@ When set to `auto', prefer eat, then ghostel, then vterm, then shell."
 (defmacro docker-with-sudo (&rest body)
   "Set `default-directory' according to `docker-run-as-root', then execute BODY."
   (declare (indent defun))
-  `(let ((default-directory (if (and docker-run-as-root (not (file-remote-p default-directory)))
+  `(let ((default-directory (if (and (with-suppressed-warnings ((obsolete docker-run-as-root))
+                                       docker-run-as-root)
+                                     (not (file-remote-p default-directory)))
                                 "/sudo::"
                               default-directory)))
      ,@body))
