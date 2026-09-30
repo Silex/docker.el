@@ -274,6 +274,13 @@
       (docker-container-shell-command "web"))
     (should (equal default-command "docker exec -u root web"))))
 
+(ert-deftest docker-container-test-env-commands-are-obsolete ()
+  (dolist (command '(docker-container-shell-env docker-container-vterm-env
+                     docker-container-eat-env docker-container-ghostel-env
+                     docker-container-shell-env-selection docker-container-vterm-env-selection
+                     docker-container-eat-env-selection docker-container-ghostel-env-selection))
+    (should (equal (nth 2 (get command 'byte-obsolete-info)) "2.6.0"))))
+
 (ert-deftest docker-container-test-dired-alias-is-obsolete ()
   (should (eq (indirect-function 'docker-container-dired)
               (indirect-function 'docker-container-find-directory)))

@@ -444,7 +444,8 @@ When READ-SHELL is not nil, ask the user for the shell."
   (interactive "P")
   (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
-    (docker-container-shell-env it prefix)))
+    (with-suppressed-warnings ((obsolete docker-container-shell-env))
+      (docker-container-shell-env it prefix))))
 
 (defun docker-container-vterm-selection ()
   "Run `docker-container-vterm' on the containers selection."
@@ -460,7 +461,8 @@ When READ-SHELL is not nil, ask the user for the shell."
   (interactive)
   (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
-    (docker-container-vterm-env it)))
+    (with-suppressed-warnings ((obsolete docker-container-vterm-env))
+      (docker-container-vterm-env it))))
 
 ;;;###autoload (autoload 'docker-container-shell-command "docker-container" nil t)
 (defun docker-container-shell-command (container)
@@ -503,7 +505,8 @@ and is run as typed."
   (interactive)
   (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
-    (docker-container-eat-env it)))
+    (with-suppressed-warnings ((obsolete docker-container-eat-env))
+      (docker-container-eat-env it))))
 
 (defun docker-container-ghostel-selection ()
   "Run `docker-container-ghostel' on the containers selection."
@@ -519,7 +522,20 @@ and is run as typed."
   (interactive)
   (docker-utils-ensure-items)
   (--each (docker-utils-get-marked-items-ids)
-    (docker-container-ghostel-env it)))
+    (with-suppressed-warnings ((obsolete docker-container-ghostel-env))
+      (docker-container-ghostel-env it))))
+
+(dolist (command '(docker-container-shell-env docker-container-vterm-env
+                   docker-container-eat-env docker-container-ghostel-env))
+  (make-obsolete command
+                 "run a shell with `docker-container-shell-command', which gets the container's environment and working directory from \"docker exec\"."
+                 "2.6.0"))
+
+(dolist (command '(docker-container-shell-env-selection docker-container-vterm-env-selection
+                   docker-container-eat-env-selection docker-container-ghostel-env-selection))
+  (make-obsolete command
+                 "run a shell with `docker-container-shell-command-selection', which gets the container's environment and working directory from \"docker exec\"."
+                 "2.6.0"))
 
 (docker-utils-transient-define-prefix docker-container-attach ()
   "Transient for attaching to containers."
@@ -660,14 +676,14 @@ and displayed once the command finishes."
   [:description docker-generic-action-description
    ("!" "Shell command" docker-container-shell-command-selection)
    ("b" "Shell" docker-container-shell-selection)
-   ("B" "Shell with env" docker-container-shell-env-selection)
+   ("B" "Shell with env (obsolete)" docker-container-shell-env-selection)
    ("e" "Eshell" docker-container-eshell-selection)
    ("v" "Vterm" docker-container-vterm-selection)
-   ("V" "Vterm with env" docker-container-vterm-env-selection)
+   ("V" "Vterm with env (obsolete)" docker-container-vterm-env-selection)
    ("a" "Eat" docker-container-eat-selection)
-   ("A" "Eat with env" docker-container-eat-env-selection)
+   ("A" "Eat with env (obsolete)" docker-container-eat-env-selection)
    ("g" "Ghostel" docker-container-ghostel-selection)
-   ("G" "Ghostel with env" docker-container-ghostel-env-selection)])
+   ("G" "Ghostel with env (obsolete)" docker-container-ghostel-env-selection)])
 
 (docker-utils-transient-define-prefix docker-container-start ()
   "Transient for starting containers."
