@@ -184,12 +184,16 @@ When READ-SHELL-NAME is non-nil, read the shell name instead."
   "Read a container name."
   (docker-utils-completing-read "Container: " (-map #'car (aio-wait-for (docker-container-entries))) 'docker-container-name))
 
+;; Absent before Emacs 29, where hops always stay in the file name.
+(defvar tramp-show-ad-hoc-proxies)
+
 (defun docker-container--default-directory (container &optional workdir directory)
   "Return the tramp directory for CONTAINER, at WORKDIR when it is given.
 
-It is built on top of DIRECTORY, `default-directory' by default, so a remote
-host stays as the first hop of a multi-hop path."
-  (let* ((prefix (file-remote-p (or directory default-directory)))
+It is built on top of DIRECTORY, `default-directory' by default, so its hops,
+such as a remote host or a sudo one, come before the container's."
+  (let* ((prefix (let ((tramp-show-ad-hoc-proxies t))
+                   (file-remote-p (or directory default-directory))))
          (file-prefix (if prefix (format "%s|" (s-chop-suffix ":" prefix)) "/")))
     ;; Docker reports an empty WorkingDir for an image that sets none.
     (format "%s%s:%s:%s" file-prefix docker-container-tramp-method container

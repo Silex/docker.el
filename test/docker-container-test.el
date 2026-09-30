@@ -32,6 +32,13 @@
                      (docker-container-eshell "web"))
                    "/ssh:host|docker:web:/"))))
 
+(ert-deftest docker-container-test-default-directory-keeps-every-hop ()
+  (let ((tramp-default-proxies-alist nil))
+    (should (equal (docker-container--default-directory "web" nil "/ssh:myhost|sudo:myhost:/srv/")
+                   "/ssh:myhost|sudo:root@myhost|docker:web:/"))
+    (should (equal (docker-container--default-directory "web" nil "/sudo::/srv/")
+                   (format "/sudo:root@%s|docker:web:/" (system-name))))))
+
 (ert-deftest docker-container-test-eshell-honours-the-tramp-method ()
   (let ((default-directory "/tmp/")
         (docker-container-tramp-method "podman"))
