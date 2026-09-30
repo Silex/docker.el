@@ -29,6 +29,27 @@ sites write to are `special-mode', so comint never loads it either."
   (let ((transient-current-command 'docker-image-ls))
     (should (equal (docker-get-transient-action) "image ls"))))
 
+(ert-deftest docker-core-test-generic-action-reverts-its-own-buffer ()
+  (let ((list-buffer (generate-new-buffer "list"))
+        reverted promise)
+    (unwind-protect
+        (progn
+          (cl-letf (((symbol-function 'docker-utils-get-marked-items-ids) (lambda () '("web")))
+                    ((symbol-function 'docker-run-docker-async)
+                     (lambda (&rest _)
+                       (let ((promise (aio-promise)))
+                         (aio-resolve promise (lambda () ""))
+                         promise)))
+                    ((symbol-function 'tablist-revert)
+                     (lambda () (setq reverted (current-buffer)))))
+            (with-current-buffer list-buffer
+              (setq promise (docker-generic-action "stop" nil)))
+            ;; The await resumes while another buffer is current.
+            (with-temp-buffer
+              (aio-wait-for promise)))
+          (should (eq reverted list-buffer)))
+      (kill-buffer list-buffer))))
+
 (provide 'docker-core-test)
 
 ;;; docker-core-test.el ends here
