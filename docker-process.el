@@ -223,22 +223,34 @@ a non-interactive streaming buffer needs."
           (set-marker (process-mark proc) (point)))
         (when moving (goto-char (process-mark proc)))))))
 
+(defun docker--resolve-promise (promise value-function)
+  "Resolve PROMISE with VALUE-FUNCTION, whatever `timer-list' is bound to.
+
+`aio-resolve' runs the callbacks of PROMISE from a timer.  Tramp let-binds
+`timer-list' while it talks to a connection, and a sentinel can run inside
+that binding: the timer it starts there is dropped when the binding is
+unwound, and the callbacks never run.  So the timer is started in the
+top-level `timer-list'."
+  (let ((timer-list (default-toplevel-value 'timer-list)))
+    (aio-resolve promise value-function)
+    (set-default-toplevel-value 'timer-list timer-list)))
+
 (defun docker-process-sentinel (promise process event)
   "Sentinel that resolves the PROMISE using PROCESS and EVENT."
   (when (memq (process-status process) '(exit signal))
     (setq event (substring event 0 -1))
     (if (not (string-equal event "finished"))
-        (aio-resolve promise
-                     (lambda ()
-                       (error "Error running: \"%s\" (%s)" (process-name process) event)))
-      (aio-resolve promise
-                   (lambda ()
-                     (when docker-show-messages
-                       (message "Finished: %s" (process-name process)))
-                     (run-with-timer 2 nil (lambda () (message nil)))
-                     (with-current-buffer (process-buffer process)
-                       (prog1 (buffer-substring-no-properties (point-min) (point-max))
-                         (kill-buffer))))))))
+        (docker--resolve-promise promise
+                                 (lambda ()
+                                   (error "Error running: \"%s\" (%s)" (process-name process) event)))
+      (docker--resolve-promise promise
+                               (lambda ()
+                                 (when docker-show-messages
+                                   (message "Finished: %s" (process-name process)))
+                                 (run-with-timer 2 nil (lambda () (message nil)))
+                                 (with-current-buffer (process-buffer process)
+                                   (prog1 (buffer-substring-no-properties (point-min) (point-max))
+                                     (kill-buffer))))))))
 
 (provide 'docker-process)
 

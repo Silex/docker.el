@@ -183,6 +183,16 @@ in batch is none."
       (delete-process process)
       (kill-buffer "*docker-process-test*"))))
 
+(ert-deftest docker-process-test-resolve-promise-survives-a-rebound-timer-list ()
+  (let ((promise (aio-promise))
+        resolved)
+    (aio-listen promise (lambda (value-function) (setq resolved (funcall value-function))))
+    (let (timer-list)
+      (docker--resolve-promise promise (lambda () 'done)))
+    (dotimes (_ 50)
+      (unless resolved (accept-process-output nil 0.1)))
+    (should (eq resolved 'done))))
+
 (provide 'docker-process-test)
 
 ;;; docker-process-test.el ends here
