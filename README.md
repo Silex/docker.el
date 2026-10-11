@@ -112,6 +112,17 @@ Here is a list of other customizations you can set:
 | docker-volume-columns                 | Columns definition for volumes             | Too complex to show  |
 | docker-volume-default-sort-key        | Sort key for volumes                       | `("Driver")`         |
 
+### Asynchronous command diagnostics
+
+Commands used to list resources or discover Compose services return only standard
+output. Standard error is captured separately, so warnings cannot become resource
+names. Successful warnings are echoed when `docker-show-messages` is non-nil.
+
+On failure, the promise is rejected and a persistent read-only buffer shows the
+command, directory, exit status, standard output and standard error. The buffer is
+displayed using `display-buffer` and `docker-pop-to-buffer-action`, without selecting
+its window. Interactive terminal backends are unchanged.
+
 ### Changing the default arguments for `docker run`
 
 You can match on the repository name for an image to customize the initial infix arguments via `docker-image-run-custom-args`:

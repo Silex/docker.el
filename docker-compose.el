@@ -55,7 +55,7 @@ Display the output in a new buffer."
 
 (aio-defun docker-compose-services ()
   "Return the list of services."
-  (s-split "\n" (aio-await (docker-compose-run-docker-compose-async "config" "--services" "2>/dev/null")) t))
+  (s-split "\n" (aio-await (docker-compose-run-docker-compose-async "config" "--services")) t))
 
 (aio-defun docker-compose-read-services-names ()
   "Read the services names."

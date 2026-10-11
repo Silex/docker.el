@@ -87,10 +87,36 @@ ARGS may nest lists and hold blank strings, which are dropped."
       (when docker-show-messages (message "Running: %s" command))
       (start-file-process-shell-command command (docker-utils-generate-new-buffer-name command) command))))
 
+(defun docker--start-process-with-stderr (program args)
+  "Run PROGRAM with ARGS, returning a process with separate stderr."
+  (docker-with-sudo
+    (let* ((command (docker--process-command program args))
+           (directory default-directory)
+           (stderr-file (make-nearby-temp-file "docker-stderr-"))
+           (buffer (docker-utils-generate-new-buffer command))
+           process)
+      (unwind-protect
+          (progn
+            (with-current-buffer buffer (setq default-directory directory))
+            (when docker-show-messages (message "Running: %s" command))
+            (setq process
+                  (start-file-process-shell-command
+                   command buffer
+                   (format "( %s ) 2> %s" command
+                           (shell-quote-argument (file-local-name stderr-file)))))
+            (process-put process 'docker-stderr-file stderr-file)
+            (process-put process 'docker-command command)
+            (process-put process 'docker-directory directory)
+            process)
+        (unless process
+          (unwind-protect (delete-file stderr-file)
+            (when (buffer-live-p buffer) (kill-buffer buffer))))))))
+
 (defun docker-run-async (program &rest args)
-  "Execute \"PROGRAM ARGS\" and return a promise with the results."
-  (let* ((process (apply #'docker-run-start-file-process-shell-command program args))
-         (promise (aio-promise)))
+  "Execute \"PROGRAM ARGS\" and return a promise with standard output.
+On failure, display diagnostics and reject the promise with stderr."
+  (let ((process (docker--start-process-with-stderr program args))
+        (promise (aio-promise)))
     (set-process-query-on-exit-flag process nil)
     (set-process-sentinel process (-partial #'docker-process-sentinel promise))
     promise))
@@ -235,22 +261,64 @@ top-level `timer-list'."
     (aio-resolve promise value-function)
     (set-default-toplevel-value 'timer-list timer-list)))
 
-(defun docker-process-sentinel (promise process event)
-  "Sentinel that resolves the PROMISE using PROCESS and EVENT."
-  (when (memq (process-status process) '(exit signal))
-    (setq event (substring event 0 -1))
-    (if (not (string-equal event "finished"))
-        (docker--resolve-promise promise
-                                 (lambda ()
-                                   (error "Error running: \"%s\" (%s)" (process-name process) event)))
-      (docker--resolve-promise promise
-                               (lambda ()
-                                 (when docker-show-messages
-                                   (message "Finished: %s" (process-name process)))
-                                 (run-with-timer 2 nil (lambda () (message nil)))
-                                 (with-current-buffer (process-buffer process)
-                                   (prog1 (buffer-substring-no-properties (point-min) (point-max))
-                                     (kill-buffer))))))))
+(defun docker-process-sentinel (promise process _event)
+  "Resolve PROMISE from PROCESS, retaining diagnostics on failure."
+  (when (and (memq (process-status process) '(exit signal))
+             (not (process-get process 'docker-completed)))
+    (process-put process 'docker-completed t)
+    (let* ((buffer (process-buffer process))
+           (command (or (process-get process 'docker-command)
+                        (process-name process)))
+           (directory (or (process-get process 'docker-directory)
+                          default-directory))
+           (code (process-exit-status process))
+           (stderr-file (process-get process 'docker-stderr-file))
+           (stdout (if (buffer-live-p buffer)
+                       (with-current-buffer buffer
+                         (buffer-substring-no-properties (point-min) (point-max)))
+                     ""))
+           (stderr "")
+           (capture-error (unless (buffer-live-p buffer) "Output buffer was killed")))
+      (when stderr-file
+        (condition-case err
+            (unwind-protect
+                (setq stderr (with-temp-buffer
+                               (insert-file-contents stderr-file)
+                               (buffer-string)))
+              (delete-file stderr-file))
+          (error (setq capture-error (error-message-string err)))))
+      (if (and (eq (process-status process) 'exit) (= code 0)
+               (not capture-error))
+          (progn
+            (when docker-show-messages
+              (if (s-blank? stderr)
+                  (progn (message "Finished: %s" command)
+                         (run-with-timer 2 nil (lambda () (message nil))))
+                (message "Finished: %s\n%s" command (s-trim stderr))))
+            (kill-buffer buffer)
+            (docker--resolve-promise promise (lambda () stdout)))
+        (unless (buffer-live-p buffer)
+          (setq buffer (docker-utils-generate-new-buffer command))
+          (set-process-buffer process buffer))
+        (with-current-buffer buffer
+          (let ((inhibit-read-only t))
+            (erase-buffer)
+            (insert (format "Command: %s\nDirectory: %s\nExit: %s (%s)\n\n"
+                            command directory (process-status process) code))
+            (when capture-error
+              (insert (format "Capture error: %s\n\n" capture-error)))
+            (insert "Standard output:\n" stdout "\nStandard error:\n" stderr)
+            (setq default-directory directory)
+            (special-mode)))
+        (condition-case err
+            (display-buffer buffer docker-pop-to-buffer-action)
+          (error (message "Cannot display Docker output: %s"
+                          (error-message-string err))))
+        (let ((diagnostic (format "Error running: \"%s\" (exit %s). %s See %s"
+                                  command code
+                                  (or capture-error (s-trim stderr))
+                                  (buffer-name buffer))))
+          (docker--resolve-promise promise (lambda () (error "%s" diagnostic))))))))
 
 (provide 'docker-process)
 
