@@ -48,6 +48,21 @@
               (indirect-function 'docker-compose-run-action-for-services)))
   (should (get 'docker-compose-run-action-for-one-service 'byte-obsolete-info)))
 
+(ert-deftest docker-compose-test-services-do-not-discard-stderr ()
+  (let (args)
+    (cl-letf (((symbol-function 'docker-compose-run-docker-compose-async)
+               (lambda (&rest rest)
+                 (setq args rest)
+                 (docker-compose-test-resolved "web\ndb\n"))))
+      (should (equal (aio-wait-for (docker-compose-services)) '("web" "db"))))
+    (should (equal args '("config" "--services")))))
+
+(ert-deftest docker-compose-test-success-warnings-are-not-services ()
+  (let ((docker-compose-command
+         "sh -c 'printf \"WARN unset HELLO\\n\" >&2; printf \"web\\ndb\\n\"' --")
+        (docker-show-messages nil))
+    (should (equal (aio-wait-for (docker-compose-services)) '("web" "db")))))
+
 (provide 'docker-compose-test)
 
 ;;; docker-compose-test.el ends here
