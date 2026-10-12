@@ -114,14 +114,17 @@ Here is a list of other customizations you can set:
 
 ### Asynchronous command diagnostics
 
-Commands used to list resources or discover Compose services return only standard
-output. Standard error is captured separately, so warnings cannot become resource
-names. Successful warnings are echoed when `docker-show-messages` is non-nil.
+The commands that list resources or discover Compose services read standard output
+only, so a warning on standard error cannot become a resource name. Standard error
+is logged in the `*docker-diagnostics*` buffer.
 
-On failure, the promise is rejected and a persistent read-only buffer shows the
-command, directory, exit status, standard output and standard error. The buffer is
-displayed using `display-buffer` and `docker-pop-to-buffer-action`, without selecting
-its window. Interactive terminal backends are unchanged.
+When a command fails, the promise is rejected and the buffer gains the command, its
+directory, its exit status, its standard output and its standard error. The buffer
+is then displayed with `display-buffer` and `docker-pop-to-buffer-action`, without
+selecting its window.
+
+Separating the two streams takes a POSIX `sh` on the host that runs the command.
+Without one they stay mixed.
 
 ### Changing the default arguments for `docker run`
 

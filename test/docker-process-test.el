@@ -203,107 +203,185 @@ in batch is none."
     (should value-function)
     value-function))
 
-(defmacro docker-process-test-capture (command &rest body)
-  "Run COMMAND safely, exposing process, promise and display to BODY."
-  (declare (indent 1))
+(defmacro docker-process-test-with-diagnostics (&rest body)
+  "Evaluate BODY with a diagnostics buffer of its own.
+
+BODY sees `displayed', the buffers `display-buffer' was called with, and
+`processes', the processes it started.  Both are most recent first."
+  (declare (indent 0))
   `(let* ((docker-show-messages nil)
-          (start (symbol-function 'start-file-process-shell-command))
-          process displayed promise)
+          (start (symbol-function 'docker--start-shell-command))
+          displayed processes)
      (unwind-protect
-         (cl-letf (((symbol-function 'start-file-process-shell-command)
-                    (lambda (&rest args)
-                      (setq process (apply start args))))
+         (cl-letf (((symbol-function 'docker--start-shell-command)
+                    (lambda (&rest args) (car (push (apply start args) processes))))
                    ((symbol-function 'display-buffer)
-                    (lambda (buffer &rest _) (setq displayed buffer))))
-           (setq promise (docker-run-async "sh" "-c"
-                                          (shell-quote-argument ,command)))
+                    (lambda (buffer &rest _) (push buffer displayed) nil)))
            ,@body)
-       (when (and process (process-live-p process)) (delete-process process))
-       (when (and process (buffer-live-p (process-buffer process)))
-         (kill-buffer (process-buffer process)))
-       (when (and displayed (buffer-live-p displayed)) (kill-buffer displayed)))))
+       (--each processes
+         (set-process-sentinel it #'ignore)
+         (delete-process it))
+       (when (get-buffer docker-diagnostics-buffer-name)
+         (kill-buffer docker-diagnostics-buffer-name)))))
+
+(defun docker-process-test-sh (script &optional runner)
+  "Return the promise of RUNNER running the shell SCRIPT.
+RUNNER defaults to `docker-run-async'."
+  (funcall (or runner #'docker-run-async) "sh" "-c" (shell-quote-argument script)))
+
+(defun docker-process-test-diagnostics ()
+  "Return the text of the diagnostics buffer, or nil without one."
+  (-when-let (buffer (get-buffer docker-diagnostics-buffer-name))
+    (with-current-buffer buffer (buffer-string))))
 
 (ert-deftest docker-process-test-success-excludes-stderr ()
-  (docker-process-test-capture "printf 'WARN unset variable\n' >&2; printf 'web\ndb\n'"
-    (should (equal (funcall (docker-process-test-await promise)) "web\ndb\n"))
+  (docker-process-test-with-diagnostics
+    (let ((promise (docker-process-test-sh "printf 'WARN unset variable\n' >&2; printf 'web\ndb\n'")))
+      (should (equal (funcall (docker-process-test-await promise)) "web\ndb\n")))
     (should-not displayed)
-    (should-not (buffer-live-p (process-buffer process)))
-    (should (process-get process 'docker-stderr-file))
-    (should-not (file-exists-p (process-get process 'docker-stderr-file)))))
+    (should-not (buffer-live-p (process-buffer (car processes))))
+    (should (string-suffix-p "Status: finished\n\nStandard error:\nWARN unset variable\n\n"
+                             (docker-process-test-diagnostics)))))
 
-(ert-deftest docker-process-test-failure-has-persistent-diagnostics ()
-  (docker-process-test-capture "printf 'partial\n'; printf 'invalid depends_on\n' >&2; exit 7"
-    (let ((err (should-error (funcall (docker-process-test-await promise)))))
-      (should (string-match-p "invalid depends_on" (error-message-string err))))
-    (should (eq displayed (process-buffer process)))
-    (with-current-buffer displayed
-      (should (eq major-mode 'special-mode))
-      (should (string-match-p "Directory:" (buffer-string)))
-      (should (string-match-p "Exit: exit (7)" (buffer-string)))
-      (should (string-match-p "partial" (buffer-string)))
-      (should (string-match-p "invalid depends_on" (buffer-string))))
-    (should-not (file-exists-p (process-get process 'docker-stderr-file)))))
+(ert-deftest docker-process-test-success-keeps-stdout-as-it-is ()
+  (docker-process-test-with-diagnostics
+    (let ((promise (docker-process-test-sh "printf 'no newline'")))
+      (should (equal (funcall (docker-process-test-await promise)) "no newline")))
+    (should-not (docker-process-test-diagnostics))))
 
-(ert-deftest docker-process-test-complete-trailing-stderr ()
-  (docker-process-test-capture
-      "i=0; while [ $i -lt 3000 ]; do printf '0123456789\n' >&2; i=$((i+1)); done; printf 'FINAL_MARKER\n' >&2; exit 2"
-    (should-error (funcall (docker-process-test-await promise)))
-    (with-current-buffer displayed
-      (should (string-suffix-p "FINAL_MARKER\n" (buffer-string)))
-      (goto-char (point-min))
-      (should (search-forward "Standard error:\n" nil t))
-      (should (equal (buffer-substring-no-properties (point) (point-max))
-                     (concat (apply #'concat (make-list 3000 "0123456789\n"))
-                             "FINAL_MARKER\n"))))))
-
-(ert-deftest docker-process-test-signal-cleans-stderr ()
-  (docker-process-test-capture "exec sleep 10"
-    (delete-process process)
-    (should-error (funcall (docker-process-test-await promise)))
-    (should (buffer-live-p displayed))
-    (should-not (file-exists-p (process-get process 'docker-stderr-file)))))
-
-(ert-deftest docker-process-test-killed-output-still-rejects ()
-  (docker-process-test-capture "sleep 0.1; exit 7"
-    (kill-buffer (process-buffer process))
-    (should-error (funcall (docker-process-test-await promise)))
-    (should (buffer-live-p displayed))
-    (should (eq displayed (process-buffer process)))
-    (should-not (file-exists-p (process-get process 'docker-stderr-file)))))
-
-(ert-deftest docker-process-test-start-error-cleans-stderr ()
-  (let ((make-temp (symbol-function 'make-nearby-temp-file))
-        tempfile created-buffer)
-    (cl-letf (((symbol-function 'make-nearby-temp-file)
-               (lambda (&rest args) (setq tempfile (apply make-temp args))))
-              ((symbol-function 'start-file-process-shell-command)
-               (lambda (_name buffer _command)
-                 (setq created-buffer buffer)
-                 (error "fixture startup failure"))))
-      (should-error (docker-run-async "fixture")))
-    (should tempfile)
-    (should-not (file-exists-p tempfile))
-    (should-not (buffer-live-p created-buffer))))
-
-(ert-deftest docker-process-test-warning-is-reported-when-enabled ()
-  (docker-process-test-capture "printf 'warning payload\n' >&2; printf 'web\n'"
+(ert-deftest docker-process-test-success-mentions-warnings ()
+  (docker-process-test-with-diagnostics
     (let ((docker-show-messages t)
           messages)
       (cl-letf (((symbol-function 'message)
                  (lambda (format-string &rest args)
-                   (push (and format-string (apply #'format format-string args))
-                         messages))))
-        (should (equal (funcall (docker-process-test-await promise)) "web\n")))
-      (should (cl-some (lambda (text)
-                         (and text (string-match-p "warning payload" text)))
-                       messages)))))
+                   (push (and format-string (apply #'format format-string args)) messages))))
+        (let ((promise (docker-process-test-sh "printf 'warning payload\n' >&2; printf 'web\n'")))
+          (should (equal (funcall (docker-process-test-await promise)) "web\n"))))
+      (should (--some (and it (string-suffix-p "(warnings in *docker-diagnostics*)" it)) messages))
+      (should-not (--some (and it (string-match-p "warning payload" it)) messages)))))
+
+(ert-deftest docker-process-test-failure-is-logged-and-displayed ()
+  (docker-process-test-with-diagnostics
+    (let* ((default-directory temporary-file-directory)
+           (promise (docker-process-test-sh "printf 'partial\n'; printf 'invalid depends_on\n' >&2; exit 7"))
+           (err (should-error (funcall (docker-process-test-await promise)))))
+      (should (string-match-p "(exited abnormally with code 7): invalid depends_on\\'"
+                              (error-message-string err)))
+      (should (equal displayed (list docker-diagnostics-buffer-name)))
+      (with-current-buffer docker-diagnostics-buffer-name
+        (should (eq major-mode 'special-mode))
+        (should (string-prefix-p "Command: sh -c " (buffer-string)))
+        (should (string-suffix-p (concat "\nDirectory: " temporary-file-directory "\n"
+                                         "Status: exited abnormally with code 7\n\n"
+                                         "Standard output:\npartial\n\n"
+                                         "Standard error:\ninvalid depends_on\n\n")
+                                 (buffer-string)))))))
+
+(ert-deftest docker-process-test-failure-reports-the-last-stderr-line ()
+  (docker-process-test-with-diagnostics
+    (let* ((promise (docker-process-test-sh "yes 0123456789 | head -n 3000 >&2; printf 'FINAL_MARKER\n' >&2; exit 2"))
+           (err (should-error (funcall (docker-process-test-await promise)))))
+      (should (equal (error-message-string err)
+                     (format "Error running: \"%s\" (exited abnormally with code 2): FINAL_MARKER"
+                             (process-get (car processes) 'docker-command))))
+      (should (string-suffix-p (concat "Standard error:\n"
+                                       (apply #'concat (make-list 3000 "0123456789\n"))
+                                       "FINAL_MARKER\n\n")
+                               (docker-process-test-diagnostics))))))
+
+(ert-deftest docker-process-test-failures-share-one-buffer ()
+  (docker-process-test-with-diagnostics
+    (let ((promises (--map (docker-process-test-sh (format "printf 'failure %d\n' >&2; exit 1" it)) '(0 1 2))))
+      (--each promises (should-error (funcall (docker-process-test-await it)))))
+    (should (equal (-uniq displayed) (list docker-diagnostics-buffer-name)))
+    (dotimes (i 3)
+      (should (string-match-p (format "Standard error:\nfailure %d\n" i) (docker-process-test-diagnostics))))))
+
+(ert-deftest docker-process-test-signal-is-reported-as-one ()
+  (docker-process-test-with-diagnostics
+    (let ((promise (docker-process-test-sh "exec sleep 10")))
+      (delete-process (car processes))
+      (let ((err (should-error (funcall (docker-process-test-await promise)))))
+        (should (string-match-p "(killed\\(: 9\\)?)\\'" (error-message-string err)))))
+    (should (string-match-p "\nStatus: killed" (docker-process-test-diagnostics)))))
+
+(ert-deftest docker-process-test-killed-output-still-rejects ()
+  (docker-process-test-with-diagnostics
+    (let ((promise (docker-process-test-sh "sleep 0.1; exit 7")))
+      (kill-buffer (process-buffer (car processes)))
+      (should-error (funcall (docker-process-test-await promise))))
+    (should (equal displayed (list docker-diagnostics-buffer-name)))))
 
 (ert-deftest docker-process-test-sentinel-is-idempotent ()
-  (docker-process-test-capture "printf 'failure payload\n' >&2; exit 7"
-    (should-error (funcall (docker-process-test-await promise)))
-    (let ((original (with-current-buffer displayed (buffer-string))))
-      (docker-process-sentinel promise process "exited again\n")
-      (should (equal original (with-current-buffer displayed (buffer-string)))))))
+  (docker-process-test-with-diagnostics
+    (let ((promise (docker-process-test-sh "printf 'failure payload\n' >&2; exit 7")))
+      (should-error (funcall (docker-process-test-await promise)))
+      (let ((logged (docker-process-test-diagnostics)))
+        (docker-process-sentinel promise (car processes) "exited again\n")
+        (should (equal (docker-process-test-diagnostics) logged))))))
+
+(ert-deftest docker-process-test-with-stderr-keeps-stderr-in-the-output ()
+  (docker-process-test-with-diagnostics
+    (let ((promise (docker-process-test-sh "printf 'out\n'; printf 'err\n' >&2" #'docker-run-async-with-stderr)))
+      (should (equal (funcall (docker-process-test-await promise)) "out\nerr\n")))
+    (should-not (docker-process-test-diagnostics))))
+
+(ert-deftest docker-process-test-with-stderr-logs-a-failure ()
+  (docker-process-test-with-diagnostics
+    (let* ((script "printf 'out\n'; printf 'err\n' >&2; exit 3")
+           (promise (docker-process-test-sh script #'docker-run-async-with-stderr))
+           (err (should-error (funcall (docker-process-test-await promise)))))
+      (should (string-suffix-p "(exited abnormally with code 3): err" (error-message-string err))))
+    (should (string-suffix-p "Status: exited abnormally with code 3\n\nOutput:\nout\nerr\n\n"
+                             (docker-process-test-diagnostics)))))
+
+(ert-deftest docker-process-test-command-reaches-the-user-shell-untouched ()
+  (let ((docker-show-messages nil)
+        (default-directory temporary-file-directory)
+        (shell-file-name "/usr/bin/fish")
+        (shell-command-switch "-c")
+        (process (make-pipe-process :name "docker-process-test" :noquery t))
+        started)
+    (unwind-protect
+        (cl-letf (((symbol-function 'start-file-process)
+                   (lambda (_name _buffer &rest command) (setq started command) process)))
+          (docker--start-shell-command "docker ps --format='{{.ID}}'" t)
+          (should (equal started (list "sh" "-c" docker--stderr-script
+                                       (process-get process 'docker-stderr-token)
+                                       "/usr/bin/fish" "-c" "docker ps --format='{{.ID}}'"))))
+      (delete-process process))))
+
+(ert-deftest docker-process-test-streams-stay-mixed-without-a-posix-shell ()
+  (docker-process-test-with-diagnostics
+    (let* ((exec-path nil)
+           (promise (docker-process-test-sh "printf 'out\n'; printf 'err\n' >&2")))
+      (should-not (process-get (car processes) 'docker-stderr-token))
+      (should (equal (funcall (docker-process-test-await promise)) "out\nerr\n")))))
+
+(ert-deftest docker-process-test-remote-commands-overlap ()
+  "Several commands in flight on one tramp connection all resolve."
+  (let* ((tramp-methods `(("mock"
+                           (tramp-login-program ,tramp-default-remote-shell)
+                           (tramp-login-args (("-i")))
+                           (tramp-direct-async ("-c"))
+                           (tramp-remote-shell ,tramp-default-remote-shell)
+                           (tramp-remote-shell-args ("-c"))
+                           (tramp-connection-timeout 10))))
+         (tramp-default-host-alist `(("\\`mock\\'" nil ,(system-name))))
+         (tramp-persistency-file-name nil)
+         (tramp-verbose 0)
+         (default-directory (concat "/mock::" temporary-file-directory)))
+    (unwind-protect
+        (docker-process-test-with-diagnostics
+          (let* ((script "printf 'out-%d\n'; printf 'err-%d\n' >&2")
+                 (promises (--map (docker-process-test-sh (format script it it)) '(0 1 2 3 4))))
+            (--each-indexed promises
+              (should (equal (funcall (docker-process-test-await it)) (format "out-%d\n" it-index)))))
+          (should-not displayed)
+          (dotimes (i 5)
+            (should (string-match-p (format "Standard error:\nerr-%d\n" i) (docker-process-test-diagnostics)))))
+      (tramp-cleanup-connection (tramp-dissect-file-name default-directory) t t))))
 
 (provide 'docker-process-test)
 

@@ -52,8 +52,9 @@ Run it on `28.1` as well as `30.2` when touching docstrings: Emacs 30 splits
 group, so the two ends of the matrix do not report the same set.
 
 The suite runs in batch, so it reaches the pure helpers, the tramp paths the container
-entry points build and the terminal backend dispatch, but not the transient UI, a real
-tramp connection or a docker daemon. Changes to those still need a manual check in
+entry points build, the terminal backend dispatch and the asynchronous commands, both
+locally and over a tramp connection to the local host. It does not reach the transient
+UI, a remote host or a docker daemon. Changes to those still need a manual check in
 `emacs -Q`.
 
 ## Running the linters
