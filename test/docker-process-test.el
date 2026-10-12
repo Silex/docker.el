@@ -224,10 +224,10 @@ BODY sees `displayed', the buffers `display-buffer' was called with, and
        (when (get-buffer docker-diagnostics-buffer-name)
          (kill-buffer docker-diagnostics-buffer-name)))))
 
-(defun docker-process-test-sh (script &optional runner)
-  "Return the promise of RUNNER running the shell SCRIPT.
-RUNNER defaults to `docker-run-async'."
-  (funcall (or runner #'docker-run-async) "sh" "-c" (shell-quote-argument script)))
+(defun docker-process-test-sh (script &rest args)
+  "Return the promise of `docker-run-async' running the shell SCRIPT.
+ARGS follow SCRIPT on the command line."
+  (apply #'docker-run-async "sh" "-c" (shell-quote-argument script) args))
 
 (defun docker-process-test-diagnostics ()
   "Return the text of the diagnostics buffer, or nil without one."
@@ -321,20 +321,12 @@ RUNNER defaults to `docker-run-async'."
         (docker-process-sentinel promise (car processes) "exited again\n")
         (should (equal (docker-process-test-diagnostics) logged))))))
 
-(ert-deftest docker-process-test-with-stderr-keeps-stderr-in-the-output ()
+(ert-deftest docker-process-test-redirected-stderr-keeps-its-place ()
   (docker-process-test-with-diagnostics
-    (let ((promise (docker-process-test-sh "printf 'out\n'; printf 'err\n' >&2" #'docker-run-async-with-stderr)))
-      (should (equal (funcall (docker-process-test-await promise)) "out\nerr\n")))
+    (let* ((script "printf 'out-1\n'; printf 'err-1\n' >&2; printf 'out-2\n'; printf 'err-2\n' >&2")
+           (promise (docker-process-test-sh script "2>&1")))
+      (should (equal (funcall (docker-process-test-await promise)) "out-1\nerr-1\nout-2\nerr-2\n")))
     (should-not (docker-process-test-diagnostics))))
-
-(ert-deftest docker-process-test-with-stderr-logs-a-failure ()
-  (docker-process-test-with-diagnostics
-    (let* ((script "printf 'out\n'; printf 'err\n' >&2; exit 3")
-           (promise (docker-process-test-sh script #'docker-run-async-with-stderr))
-           (err (should-error (funcall (docker-process-test-await promise)))))
-      (should (string-suffix-p "(exited abnormally with code 3): err" (error-message-string err))))
-    (should (string-suffix-p "Status: exited abnormally with code 3\n\nOutput:\nout\nerr\n\n"
-                             (docker-process-test-diagnostics)))))
 
 (ert-deftest docker-process-test-command-reaches-the-user-shell-untouched ()
   (let ((docker-show-messages nil)

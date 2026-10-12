@@ -117,29 +117,16 @@ process.  A local host without a POSIX shell leaves the streams mixed."
   "Execute \"PROGRAM ARGS\" and return the process."
   (docker--start-shell-command (docker--process-command program args) nil))
 
-(defun docker--run-async (separate-stderr program args)
-  "Execute \"PROGRAM ARGS\" and return a promise with the results.
-SEPARATE-STDERR is the one of `docker--start-shell-command'."
-  (let ((process (docker--start-shell-command (docker--process-command program args) separate-stderr))
-        (promise (aio-promise)))
-    (set-process-query-on-exit-flag process nil)
-    (set-process-sentinel process (-partial #'docker-process-sentinel promise))
-    promise))
-
 (defun docker-run-async (program &rest args)
   "Execute \"PROGRAM ARGS\" and return a promise with its standard output.
 
 Standard error is logged in `docker-diagnostics-buffer-name'.  When the
 command fails that buffer is displayed and the promise is rejected."
-  (docker--run-async t program args))
-
-(defun docker-run-async-with-stderr (program &rest args)
-  "Execute \"PROGRAM ARGS\" and return a promise with all its output.
-
-Standard error stays where the command wrote it among the standard output,
-which suits output that is displayed as it is.  Failures are handled like
-`docker-run-async' does."
-  (docker--run-async nil program args))
+  (let ((process (docker--start-shell-command (docker--process-command program args) t))
+        (promise (aio-promise)))
+    (set-process-query-on-exit-flag process nil)
+    (set-process-sentinel process (-partial #'docker-process-sentinel promise))
+    promise))
 
 (defun docker-run-async-with-buffer (program interactive &rest args)
   "Execute \"PROGRAM ARGS\" and display output in a new buffer.
