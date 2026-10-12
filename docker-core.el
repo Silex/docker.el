@@ -58,6 +58,10 @@
   "Execute \"`docker-command' ARGS\" and return a promise with the results."
   (apply #'docker-run-async docker-command (docker-arguments) args))
 
+(defun docker-run-docker-async-with-stderr (&rest args)
+  "Execute \"`docker-command' ARGS\" and return a promise with all its output."
+  (apply #'docker-run-async-with-stderr docker-command (docker-arguments) args))
+
 (defun docker-run-docker-async-with-buffer-interactive (&rest args)
   "Execute \"`docker-command' ARGS\" and display output in an interactive buffer."
   (apply #'docker-run-async-with-buffer-interactive docker-command (docker-arguments) args))
@@ -110,13 +114,13 @@
 (aio-defun docker-generic-action-with-buffer (action args)
   "Run \"`docker-command' ACTION ARGS\", wait, then display the output.
 
-All output is collected before it is displayed, which suits the commands that
-are not interactive."
+All output is collected before it is displayed, standard error included, which
+suits the commands that are not interactive."
   (interactive (list (docker-get-transient-action)
                      (transient-args transient-current-command)))
   (--each (docker-utils-get-marked-items-ids)
     (let* ((id it)
-           (output (aio-await (docker-run-docker-async (s-split " " action) args id))))
+           (output (aio-await (docker-run-docker-async-with-stderr (s-split " " action) args id))))
       (docker-utils-with-buffer (format "%s %s" action id)
         ;; Strip carriage returns (Docker outputs CRLF line endings)
         (insert (ansi-color-apply (replace-regexp-in-string "\r" "" output)))
